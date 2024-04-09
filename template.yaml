@@ -20,6 +20,13 @@ Parameters:
     Description: The public subnets to deploy to
 
 Resources:
+  TemplateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${Repository}-template-sg-${Environment}"
+      GroupName: !Sub "${Repository}-template-sg-${Environment}"
+      VpcId: !Ref VPC
+
   TemplateFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -30,7 +37,7 @@ Resources:
       VpcConfig:
         SubnetIds: !Ref PublicSubnets
         SecurityGroupIds:
-          - !Ref APISecurityGroup
+          - !Ref TemplateSecurityGroup
       Environment:
         Variables:
           PG_DATABASE: !Sub '{{resolve:ssm:rds-db-name-${ParamEnvironment}}}'
