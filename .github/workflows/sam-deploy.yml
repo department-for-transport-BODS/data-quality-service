@@ -22,7 +22,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ vars.IAMROLE }}
+          role-to-assume: ${{ vars.IAM_ROLE }}
           role-session-name: deploysam
           aws-region: ${{ env.AWS_REGION }}
       - name: Set up SAM
