@@ -39,7 +39,7 @@ jobs:
               Repository=${{ env.REPO }} \
               ParamEnvironment=${{ env.PARAM_ENVIRONMENT }} \
               PublicSubnets=private-subnets-${{ env.PARAM_ENVIRONMENT }} \
-              VPC=vpc-id--${{ env.PARAM_ENVIRONMENT }}" \
+              VPC=vpc-id-${{ env.PARAM_ENVIRONMENT }}" \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
             --resolve-s3 \
