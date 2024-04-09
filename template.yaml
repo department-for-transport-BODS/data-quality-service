@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Stub for DQS
+
+Parameters:
+  Environment:
+    Type: String
+    Description: The environment to deploy to
+  ParamEnvironment:
+    Type: String
+    Description: The environment to pull params for
+  Repository:
+    Type: String
+    Description: The Github Repository Name
+  VPC:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>
+    Description: The VPC to deploy to
+  PublicSubnets:
+    Type: AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>
+    Description: The public subnets to deploy to
+
+Resources:
+  TemplateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Repository}-template-function-${Environment}"
+      CodeUri: src/template
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      VpcConfig:
+        SubnetIds: !Ref PublicSubnets
+        SecurityGroupIds:
+          - !Ref APISecurityGroup
+      Environment:
+        Variables:
+          PG_DATABASE: !Sub '{{resolve:ssm:rds-db-name-${ParamEnvironment}}}'
+
+
+Outputs:
+  Env:
+    Description: "Environment"
+    Value: !Ref Environment
