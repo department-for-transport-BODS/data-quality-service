@@ -20,13 +20,6 @@ Parameters:
     Description: The public subnets to deploy to
 
 Resources:
-  TemplateSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub "${Repository}-template-sg-${Environment}"
-      GroupName: !Sub "${Repository}-template-sg-${Environment}"
-      VpcId: !Ref VPC
-
   TemplateFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -37,7 +30,7 @@ Resources:
       VpcConfig:
         SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
-          - !Ref TemplateSecurityGroup
+          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
       Environment:
         Variables:
           POSTGRES_DB: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
