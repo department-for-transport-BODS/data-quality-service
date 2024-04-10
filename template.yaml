@@ -15,7 +15,7 @@ Parameters:
   VPC:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>
     Description: The VPC to deploy to
-  PublicSubnets:
+  PrivateSubnets:
     Type: AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>
     Description: The public subnets to deploy to
 
@@ -35,12 +35,17 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.11
       VpcConfig:
-        SubnetIds: !Ref PublicSubnets
+        SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
           - !Ref TemplateSecurityGroup
       Environment:
         Variables:
-          PG_DATABASE: !Sub '{{resolve:ssm:rds-db-name-${ParamEnvironment}}}'
+          POSTGRES_DB: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
+          POSTGRES_HOST: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
+          POSTGRES_PASSWORD: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
+          POSTGRES_PORT: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
+          POSTGRES_USER: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
+
 
 
 Outputs:
