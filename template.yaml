@@ -27,6 +27,7 @@ Resources:
       CodeUri: src/template
       Handler: app.lambda_handler
       Runtime: python3.11
+      Role: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/dqs-lambda-role-arn}}'
       VpcConfig:
         SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
