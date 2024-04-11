@@ -1,10 +1,10 @@
 import psycopg2
 from os import environ
-from boto3 import client
+from boto3 import client as
 
 def lambda_handler(event, context):
     secrets_manager = client('secretsmanager')
-    response = client.get_secret_value(
+    response = secrets_manager.get_secret_value(
         SecretId=environ.get('POSTGRES_PASSWORD'),
 
     )
