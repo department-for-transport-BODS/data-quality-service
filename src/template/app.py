@@ -1,6 +1,6 @@
 import psycopg2
 from os import environ
-from boto3 import client as
+from boto3 import client
 
 def lambda_handler(event, context):
     secrets_manager = client('secretsmanager')
