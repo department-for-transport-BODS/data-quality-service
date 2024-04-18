@@ -2,6 +2,7 @@ import psycopg2
 from os import environ
 from boto3 import client
 import logging
+from common import test
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
@@ -30,3 +31,4 @@ def lambda_handler(event, context):
     logger.debug('Got sample data')
 
     postgres_connection.close()
+    logger.debug(f"Layer returned {test()}")

@@ -6,20 +6,40 @@ Parameters:
   Environment:
     Type: String
     Description: The environment to deploy to
+    Default: local
   ParamEnvironment:
     Type: String
     Description: The environment to pull params for
+    Default: local
   Repository:
     Type: String
     Description: The Github Repository Name
+    Default: local
   VPC:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>
     Description: The VPC to deploy to
+    Default: ''
   PrivateSubnets:
     Type: AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>
     Description: The public subnets to deploy to
+    Default: ''
+
+Conditions:
+  IsLocal:
+    !Equals
+      - !Ref ParamEnvironment
+      - local
 
 Resources:
+  BoilerPlate:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: src/boilerplate
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
   TemplateFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -27,6 +47,11 @@ Resources:
       CodeUri: src/template
       Handler: app.lambda_handler
       Runtime: python3.11
+      Layers:
+        !If 
+          - IsLocal
+          - []
+          - - !Ref BoilerPlate
       Role: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/dqs-lambda-role-arn}}'
       VpcConfig:
         SubnetIds: !Ref PrivateSubnets
@@ -34,11 +59,31 @@ Resources:
           - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
       Environment:
         Variables:
-          POSTGRES_DB: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
-          POSTGRES_HOST: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
-          POSTGRES_PASSWORD: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
-          POSTGRES_PORT: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
-          POSTGRES_USER: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
+          POSTGRES_DB: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
+          POSTGRES_HOST: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
+          POSTGRES_PASSWORD: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
+          POSTGRES_PORT: 
+            !If
+              - IsLocal
+              - 3128
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
+          POSTGRES_USER:
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
 
 
 
