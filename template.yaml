@@ -64,6 +64,10 @@ Resources:
         SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
           - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
+      Policies:
+        - SQSPollerPolicy:
+            QueueName:
+              !GetAtt TemplateQueue.QueueName
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
