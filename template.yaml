@@ -41,6 +41,11 @@ Resources:
     Metadata:
       BuildMethod: python3.11
 
+  TemplateQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Repository}-template-queue-${Environment}"
+
   TemplateFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -59,6 +64,11 @@ Resources:
         SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
           - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TemplateQueue.Arn
       Environment:
         Variables:
           POSTGRES_DB: 

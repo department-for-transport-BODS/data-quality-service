@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
 class BodsDB:
-    def __init__(self):
+    def __init__(self, lambda_event):
         logger.debug('Getting DB password from secrets manager')
         secrets_manager = client('secretsmanager')
         password_response = secrets_manager.get_secret_value(
@@ -22,7 +22,7 @@ class BodsDB:
         pg_db = environ.get('POSTGRES_DB')
         pg_user = environ.get('POSTGRES_USER')
         pg_port = environ.get('POSTGRES_PORT')
-        logger.debug(f'Connecting to DB with connection string postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
+        logger.debug(f'Connecting to DB with connection string postgresql+psycopg2://{pg_user}:<password obfuscated>@{pg_host}:{pg_port}/{pg_db}')
         self.sqlalchemy_base = automap_base()
         sqlalchemy_engine = create_engine(f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}")
         logger.debug('Preparing SQLALchemy base')
