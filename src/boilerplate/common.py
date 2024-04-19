@@ -18,13 +18,15 @@ class BodsDB:
         pg_pass = password_response['SecretString']
         logger.debug('Got DB password')
 
-        logger.debug('Connecting to DB')
         pg_host = environ.get('POSTGRES_HOST')
         pg_db = environ.get('POSTGRES_DB')
         pg_user = environ.get('POSTGRES_USER')
         pg_port = environ.get('POSTGRES_PORT')
+        logger.debug(f'Connecting to DB with connection string postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
         self.sqlalchemy_base = automap_base()
         sqlalchemy_engine = create_engine(f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}")
+        logger.debug('Preparing SQLALchemy base')
         self.sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
+        logger.debug('Initiating DB session')
         self.session = Session(sqlalchemy_engine)
         logger.debug('Connected to DB')
