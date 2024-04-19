@@ -3,6 +3,7 @@ from os import environ
 from boto3 import client
 import logging
 from common import BodsDB
+
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
