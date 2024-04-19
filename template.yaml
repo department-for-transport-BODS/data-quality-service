@@ -59,7 +59,7 @@ Resources:
           - IsLocal
           - []
           - - !Ref BoilerPlate
-      Role: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/dqs-lambda-role-arn}}'
+      # Role: !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/dqs-lambda-role-arn}}'
       VpcConfig:
         SubnetIds: !Ref PrivateSubnets
         SecurityGroupIds:
@@ -68,6 +68,7 @@ Resources:
         - SQSPollerPolicy:
             QueueName:
               !GetAtt TemplateQueue.QueueName
+        - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
