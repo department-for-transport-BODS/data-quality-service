@@ -34,7 +34,7 @@ Resources:
   BoilerPlate:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: "${Repository}-boilerplate-layer-${Environment}"
+      LayerName: !Sub "${Repository}-boilerplate-layer-${Environment}"
       ContentUri: src/boilerplate
       CompatibleRuntimes:
         - python3.11
