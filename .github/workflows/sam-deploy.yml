@@ -33,7 +33,7 @@ jobs:
         run: |
           sam build --use-container
           sam deploy \
-            --stack-name "${{ env.REPO }}-${{ env.ENVIRONMENT }}" \
+            --stack-name "${{ env.REPO }}-${{ env.ENVIRONMENT }}-2" \
             --parameter-overrides \
               "Environment=${{ env.ENVIRONMENT }} \
               Repository=${{ env.REPO }} \

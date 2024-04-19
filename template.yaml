@@ -45,6 +45,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Repository}-template-queue-${Environment}"
+      VisibilityTimeout: 90
 
   TemplateFunction:
     Type: AWS::Serverless::Function
