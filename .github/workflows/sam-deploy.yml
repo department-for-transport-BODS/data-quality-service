@@ -33,10 +33,10 @@ jobs:
         run: |
           sam build --use-container
           sam deploy \
-            --stack-name "${{ env.REPO }}-${{ env.ENVIRONMENT }}-2" \
+            --stack-name "${{ env.REPO }}2-${{ env.ENVIRONMENT }}" \
             --parameter-overrides \
               "Environment=${{ env.ENVIRONMENT }} \
-              Repository=${{ env.REPO }} \
+              Repository=${{ env.REPO }}2 \
               ParamEnvironment=${{ env.PARAM_ENVIRONMENT }} \
               PrivateSubnets=/bodds/${{ env.PARAM_ENVIRONMENT }}/private-subnets \
               VPC=/bodds/${{ env.PARAM_ENVIRONMENT }}/vpc-id" \
