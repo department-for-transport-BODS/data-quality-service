@@ -27,7 +27,7 @@ destroy-scaffold: ## Destroy terraform scaffold
 	cd ./local_scaffold; tflocal init; tflocal destroy -auto-approve
 
 test: ## Run the tests
-	cd src; pytest --continue-on-collection-errors -rPp --cov=. --cov-report term-missing
+	pytest --continue-on-collection-errors -rPp --cov=. --cov-report term-missing
 
 rebuild-local: ## Rebuild the Docker container services and SAM application
 	rm -Rf .aws-sam 

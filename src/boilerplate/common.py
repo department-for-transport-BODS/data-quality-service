@@ -20,8 +20,34 @@ class EventPayload(BaseModel):
 class BodsDB:
     def __init__(self, lambda_event):
         self._lambda_event = lambda_event
-        self._extract_test_details_from_event()
-        self._initialise_database()
+        self._file_id = None
+        self._check_id = None
+        self._session = None
+        self._classes = None
+
+    @property
+    def file_id(self):
+        if self._file_id is None:
+            self._extract_test_details_from_event()
+        return self._file_id
+
+    @property
+    def check_id(self):
+        if self._check_id is None:
+            self._extract_test_details_from_event()
+        return self._check_id
+
+    @property
+    def session(self):
+        if self._session is None:
+            self._initialise_database()
+        return self._session
+
+    @property
+    def classes(self):
+        if self._classes is None:
+            self._initialise_database()
+        return self._classes
 
     def _extract_test_details_from_event(self):
         logger.debug("Event received:")
@@ -38,31 +64,63 @@ class BodsDB:
         logger.debug(
             f"Check_details found. TXC file ID={str(check_details.txc_file_id)}, check ID={str(check_details.check_id)}"
         )
-        self.file_id = check_details.txc_file_id
-        self.check_id = check_details.check_id
+        self._file_id = check_details.txc_file_id
+        self._check_id = check_details.check_id
+
+    def _validate_requested_check():
+        pass
 
     def _initialise_database(self):
-        logger.debug("Getting DB password from secrets manager")
-        secrets_manager = client("secretsmanager")
-        password_response = secrets_manager.get_secret_value(
-            SecretId=environ.get("POSTGRES_PASSWORD"),
-        )
-        pg_pass = password_response["SecretString"]
-        logger.debug("Got DB password")
-
-        pg_host = environ.get("POSTGRES_HOST")
-        pg_db = environ.get("POSTGRES_DB")
-        pg_user = environ.get("POSTGRES_USER")
-        pg_port = environ.get("POSTGRES_PORT")
+        connection_details = self._get_connection_details()
         logger.debug(
-            f"Connecting to DB with connection string postgresql+psycopg2://{pg_user}:<password obfuscated>@{pg_host}:{pg_port}/{pg_db}"
+            "Connecting to DB with connection string "
+            "postgresql+psycopg2://"
+            f"{connection_details['POSTGRES_USER']}:"
+            "<password obfuscated>@"
+            f"{connection_details['POSTGRES_HOST']}:"
+            f"{connection_details['POSTGRES_PORT']}/"
+            f"{connection_details['POSTGRES_DB']}"
         )
-        self.sqlalchemy_base = automap_base()
-        sqlalchemy_engine = create_engine(
-            f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
-        )
-        logger.debug("Preparing SQLALchemy base")
-        self.sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
-        logger.debug("Initiating DB session")
-        self.session = Session(sqlalchemy_engine)
-        logger.debug("Connected to DB")
+        try:
+            self._sqlalchemy_base = automap_base()
+            sqlalchemy_engine = create_engine(
+                f"postgresql+psycopg2://{connection_details['POSTGRES_USER']}:"
+                f"{connection_details['POSTGRES_PASSWORD']}@"
+                f"{connection_details['POSTGRES_HOST']}:"
+                f"{connection_details['POSTGRES_PORT']}/"
+                f"{connection_details['POSTGRES_DB']}"
+            )
+            logger.debug("Preparing SQLALchemy base")
+            self._sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
+            logger.debug("Initiating DB session")
+            self._session = Session(sqlalchemy_engine)
+            logger.debug("Connected to DB")
+            self._classes = self._sqlalchemy_base.classes
+            logger.debug("Set DB classes")
+        except Exception as e:
+            logger.error("Failed to connect to DB")
+            raise e
+
+    def _get_connection_details(self):
+        connection_details = {}
+        logger.debug("Getting DB password from secrets manager")
+        try:
+            secrets_manager = client("secretsmanager")
+            password_response = secrets_manager.get_secret_value(
+                SecretId=environ.get("POSTGRES_PASSWORD"),
+            )
+            connection_details["POSTGRES_PASSWORD"] = password_response["SecretString"]
+            logger.debug("Got DB password")
+
+            connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")
+            connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
+            connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
+            connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
+            for key, value in connection_details.items():
+                if value is None:
+                    logger.error(f"Missing connection details value: {key}")
+                    raise ValueError
+            return connection_details
+        except Exception as e:
+            logger.error("Failed to get connection details for database")
+            raise e
