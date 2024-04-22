@@ -14,53 +14,11 @@ ENVIRONMENT_TEST_VALUES = {
     "POSTGRES_PASSWORD": "my_password_location_arn"
 }
 
-SAMPLE_SQS_EVENT = {
-    "Records": [
-        {
-            "body": dumps(
-                {
-                    "txc_file_id": 50,
-                    "check_id": 1
-                }
-            )
-        }
-    ]
-}
-
-MALFORMED_SQS_EVENT = {
-    "Records": [
-        {
-            "body": dumps(
-                {
-                    "txc_id": 50
-                }
-            )
-        }
-    ]
-}
-
-def test_check_details_extraction():
-    db = BodsDB(SAMPLE_SQS_EVENT)
-    assert db.file_id == 50
-    assert db.check_id == 1
-
-    db2 = BodsDB(SAMPLE_SQS_EVENT)
-    assert db2.check_id == 1
-    assert db2.file_id == 50
-
-def test_check_details_failed_extraction(caplog):
-    db = BodsDB(MALFORMED_SQS_EVENT)
-    with raises(ValidationError):
-        file_id = db.file_id
-    assert "Failed to extract a valid payload" in caplog.text
-
-
-
 @patch("src.boilerplate.common.client")
 @patch.dict(environ, ENVIRONMENT_TEST_VALUES)
 def test_connection_details_valid(mocked_client):
     mocked_client.return_value.get_secret_value.return_value = {"SecretString": 'my_password'}
-    db = BodsDB(None)
+    db = BodsDB()
     expected_result = dict(ENVIRONMENT_TEST_VALUES)
     expected_result['POSTGRES_PASSWORD'] = 'my_password'
     assert db._get_connection_details() == expected_result
@@ -72,7 +30,7 @@ environment_missing_test_values.pop('POSTGRES_HOST')
 @patch.dict(environ, environment_missing_test_values)
 def test_connection_details_missing(mocked_client, caplog):
     mocked_client.return_value.get_secret_value.return_value = {"SecretString": 'my_password'}
-    db = BodsDB(None)
+    db = BodsDB()
     with raises(ValueError):
         print(db._get_connection_details())
     assert "POSTGRES_HOST" in caplog.text
@@ -84,7 +42,7 @@ def test_connection_details_missing(mocked_client, caplog):
 def test_database_initialisation(connection_details, create_engine, automap_base, session):
     # connection_details.return_value = ENVIRONMENT_TEST_VALUES
     automap_base.prepare.return_value = True
-    db = BodsDB(None)
+    db = BodsDB()
     db._initialise_database()
     assert connection_details.called
     assert create_engine.called_with(
@@ -105,7 +63,8 @@ def test_database_initialisation(connection_details, create_engine, automap_base
 def test_database_initialisation_failed(connection_details, create_engine, automap_base, session, caplog):
     # connection_details.return_value = ENVIRONMENT_TEST_VALUES
     automap_base.prepare.return_value = True
-    db = BodsDB(None)
+    db = BodsDB()
     with raises(OperationalError):
         db._initialise_database()
         assert "Failed to connect to DB" in caplog.text
+

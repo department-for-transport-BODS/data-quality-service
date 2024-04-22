@@ -17,13 +17,20 @@ class EventPayload(BaseModel):
     check_id: int
 
 
-class BodsDB:
+class Check:
     def __init__(self, lambda_event):
         self._lambda_event = lambda_event
         self._file_id = None
         self._check_id = None
-        self._session = None
-        self._classes = None
+        self._db = None
+        self._task_results_table = None
+        self._task_result_id = None
+
+    @property
+    def db(self):
+        if self._db is None:
+            self._db = BodsDB()
+        return self._db
 
     @property
     def file_id(self):
@@ -36,19 +43,13 @@ class BodsDB:
         if self._check_id is None:
             self._extract_test_details_from_event()
         return self._check_id
-
+    
     @property
-    def session(self):
-        if self._session is None:
-            self._initialise_database()
-        return self._session
-
-    @property
-    def classes(self):
-        if self._classes is None:
-            self._initialise_database()
-        return self._classes
-
+    def task_results_table(self):
+        if self._task_results_table is None:
+            self._task_results_table = self.db.classes.dataquality_taskresults
+        return self._task_results_table
+    
     def _extract_test_details_from_event(self):
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
@@ -67,8 +68,47 @@ class BodsDB:
         self._file_id = check_details.txc_file_id
         self._check_id = check_details.check_id
 
-    def _validate_requested_check():
-        pass
+    @property
+    def task_result_id(self):
+        if self._task_result_id is None:
+            try:
+                logger.debug(f'Getting task results id for file id = {self.file_id}, check id = {self.check_id}')
+                task_result_ids = self.db.session.query(self.task_results_table).filter(
+                    self.task_results_table.transmodel_txcfileattributes_id == self.file_id, 
+                    self.task_results_table.dataqualitycheck_id == self.check_id
+                ).all()
+                if len(task_result_ids) == 1:
+                    self._task_result_id =  task_result_ids[0].id
+                else:
+                    logger.error(
+                        f'Invalid Task Result - no record waiting for file id {self.file_id} '
+                        f'for check if {self.check_id}'
+                    )
+                    raise ValueError
+            except Exception as e:
+                logger.error(
+                    f'Invalid Task Result - failed to get record for file id {self.file_id} '
+                    f'for check if {self.check_id}'
+                )
+                raise e
+        return self._task_result_id
+
+class BodsDB:
+    def __init__(self):
+        self._session = None
+        self._classes = None
+
+    @property
+    def session(self):
+        if self._session is None:
+            self._initialise_database()
+        return self._session
+
+    @property
+    def classes(self):
+        if self._classes is None:
+            self._initialise_database()
+        return self._classes
 
     def _initialise_database(self):
         connection_details = self._get_connection_details()
