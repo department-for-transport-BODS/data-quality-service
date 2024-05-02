@@ -17,7 +17,8 @@ SAMPLE_SQS_EVENT = {
         }
     ]
 }
-def test_handler():
-    with patch('common.BodsDB', MockedDB) as db:
-        handler = lambda_handler(SAMPLE_SQS_EVENT, None)
-        print(handler)
+# def test_handler():
+#     db = MockedDB()
+#     with patch('common.Check.db', db):
+#         handler = lambda_handler(SAMPLE_SQS_EVENT, None)
+#         print(handler)

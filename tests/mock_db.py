@@ -10,7 +10,6 @@ class data_quality_taskresult(Base):
     created = Column(TIMESTAMP)
     modified = Column(TIMESTAMP)
     status = Column(String)
-    status = Column(String)
     checks_id = Column(Integer)
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
@@ -58,7 +57,6 @@ class data_quality_report(Base):
 class MockedDB:
     def __init__(self):
         engine = create_engine("sqlite:///:memory:")
-        print("fred")
         self.session = Session(engine)
         Base.metadata.create_all(engine)
         self.classes = SimpleNamespace(
@@ -67,13 +65,6 @@ class MockedDB:
             organisation_txcfileattributes = organisation_txcfileattributes,
             data_quality_report = data_quality_report
         )
-        test_task_result = data_quality_taskresult(
-            id = 1,
-            checks_id = 1,
-            transmodel_txcfileattributes_id = 50
-        )
-        self.session.add(test_task_result)
-        self.session.flush()
 
 
 if __name__ == "__main__":

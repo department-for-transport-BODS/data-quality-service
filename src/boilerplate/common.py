@@ -1,6 +1,6 @@
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 import geoalchemy2
 from os import environ
 from boto3 import client
@@ -25,9 +25,28 @@ class Check:
         self._file_id = None
         self._check_id = None
         self._db = None
-        self._task_results_table = None
-        self._observation_results_table = None
-        self._task_result_id = None
+        self._result_id = None
+        self._result = None
+
+
+    @property
+    def result(self):
+        try:
+            if self._result is None:
+                result = self.db.session.scalar(
+                    select(
+                        self.db.classes.data_quality_taskresult
+                    )
+                    .where(
+                        self.db.classes.data_quality_taskresult.id == self.result_id
+                    )
+                )
+                self._result = result
+            return self._result
+        except Exception as e:
+            logger.error(f"No result record found for result_id {str(self.result_id)}")
+            raise e
+
 
     @property
     def db(self):
@@ -48,6 +67,12 @@ class Check:
         return self._check_id
     
     @property
+    def result_id(self):
+        if self._result_id is None:
+            self._extract_test_details_from_event()
+        return self._result_id
+    
+    @property
     def task_results(self):
         if self._task_results_table is None:
             self._task_results_table = self.db.classes.data_quality_taskresult
@@ -59,6 +84,18 @@ class Check:
             self._task_results_table = self.db.classes.data_quality_observationresults
         return self._observation_results_table
     
+    def validate_requested_check(self):
+        returned_id = getattr(self.result, "id", None)
+        returned_status = getattr(self.result, "status", None)
+        if returned_id != self.result_id:
+            logger.error(f"Unable to validate check {str(self.result_id)}: Record not returned from DB")
+            raise ValueError(f"Unable to validate check {str(self.result_id)}: Record not returned from DB")
+        elif returned_status != "PENDING":
+            logger.error(f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING")
+            raise ValueError(f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING")  
+        else:
+            return True          
+
     def _extract_test_details_from_event(self):
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
@@ -76,31 +113,8 @@ class Check:
         )
         self._file_id = check_details.file_id
         self._check_id = check_details.check_id
+        self._result_id = check_details.result_id
 
-    @property
-    def task_result_id(self):
-        if self._task_result_id is None:
-            try:
-                logger.debug(f'Getting task results id for file id = {self.file_id}, check id = {self.check_id}')
-                task_result_ids = self.db.session.query(self.task_results).filter(
-                    self.task_results.transmodel_txcfileattributes_id == self.file_id, 
-                    self.task_results.checks_id == self.check_id
-                ).all()
-                if len(task_result_ids) == 1:
-                    self._task_result_id =  task_result_ids[0].id
-                else:
-                    logger.error(
-                        f'Invalid Task Result - no record waiting for file id {self.file_id} '
-                        f'for check if {self.check_id}'
-                    )
-                    raise ValueError
-            except Exception as e:
-                logger.error(
-                    f'Invalid Task Result - failed to get record for file id {self.file_id} '
-                    f'for check if {self.check_id}'
-                )
-                raise e
-        return self._task_result_id
 
 class BodsDB:
     def __init__(self):
