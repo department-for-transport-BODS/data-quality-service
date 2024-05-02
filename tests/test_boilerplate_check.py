@@ -11,8 +11,9 @@ SAMPLE_SQS_EVENT = {
         {
             "body": dumps(
                 {
-                    "txc_file_id": 50,
-                    "check_id": 1
+                    "file_id": 50,
+                    "check_id": 1,
+                    "result_id": 1
                 }
             )
         }

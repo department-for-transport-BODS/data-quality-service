@@ -2,3 +2,4 @@
 .aws-sam
 *.pyc
 **/__pycache__/
+.coverage

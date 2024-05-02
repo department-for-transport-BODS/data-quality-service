@@ -13,8 +13,10 @@ logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
 
 class EventPayload(BaseModel):
-    txc_file_id: int
+    file_id: int
     check_id: int
+    result_id: int
+
 
 
 class Check:
@@ -24,6 +26,7 @@ class Check:
         self._check_id = None
         self._db = None
         self._task_results_table = None
+        self._observation_results_table = None
         self._task_result_id = None
 
     @property
@@ -45,10 +48,16 @@ class Check:
         return self._check_id
     
     @property
-    def task_results_table(self):
+    def task_results(self):
         if self._task_results_table is None:
-            self._task_results_table = self.db.classes.dataquality_taskresults
+            self._task_results_table = self.db.classes.data_quality_taskresult
         return self._task_results_table
+    
+    @property
+    def observation_results(self):
+        if self._task_results_table is None:
+            self._task_results_table = self.db.classes.data_quality_observationresults
+        return self._observation_results_table
     
     def _extract_test_details_from_event(self):
         logger.debug("Event received:")
@@ -63,9 +72,9 @@ class Check:
             logger.error("Failed to extract a valid payload from the event")
             raise e
         logger.debug(
-            f"Check_details found. TXC file ID={str(check_details.txc_file_id)}, check ID={str(check_details.check_id)}"
+            f"Check_details found. TXC file ID={str(check_details.file_id)}, check ID={str(check_details.check_id)}"
         )
-        self._file_id = check_details.txc_file_id
+        self._file_id = check_details.file_id
         self._check_id = check_details.check_id
 
     @property
@@ -73,9 +82,9 @@ class Check:
         if self._task_result_id is None:
             try:
                 logger.debug(f'Getting task results id for file id = {self.file_id}, check id = {self.check_id}')
-                task_result_ids = self.db.session.query(self.task_results_table).filter(
-                    self.task_results_table.transmodel_txcfileattributes_id == self.file_id, 
-                    self.task_results_table.dataqualitycheck_id == self.check_id
+                task_result_ids = self.db.session.query(self.task_results).filter(
+                    self.task_results.transmodel_txcfileattributes_id == self.file_id, 
+                    self.task_results.checks_id == self.check_id
                 ).all()
                 if len(task_result_ids) == 1:
                     self._task_result_id =  task_result_ids[0].id
