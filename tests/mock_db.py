@@ -19,9 +19,9 @@ class data_quality_observationresults(Base):
     __tablename__ = 'data_quality_observationresults'
     id = Column(Integer, primary_key=True)
     details = Column(String)
-    dataquality_report_id = Column(Integer)
     taskresults_id = Column(Integer)
     vehicle_journey_id = Column(Integer)
+    service_pattern_stop_id = Column(Integer)
 
 
 class organisation_txcfileattributes(Base):

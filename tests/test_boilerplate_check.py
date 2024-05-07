@@ -104,10 +104,30 @@ def test_valid_check_record():
     )
     mock_db.session.add(test_task_result)
     mock_db.session.flush()
-    print(mock_db.session.scalars(select(mock_db.classes.data_quality_taskresult)).one().id)
     check = Check(SAMPLE_SQS_EVENT)
     with patch.object(check, "_db", new=mock_db):
         assert check.validate_requested_check()
+
+def test_set_status():
+    mock_db = MockedDB()
+    test_task_result = mock_db.classes.data_quality_taskresult(
+        id = 1,
+        checks_id = 1,
+        status = "PENDING",
+        transmodel_txcfileattributes_id = 50
+    )
+    mock_db.session.add(test_task_result)
+    mock_db.session.flush()
+    check = Check(SAMPLE_SQS_EVENT)
+    with patch.object(check, "_db", new=mock_db):
+        check.set_status("SUCCESS")
+    assert mock_db.session.scalars(
+        select(
+            mock_db.classes.data_quality_taskresult
+        ).where(
+            mock_db.classes.data_quality_taskresult.id == 1
+        )
+    ).one().status == "SUCCESS"
 
 
 

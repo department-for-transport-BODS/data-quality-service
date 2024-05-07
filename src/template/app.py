@@ -10,9 +10,12 @@ logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
 
 def lambda_handler(event, context):
-    # check = Check(event)
+    check = Check(event)
+    check.validate_requested_check()
     # check.db.session.
     # archive = db.classes.avl_cavldataarchive
     # first_archive_record = db.session.query(archive).first()
     # logger.debug(first_archive_record.__dict__)
+    print("hi")
     pass
+

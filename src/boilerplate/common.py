@@ -27,6 +27,7 @@ class Check:
         self._db = None
         self._result_id = None
         self._result = None
+        self.observations = []
 
 
     @property
@@ -78,13 +79,21 @@ class Check:
             self._task_results_table = self.db.classes.data_quality_taskresult
         return self._task_results_table
     
-    @property
-    def observation_results(self):
-        if self._task_results_table is None:
-            self._task_results_table = self.db.classes.data_quality_observationresults
-        return self._observation_results_table
+    def add_observation(self,details=None, vehicle_journey_id=None):
+        pass
     
+    def set_status(self, status):
+        try:
+            self.validate_requested_check()
+            logger.debug(f"Attempting to set status from {self.result.status} to {status}")
+            self.result.status = status
+            self.db.session.commit()
+        except Exception as e:
+            logger.error(f"Failed to set result status")
+            raise e
+
     def validate_requested_check(self):
+        logger.debug(f"Validating requested check {str(self.check_id)} is in database")
         returned_id = getattr(self.result, "id", None)
         returned_status = getattr(self.result, "status", None)
         if returned_id != self.result_id:
@@ -169,16 +178,20 @@ class BodsDB:
         logger.debug("Getting DB password from secrets manager")
         try:
             secrets_manager = client("secretsmanager")
-            password_response = secrets_manager.get_secret_value(
-                SecretId=environ.get("POSTGRES_PASSWORD"),
-            )
-            connection_details["POSTGRES_PASSWORD"] = password_response["SecretString"]
+            if environ.get("POSTGRES_PASSWORD_ARN", None):
+                password_response = secrets_manager.get_secret_value(
+                    SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
+                )
+                connection_details["POSTGRES_PASSWORD"] = password_response["SecretString"]
+            else:
+                connection_details["POSTGRES_PASSWORD"] = environ.get("POSTGRES_PASSWORD")
             logger.debug("Got DB password")
 
             connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")
             connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
             connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
             connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
+            print(connection_details)
             for key, value in connection_details.items():
                 if value is None:
                     logger.error(f"Missing connection details value: {key}")
