@@ -86,7 +86,7 @@ Resources:
               - IsLocal
               - postgres
               - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
-          POSTGRES_PASSWORD: 
+          POSTGRES_PASSWORD_ARN: 
             !If
               - IsLocal
               - postgres

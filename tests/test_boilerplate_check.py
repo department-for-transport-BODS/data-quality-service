@@ -51,7 +51,7 @@ def test_check_details_failed_extraction(caplog):
 
 def test_invalid_result_record():
     mock_db = MockedDB()
-    test_task_result = mock_db.classes.data_quality_taskresult(
+    test_task_result = mock_db.classes.data_quality_taskresults(
         id = 2,
         checks_id = 1,
         status = "PENDING",
@@ -66,7 +66,7 @@ def test_invalid_result_record():
 
 def test_invalid_result_status():
     mock_db = MockedDB()
-    test_task_result = mock_db.classes.data_quality_taskresult(
+    test_task_result = mock_db.classes.data_quality_taskresults(
         id = 1,
         checks_id = 1,
         status = "ERROR",
@@ -81,7 +81,7 @@ def test_invalid_result_status():
 
 def test_null_result_status():
     mock_db = MockedDB()
-    test_task_result = mock_db.classes.data_quality_taskresult(
+    test_task_result = mock_db.classes.data_quality_taskresults(
         id = 1,
         checks_id = 1,
         status = None,
@@ -96,7 +96,7 @@ def test_null_result_status():
 
 def test_valid_check_record():
     mock_db = MockedDB()
-    test_task_result = mock_db.classes.data_quality_taskresult(
+    test_task_result = mock_db.classes.data_quality_taskresults(
         id = 1,
         checks_id = 1,
         status = "PENDING",
@@ -110,7 +110,7 @@ def test_valid_check_record():
 
 def test_set_status():
     mock_db = MockedDB()
-    test_task_result = mock_db.classes.data_quality_taskresult(
+    test_task_result = mock_db.classes.data_quality_taskresults(
         id = 1,
         checks_id = 1,
         status = "PENDING",
@@ -123,9 +123,9 @@ def test_set_status():
         check.set_status("SUCCESS")
     assert mock_db.session.scalars(
         select(
-            mock_db.classes.data_quality_taskresult
+            mock_db.classes.data_quality_taskresults
         ).where(
-            mock_db.classes.data_quality_taskresult.id == 1
+            mock_db.classes.data_quality_taskresults.id == 1
         )
     ).one().status == "SUCCESS"
 

@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 Base = declarative_base()
 
-class data_quality_taskresult(Base):
-    __tablename__ = 'data_quality_taskresult'
+class data_quality_taskresults(Base):
+    __tablename__ = 'data_quality_taskresults'
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     modified = Column(TIMESTAMP)
@@ -60,7 +60,7 @@ class MockedDB:
         self.session = Session(engine)
         Base.metadata.create_all(engine)
         self.classes = SimpleNamespace(
-            data_quality_taskresult = data_quality_taskresult,
+            data_quality_taskresults = data_quality_taskresults,
             data_quality_observationresults = data_quality_observationresults,
             organisation_txcfileattributes = organisation_txcfileattributes,
             data_quality_report = data_quality_report

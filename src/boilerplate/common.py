@@ -7,10 +7,16 @@ from boto3 import client
 import logging
 from json import loads
 from pydantic import BaseModel
+from sys import stdout
 
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class EventPayload(BaseModel):
     file_id: int
@@ -36,10 +42,10 @@ class Check:
             if self._result is None:
                 result = self.db.session.scalar(
                     select(
-                        self.db.classes.data_quality_taskresult
+                        self.db.classes.data_quality_taskresults
                     )
                     .where(
-                        self.db.classes.data_quality_taskresult.id == self.result_id
+                        self.db.classes.data_quality_taskresults.id == self.result_id
                     )
                 )
                 self._result = result
@@ -76,7 +82,7 @@ class Check:
     @property
     def task_results(self):
         if self._task_results_table is None:
-            self._task_results_table = self.db.classes.data_quality_taskresult
+            self._task_results_table = self.db.classes.data_quality_taskresults
         return self._task_results_table
     
     def add_observation(self,details=None, vehicle_journey_id=None):
@@ -184,6 +190,7 @@ class BodsDB:
                 )
                 connection_details["POSTGRES_PASSWORD"] = password_response["SecretString"]
             else:
+                logger.debug("No password ARN found in environment variables, getting DB password direct")
                 connection_details["POSTGRES_PASSWORD"] = environ.get("POSTGRES_PASSWORD")
             logger.debug("Got DB password")
 
@@ -191,7 +198,6 @@ class BodsDB:
             connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
             connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
             connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
-            print(connection_details)
             for key, value in connection_details.items():
                 if value is None:
                     logger.error(f"Missing connection details value: {key}")

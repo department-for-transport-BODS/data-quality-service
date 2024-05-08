@@ -10,12 +10,16 @@ logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
 
 def lambda_handler(event, context):
-    check = Check(event)
-    check.validate_requested_check()
-    # check.db.session.
-    # archive = db.classes.avl_cavldataarchive
-    # first_archive_record = db.session.query(archive).first()
-    # logger.debug(first_archive_record.__dict__)
-    print("hi")
-    pass
+    ### INITIATE A CHECK BASED ON INCOMING CHECK EVENT
+
+    # check = Check(event)
+
+    ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING
+
+    # check.validate_requested_check()
+
+    ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
+
+    # check.set_status("SUCCESS")
+    return
 
