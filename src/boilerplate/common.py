@@ -14,15 +14,15 @@ logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
 handler = logging.StreamHandler(stdout)
 handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 
 class EventPayload(BaseModel):
     file_id: int
     check_id: int
     result_id: int
-
 
 
 class Check:
@@ -35,16 +35,12 @@ class Check:
         self._result = None
         self.observations = []
 
-
     @property
     def result(self):
         try:
             if self._result is None:
                 result = self.db.session.scalar(
-                    select(
-                        self.db.classes.data_quality_taskresults
-                    )
-                    .where(
+                    select(self.db.classes.data_quality_taskresults).where(
                         self.db.classes.data_quality_taskresults.id == self.result_id
                     )
                 )
@@ -53,7 +49,6 @@ class Check:
         except Exception as e:
             logger.error(f"No result record found for result_id {str(self.result_id)}")
             raise e
-
 
     @property
     def db(self):
@@ -72,26 +67,65 @@ class Check:
         if self._check_id is None:
             self._extract_test_details_from_event()
         return self._check_id
-    
+
     @property
     def result_id(self):
         if self._result_id is None:
             self._extract_test_details_from_event()
         return self._result_id
-    
+
     @property
     def task_results(self):
         if self._task_results_table is None:
             self._task_results_table = self.db.classes.data_quality_taskresults
         return self._task_results_table
-    
-    def add_observation(self,details=None, vehicle_journey_id=None):
-        pass
-    
+
+    def add_observation(
+        self, details=None, vehicle_journey_id=None, service_pattern_stop_id=None
+    ):
+        try:
+            self.validate_requested_check()
+            logger.debug(
+                f"Attempting to add obervation for check_id = {str(self.check_id)}"
+            )
+            observation = self.db.classes.data_quality_observationresults(
+                details=details,
+                taskresults_id=self.check_id,
+                vehicle_journey_id=vehicle_journey_id,
+                service_pattern_stop_id=service_pattern_stop_id,
+            )
+            self.db.session.add(observation)
+            self.observations.append(observation)
+        except Exception as e:
+            logger.error(
+                f"Failed to add obervation for check_id = {str(self.check_id)}", e
+            )
+            raise e
+
+    def write_observations(self):
+        try:
+            if len(self.observations) < 1:
+                logger.info(
+                    f"No obervations to write for check_id = {str(self.check_id)}"
+                )
+                return
+            logger.debug(
+                f"Attempting to add {str(len(self.observations))} obervation(s) for check_id = {str(self.check_id)}"
+            )
+            self.db.session.flush()
+            self.db.session.commit()
+        except Exception as e:
+            logger.error(
+                f"Attempting to add obervation for check_id = {str(self.check_id)}", e
+            )
+            raise e
+
     def set_status(self, status):
         try:
             self.validate_requested_check()
-            logger.debug(f"Attempting to set status from {self.result.status} to {status}")
+            logger.debug(
+                f"Attempting to set status from {self.result.status} to {status}"
+            )
             self.result.status = status
             self.db.session.commit()
         except Exception as e:
@@ -103,13 +137,21 @@ class Check:
         returned_id = getattr(self.result, "id", None)
         returned_status = getattr(self.result, "status", None)
         if returned_id != self.result_id:
-            logger.error(f"Unable to validate check {str(self.result_id)}: Record not returned from DB")
-            raise ValueError(f"Unable to validate check {str(self.result_id)}: Record not returned from DB")
+            logger.error(
+                f"Unable to validate check {str(self.result_id)}: Record not returned from DB"
+            )
+            raise ValueError(
+                f"Unable to validate check {str(self.result_id)}: Record not returned from DB"
+            )
         elif returned_status != "PENDING":
-            logger.error(f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING")
-            raise ValueError(f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING")  
+            logger.error(
+                f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING"
+            )
+            raise ValueError(
+                f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING"
+            )
         else:
-            return True          
+            return True
 
     def _extract_test_details_from_event(self):
         logger.debug("Event received:")
@@ -188,10 +230,16 @@ class BodsDB:
                 password_response = secrets_manager.get_secret_value(
                     SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
                 )
-                connection_details["POSTGRES_PASSWORD"] = password_response["SecretString"]
+                connection_details["POSTGRES_PASSWORD"] = password_response[
+                    "SecretString"
+                ]
             else:
-                logger.debug("No password ARN found in environment variables, getting DB password direct")
-                connection_details["POSTGRES_PASSWORD"] = environ.get("POSTGRES_PASSWORD")
+                logger.debug(
+                    "No password ARN found in environment variables, getting DB password direct"
+                )
+                connection_details["POSTGRES_PASSWORD"] = environ.get(
+                    "POSTGRES_PASSWORD"
+                )
             logger.debug("Got DB password")
 
             connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")

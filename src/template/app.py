@@ -18,8 +18,22 @@ def lambda_handler(event, context):
 
     # check.validate_requested_check()
 
+    ### ADD AN OBSERVATION FOR YOUR CHECK
+
+    # check.add_observation(
+    #     vehicle_journey_id = 1,
+    #     details = "Added Vehicle Journey ID"
+    # )
+    # check.add_observation(
+    #     service_pattern_stop_id= 1,
+    #     details = "Added Service Pattern Stop ID"
+    # )
+
+    ### WRITE ALL OBSERVATIONS TO DATABASE
+
+    # check.write_observations()
+
     ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
 
     # check.set_status("SUCCESS")
     return
-

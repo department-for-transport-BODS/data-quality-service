@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, Date, Boolean, create_engine
-from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy import Column, Integer, String, TIMESTAMP, Date, Boolean, create_engine, ForeignKey
+from sqlalchemy.orm import Session, declarative_base, relationship
 from types import SimpleNamespace
 
 Base = declarative_base()
@@ -13,13 +13,14 @@ class data_quality_taskresults(Base):
     checks_id = Column(Integer)
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
+    observations = relationship('data_quality_observationresults', backref='taskresult')
 
 
 class data_quality_observationresults(Base):
     __tablename__ = 'data_quality_observationresults'
     id = Column(Integer, primary_key=True)
     details = Column(String)
-    taskresults_id = Column(Integer)
+    taskresults_id = Column(Integer, ForeignKey('data_quality_taskresults.id'))
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
 
