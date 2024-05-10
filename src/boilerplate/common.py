@@ -144,7 +144,7 @@ class Check:
             )
             observation = self.db.classes.data_quality_observationresults(
                 details=details,
-                taskresults_id=self.check_id,
+                taskresults_id=self.result_id,
                 vehicle_journey_id=vehicle_journey_id,
                 service_pattern_stop_id=service_pattern_stop_id,
             )
