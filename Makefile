@@ -41,7 +41,8 @@ rebuild-local: ## Rebuild the Docker container services and SAM application
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
             --resolve-s3 \
-            --capabilities CAPABILITY_IAM
+            --capabilities CAPABILITY_IAM \
+						--region eu-west-2
 
 make local-run: ## Run lambdas locally
 	export PYTHONPATH=./src/boilerplate && \
