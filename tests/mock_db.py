@@ -1,11 +1,21 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, Date, Boolean, create_engine, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    TIMESTAMP,
+    Date,
+    Boolean,
+    create_engine,
+    ForeignKey,
+)
 from sqlalchemy.orm import Session, declarative_base, relationship
 from types import SimpleNamespace
 
 Base = declarative_base()
 
+
 class data_quality_taskresults(Base):
-    __tablename__ = 'data_quality_taskresults'
+    __tablename__ = "data_quality_taskresults"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     modified = Column(TIMESTAMP)
@@ -13,27 +23,27 @@ class data_quality_taskresults(Base):
     checks_id = Column(Integer)
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
-    observations = relationship('data_quality_observationresults', backref='taskresult')
+    observations = relationship("data_quality_observationresults", backref="taskresult")
 
 
 class data_quality_observationresults(Base):
-    __tablename__ = 'data_quality_observationresults'
+    __tablename__ = "data_quality_observationresults"
     id = Column(Integer, primary_key=True)
     details = Column(String)
-    taskresults_id = Column(Integer, ForeignKey('data_quality_taskresults.id'))
+    taskresults_id = Column(Integer, ForeignKey("data_quality_taskresults.id"))
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
 
 
 class organisation_txcfileattributes(Base):
-    __tablename__ = 'organisation_txcfileattributes'
+    __tablename__ = "organisation_txcfileattributes"
     id = Column(Integer, primary_key=True)
     schema_version = Column(String)
     revision_number = Column(Integer)
     creation_datetime = Column(TIMESTAMP)
     modification_datetime = Column(TIMESTAMP)
     filename = Column(String)
-    service_= Column(String)
+    service_ = Column(String)
     revision_id = Column(Integer)
     modification = Column(String)
     national_operator_code = Column(String)
@@ -46,8 +56,9 @@ class organisation_txcfileattributes(Base):
     origin = Column(String)
     hash = Column(String)
 
+
 class data_quality_report(Base):
-    __tablename__ = 'data_quality_report'
+    __tablename__ = "data_quality_report"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     file_name = Column(String)
@@ -61,10 +72,10 @@ class MockedDB:
         self.session = Session(engine)
         Base.metadata.create_all(engine)
         self.classes = SimpleNamespace(
-            data_quality_taskresults = data_quality_taskresults,
-            data_quality_observationresults = data_quality_observationresults,
-            organisation_txcfileattributes = organisation_txcfileattributes,
-            data_quality_report = data_quality_report
+            data_quality_taskresults=data_quality_taskresults,
+            data_quality_observationresults=data_quality_observationresults,
+            organisation_txcfileattributes=organisation_txcfileattributes,
+            data_quality_report=data_quality_report,
         )
 
 

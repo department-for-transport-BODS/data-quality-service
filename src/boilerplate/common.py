@@ -1,7 +1,7 @@
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select
-import geoalchemy2
+import geoalchemy2  # noqa
 from os import environ
 from boto3 import client
 import logging
@@ -20,21 +20,22 @@ logger.addHandler(handler)
 
 
 class EventPayload(BaseModel):
-    '''
+    """
     Pydantic model for the payload of the SQS event that triggers the Lambda function
 
     Attributes:
     file_id: int
     check_id: int
     result_id: int
-    '''
+    """
+
     file_id: int
     check_id: int
     result_id: int
 
 
 class Check:
-    '''
+    """
     Class to handle the processing of a data quality check. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to add observations to the check, write the observations to the database, set the status of the check, and validate the check. The class also provides properties to access the file_id, check_id, and result_id from the event payload. The class also provides properties to access the database session and the data quality task results table.
 
     Attributes:
@@ -53,7 +54,8 @@ class Check:
     write_observations: Write the observations to the database
     set_status: Set the status of the check
     validate_requested_check: Validate the check
-    '''
+    """
+
     def __init__(self, lambda_event):
         self._lambda_event = lambda_event
         self._file_id = None
@@ -65,9 +67,9 @@ class Check:
 
     @property
     def result(self):
-        '''
+        """
         Property to access the data quality task result record for the check
-        '''
+        """
         try:
             if self._result is None:
                 result = self.db.session.scalar(
@@ -83,45 +85,45 @@ class Check:
 
     @property
     def db(self):
-        '''
+        """
         Property to access the database connection object
-        '''
+        """
         if self._db is None:
             self._db = BodsDB()
         return self._db
 
     @property
     def file_id(self):
-        '''
+        """
         Property to access the file_id from the event payload
-        '''
+        """
         if self._file_id is None:
             self._extract_test_details_from_event()
         return self._file_id
 
     @property
     def check_id(self):
-        '''
+        """
         Property to access the check_id from the event payload
-        '''
+        """
         if self._check_id is None:
             self._extract_test_details_from_event()
         return self._check_id
 
     @property
     def result_id(self):
-        '''
+        """
         Property to access the result_id from the event payload
-        '''
+        """
         if self._result_id is None:
             self._extract_test_details_from_event()
         return self._result_id
 
     @property
     def task_results(self):
-        '''
+        """
         Property to access the data quality task results table
-        '''
+        """
         if self._task_results_table is None:
             self._task_results_table = self.db.classes.data_quality_taskresults
         return self._task_results_table
@@ -129,14 +131,14 @@ class Check:
     def add_observation(
         self, details=None, vehicle_journey_id=None, service_pattern_stop_id=None
     ):
-        '''
+        """
         Method to add an observation to the check
-        
+
         Args:
         details: str, optional
         vehicle_journey_id: int, optional
         service_pattern_stop_id: int, optional
-        '''
+        """
         try:
             self.validate_requested_check()
             logger.debug(
@@ -157,9 +159,9 @@ class Check:
             raise e
 
     def write_observations(self):
-        '''
+        """
         Method to write the added observations to the database
-        '''
+        """
         try:
             if len(self.observations) < 1:
                 logger.info(
@@ -178,12 +180,12 @@ class Check:
             raise e
 
     def set_status(self, status):
-        '''
+        """
         Method to set the status of the check
-        
+
         Args:
         status: str
-        '''
+        """
         try:
             self.validate_requested_check()
             logger.debug(
@@ -192,13 +194,13 @@ class Check:
             self.result.status = status
             self.db.session.commit()
         except Exception as e:
-            logger.error(f"Failed to set result status")
+            logger.error("Failed to set result status")
             raise e
 
     def validate_requested_check(self):
-        '''
+        """
         Method to validate the check requested in the event payload is in the database
-        '''
+        """
         logger.debug(f"Validating requested check {str(self.check_id)} is in database")
         returned_id = getattr(self.result, "id", None)
         returned_status = getattr(self.result, "status", None)
@@ -220,9 +222,9 @@ class Check:
             return True
 
     def _extract_test_details_from_event(self):
-        '''
+        """
         Method to extract the file_id, check_id, and result_id from the event payload
-        '''
+        """
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
         try:
@@ -243,49 +245,51 @@ class Check:
 
 
 class BodsDB:
-    '''
+    """
     Class to handle the connection to the BODS database. The class provides properties to access the database session and the database classes.
-    
+
     Properties:
     session: SqlAlchemy session
     classes: List of SqlAlchemy classes autogenerated from the database schema
-    '''
+    """
+
     def __init__(self):
         self._session = None
         self._classes = None
 
     @property
     def session(self):
-        '''
+        """
         Property to access the database session
-        '''
+        """
         if self._session is None:
             self._initialise_database()
         return self._session
 
     @property
     def classes(self):
-        '''
+        """
         Property to access the database classes
-        '''
+        """
         if self._classes is None:
             self._initialise_database()
         return self._classes
 
     def _initialise_database(self):
-        '''
+        """
         Method to initialise the database connection
-        '''
+        """
         connection_details = self._get_connection_details()
         logger.debug(
             "Connecting to DB with connection string "
             "postgresql+psycopg2://"
             f"{connection_details['POSTGRES_USER']}:"
-            "<password obfuscated>@"
+            f"{connection_details['POSTGRES_PASSWORD']}@"
             f"{connection_details['POSTGRES_HOST']}:"
             f"{connection_details['POSTGRES_PORT']}/"
             f"{connection_details['POSTGRES_DB']}"
         )
+        # postgis://transit_odp:transit_odp@localhost:5432/transit_odp_dev_1
         try:
             self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = create_engine(
@@ -307,9 +311,9 @@ class BodsDB:
             raise e
 
     def _get_connection_details(self):
-        '''
+        """
         Method to get the connection details for the database from the environment variables
-        '''
+        """
         connection_details = {}
         logger.debug("Getting DB password from secrets manager")
         try:

@@ -45,11 +45,4 @@ rebuild-local: ## Rebuild the Docker container services and SAM application
 
 make local-run: ## Run lambdas locally
 	export PYTHONPATH=./src/boilerplate && \
-	export POSTGRES_HOST=localhost && \
-	export POSTGRES_PASSWORD=postgres && \
-	export POSTGRES_PORT=5432 && \
-	export POSTGRES_USER=postgres && \
-	export POSTGRES_DB=bodds && \
-	echo "${POSTGRES_USER}" && \
 	python -c 'from src.template.app import lambda_handler; from json import dumps; lambda_handler({"Records":[{"body": dumps({"file_id": 1,"check_id": 1,"result_id": 1})}]},None)'
-

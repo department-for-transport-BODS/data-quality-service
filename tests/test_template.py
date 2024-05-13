@@ -5,17 +5,7 @@ from types import SimpleNamespace
 from .mock_db import MockedDB
 
 SAMPLE_SQS_EVENT = {
-    "Records": [
-        {
-            "body": dumps(
-                {
-                    "file_id": 50,
-                    "check_id": 1,
-                    "result_id": 1
-                }
-            )
-        }
-    ]
+    "Records": [{"body": dumps({"file_id": 50, "check_id": 1, "result_id": 1})}]
 }
 # def test_handler():
 #     db = MockedDB()
