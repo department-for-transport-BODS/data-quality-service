@@ -1,5 +1,5 @@
 awscli-local
 aws-sam-cli-local
 pyyaml
-cfn_flip
+cfn-flip
 cfn-tools

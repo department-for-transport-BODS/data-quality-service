@@ -15,20 +15,17 @@ Parameters:
     Type: String
     Description: The Github Repository Name
     Default: local
-  VPC:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>
-    Description: The VPC to deploy to
+  Vpc:
+    Type: String
+    Description: The Vpc to deploy to
     Default: ''
   PrivateSubnets:
-    Type: AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>
+    Type: String
     Description: The public subnets to deploy to
     Default: ''
 
 Conditions:
-  IsLocal:
-    !Equals
-      - !Ref ParamEnvironment
-      - local
+  IsLocal: [!Equals [!Ref ParamEnvironment, 'local']]
 
 Resources:
   BoilerPlate:
@@ -55,20 +52,29 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.11
       Timeout: 60
-      Layers:
-        !If 
-          - IsLocal
-          - []
-          - - !Ref BoilerPlate
+      Layers: !If 
+        - IsLocal
+        - !Ref 'AWS::NoValue'
+        - !Ref BoilerPlate
       VpcConfig:
-        SubnetIds: !Ref PrivateSubnets
-        SecurityGroupIds:
-          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
+        SubnetIds: !If
+          - IsLocal
+          - !Ref 'AWS::NoValue'
+          - 
+            - !Ref PrivateSubnets
+        SecurityGroupIds: !If 
+          - IsLocal
+          - !Ref 'AWS::NoValue'
+          - 
+            - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
       Policies:
         - SQSPollerPolicy:
             QueueName:
               !GetAtt TemplateQueue.QueueName
-        - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
+        - !If
+          - IsLocal
+          - !Ref 'AWS::NoValue'
+          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
