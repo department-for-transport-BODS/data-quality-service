@@ -7,16 +7,16 @@ ENV?=local
 DIRNAME=`basename ${PWD}`
 PG_EXEC=psql "host=$(POSTGRES_HOST) port=$(POSTGRES_PORT) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) gssencmode='disable'
 
-install:
-	pip install ruff pytest
-	brew install watchman
-
 cmd-exists-%:
 	@hash $(*) > /dev/null 2>&1 || \
 		(echo "ERROR: '$(*)' must be installed and available on your PATH."; exit 1)
 
 help:
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/[:].*[##]/:/'
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/[:].*[##]/:\n\t/'
+
+install: cmd-exists-brew ## Install dependencies
+	pip install ruff pytest
+	brew install watchman
 
 start-services: ## Start the Docker container services
 	docker-compose --env-file ./config/.env up -d
@@ -61,8 +61,8 @@ make run: ## Run lambdas locally
 	export PYTHONPATH=./src/boilerplate && \
 	python -m run_lambda
 
-watch:
+watch: ## Rebuild or redeploy when files changes along with running lambda
 	watchman-make -p "**/template/*.py" -t redeploy run -p "**/boilerplate/*.py" -t rebuild run
 
-clean:
-	ruff check . --fix --unsafe-fixes
+clean: ## format python file and does flake8 fixes
+	ruff check . --fix

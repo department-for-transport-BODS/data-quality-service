@@ -3,7 +3,6 @@ from boto3 import client  # noqa
 import logging
 from common import Check
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 _ANCHOR = '<a class="govuk-link" target="_blank" href="{0}">{0}</a>'
@@ -16,7 +15,7 @@ _TRAVEL_LINE_ANCHOR = _ANCHOR.format(
 def lambda_handler(event, context):
     ### INITIATE A CHECK BASED ON INCOMING CHECK EVENT
 
-    check=Check(event)
+    Check(event)
 
     print("data")
     ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING

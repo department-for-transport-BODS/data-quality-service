@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from sys import stdout
 from enum import Enum, unique
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
