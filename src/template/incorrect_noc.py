@@ -15,7 +15,7 @@ _TRAVEL_LINE_ANCHOR = _ANCHOR.format(
 def lambda_handler(event, context):
     ### INITIATE A CHECK BASED ON INCOMING CHECK EVENT
 
-    Check(event)
+    check=Check(event)
 
     print("data")
     ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING

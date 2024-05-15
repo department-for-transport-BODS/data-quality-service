@@ -7,6 +7,10 @@ ENV?=local
 DIRNAME=`basename ${PWD}`
 PG_EXEC=psql "host=$(POSTGRES_HOST) port=$(POSTGRES_PORT) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) gssencmode='disable'
 
+install:
+	pip install ruff pytest
+	brew install watchman
+
 cmd-exists-%:
 	@hash $(*) > /dev/null 2>&1 || \
 		(echo "ERROR: '$(*)' must be installed and available on your PATH."; exit 1)
