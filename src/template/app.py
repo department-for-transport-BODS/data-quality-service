@@ -1,8 +1,5 @@
-import psycopg2
 from os import environ
-from boto3 import client
 import logging
-from common import Check
 
 
 logger = logging.getLogger(__name__)

@@ -3,8 +3,6 @@ from unittest.mock import patch
 from os import environ
 from pytest import raises
 from psycopg2.errors import OperationalError
-from json import loads, dumps
-from pydantic_core import ValidationError
 
 ENVIRONMENT_INPUT_TEST_VALUES = {
     "POSTGRES_HOST": "host",

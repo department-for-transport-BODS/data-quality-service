@@ -8,6 +8,7 @@ import logging
 from json import loads
 from pydantic import BaseModel
 from sys import stdout
+from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
@@ -346,3 +347,25 @@ class BodsDB:
         except Exception as e:
             logger.error("Failed to get connection details for database")
             raise e
+
+
+@unique
+class Level(Enum):
+    critical = "Critical"
+    advisory = "Advisory"
+
+
+@unique
+class Category(Enum):
+    stops = "Stops"
+    timing = "Timing"
+    journey = "Journey"
+    data_set = "Data set"
+
+
+class CheckBasis(Enum):
+    stops = "stops"
+    lines = "lines"
+    timing_patterns = "timing_patterns"
+    vehicle_journeys = "vehicle_journeys"
+    data_set = "data_set"
