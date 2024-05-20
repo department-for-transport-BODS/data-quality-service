@@ -70,3 +70,21 @@ watch: ## Rebuild or redeploy when files changes along with running lambda
 
 clean: ## format python file and does flake8 fixes
 	ruff check . --fix
+
+# New targets for creating queues in localstack
+
+.PHONY: create-queues copy-script
+
+# Command to copy the script to the container
+copy-script:
+	@echo "Creating queue creation script..."
+	@echo '#!/bin/bash\n\nqueues=(\n  "incorrect_licence_number_queue"\n  "same_stop_found_multiple_times_queue"\n  "stops_not_found_in_queue"\n  "missing_stops_queue"\n  "missing_bus_working_number_queue"\n  "duplicate_journey_code_queue"\n  "missing_journey_code_queue"\n  "incorrect_stop_type_queue"\n  "last_stop_is_not_a_timing_point_queue"\n  "first_step_is_not_a_timing_point_queue"\n  "last_stop_is_pickup_only_queue"\n  "first_stop_is_set_down_only_queue"\n  "incorrect_noc_queue"\n)\n\nfor queue in "$${queues[@]}"; do\n  awslocal sqs create-queue --queue-name "$$queue"\ndone' > create_queues.sh
+	docker cp create_queues.sh localstack-main:/create_queues.sh
+	docker exec localstack-main chmod +x /create_queues.sh
+	@echo "Queue creation script copied to container."
+
+# Command to run the script inside the container
+create-queues: copy-script
+	@echo "Running queue creation script inside container..."
+	docker exec localstack-main /create_queues.sh
+	@echo "Queues created successfully."
