@@ -72,7 +72,6 @@ clean: ## format python file and does flake8 fixes
 	ruff check . --fix
 
 # New targets for creating queues in localstack
-
 .PHONY: create-queues copy-script
 
 # Command to copy the script to the container
