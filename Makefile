@@ -42,7 +42,7 @@ rebuild: ## Rebuild the Docker container services and SAM application
 	# pip install -q -r utils/requirements.txt
 	docker-compose down
 	docker-compose up -d
-	samlocal build
+	samlocal build --use-container --parallel
 	python utils/bootstrap_layers.py
 	samlocal deploy \
             --stack-name local \
@@ -70,19 +70,3 @@ watch: ## Rebuild or redeploy when files changes along with running lambda
 
 clean: ## format python file and does flake8 fixes
 	ruff check . --fix
-
-# New targets for creating queues in localstack
-.PHONY: create-queues copy-script
-
-# Command to copy the script to the container
-copy-script:
-	@echo "Copying create_queues.sh to localstack-main container..."
-	docker cp create_queues.sh localstack-main:/create_queues.sh
-	docker exec localstack-main chmod +x /create_queues.sh
-	@echo "Queue creation script copied and made executable."
-
-# Command to run the script inside the container
-create-queues: copy-script
-	@echo "Running queue creation script inside container..."
-	docker exec localstack-main /create_queues.sh
-	@echo "Queues created successfully."
