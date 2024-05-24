@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Stub for DQS
 
@@ -18,14 +18,14 @@ Parameters:
   Vpc:
     Type: String
     Description: The Vpc to deploy to
-    Default: ''
+    Default: ""
   PrivateSubnets:
     Type: String
     Description: The public subnets to deploy to
-    Default: ''
+    Default: ""
 
 Conditions:
-  IsLocal: [!Equals [!Ref ParamEnvironment, 'local']]
+  IsLocal: [!Equals [!Ref ParamEnvironment, "local"]]
 
 Resources:
   BoilerPlate:
@@ -52,29 +52,26 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.11
       Timeout: 60
-      Layers: !If 
+      Layers: !If
         - IsLocal
-        - !Ref 'AWS::NoValue'
+        - !Ref "AWS::NoValue"
         - !Ref BoilerPlate
       VpcConfig:
         SubnetIds: !If
           - IsLocal
-          - !Ref 'AWS::NoValue'
-          - 
-            - !Ref PrivateSubnets
-        SecurityGroupIds: !If 
+          - !Ref "AWS::NoValue"
+          - - !Ref PrivateSubnets
+        SecurityGroupIds: !If
           - IsLocal
-          - !Ref 'AWS::NoValue'
-          - 
-            - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
+          - !Ref "AWS::NoValue"
+          - - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}"
       Policies:
         - SQSPollerPolicy:
-            QueueName:
-              !GetAtt TemplateQueue.QueueName
+            QueueName: !GetAtt TemplateQueue.QueueName
         - !If
           - IsLocal
-          - !Ref 'AWS::NoValue'
-          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
+          - !Ref "AWS::NoValue"
+          - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}"
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -82,33 +79,91 @@ Resources:
             Queue: !GetAtt TemplateQueue.Arn
       Environment:
         Variables:
-          POSTGRES_DB: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
-          POSTGRES_HOST: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
-          POSTGRES_PASSWORD_ARN: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
-          POSTGRES_PORT: 
-            !If
-              - IsLocal
-              - 3128
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
-          POSTGRES_USER:
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
+          POSTGRES_DB: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}"
+          POSTGRES_HOST: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}"
+          POSTGRES_PASSWORD_ARN: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}"
+          POSTGRES_PORT: !If
+            - IsLocal
+            - 3128
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}"
+          POSTGRES_USER: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
 
+  MonitorPipelineScheduled:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: "rate(15 minutes)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt MonitorPipeline.Arn
+          Id: "MonitorPipelineTarget"
+      Description: "Schedule to update the status of dqs tasks"
 
+  MonitorPipeline:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Repository}-montior-pipeline-${Environment}"
+      CodeUri: src/monitor
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Timeout: 120
+      Layers: !If
+        - IsLocal
+        - !Ref "AWS::NoValue"
+        - !Ref BoilerPlate
+      VpcConfig:
+        SubnetIds: !If
+          - IsLocal
+          - !Ref "AWS::NoValue"
+          - - !Ref PrivateSubnets
+        SecurityGroupIds: !If
+          - IsLocal
+          - !Ref "AWS::NoValue"
+          - - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}"
+      Policies:
+        - !If
+          - IsLocal
+          - !Ref "AWS::NoValue"
+          - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}"
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(15 minutes)"
+      Environment:
+        Variables:
+          POSTGRES_DB: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}"
+          POSTGRES_HOST: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}"
+          POSTGRES_PASSWORD_ARN: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}"
+          POSTGRES_PORT: !If
+            - IsLocal
+            - 3128
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}"
+          POSTGRES_USER: !If
+            - IsLocal
+            - postgres
+            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
+          TIMEOUT_HOURS: 12
 
 Outputs:
   Env:

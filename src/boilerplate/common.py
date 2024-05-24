@@ -1,6 +1,7 @@
+import pandas as pd
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, update
 import geoalchemy2  # noqa
 from os import environ
 from boto3 import client
@@ -9,6 +10,7 @@ from json import loads
 from pydantic import BaseModel
 from sys import stdout
 from enum import Enum, unique
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
@@ -57,12 +59,8 @@ class Check:
     validate_requested_check: Validate the check
     """
 
-    def __init__(self, lambda_event):
-        self._lambda_event = lambda_event
-        self._file_id = None
-        self._check_id = None
+    def __init__(self):
         self._db = None
-        self._result_id = None
         self._result = None
         self.observations = []
 
@@ -92,33 +90,6 @@ class Check:
         if self._db is None:
             self._db = BodsDB()
         return self._db
-
-    @property
-    def file_id(self):
-        """
-        Property to access the file_id from the event payload
-        """
-        if self._file_id is None:
-            self._extract_test_details_from_event()
-        return self._file_id
-
-    @property
-    def check_id(self):
-        """
-        Property to access the check_id from the event payload
-        """
-        if self._check_id is None:
-            self._extract_test_details_from_event()
-        return self._check_id
-
-    @property
-    def result_id(self):
-        """
-        Property to access the result_id from the event payload
-        """
-        if self._result_id is None:
-            self._extract_test_details_from_event()
-        return self._result_id
 
     @property
     def task_results(self):
@@ -221,6 +192,78 @@ class Check:
             )
         else:
             return True
+        
+    
+    def get_task_results_df(self, dq_report_ids: list, check_id: str):
+        df = pd.DataFrame()
+        try:
+            dq_tasks = self.db.classes.data_quality_taskresults
+            select_stmt = select(dq_tasks)
+            if dq_report_ids:
+                select_stmt = select_stmt.where(
+                    dq_tasks.dataquality_report_id.in_(dq_report_ids)
+                )
+            df = pd.read_sql_query(select_stmt,self.db.engine)
+            
+        except Exception as e:
+            logger.error(
+                f"Failed to add obervation for check_id = {str(check_id)}", e
+            )
+            raise e
+        
+        return df
+    
+    
+    @contextmanager
+    def update_task_results_status_using_ids(self, dq_report_ids: list, status: str, check_id: str):
+        try:
+            if dq_report_ids:
+                dq_tasks = self.db.classes.data_quality_taskresults
+                update_task_results = self.db.session.query(dq_tasks).filter(dq_tasks.dataquality_report_id.in_(dq_report_ids))
+                for record in update_task_results:
+                    record.status = status
+                self.db.session.commit()
+        except Exception as e:
+            logger.error(
+                f"Failed to add obervation for check_id = {str(check_id)}", e
+            )
+            self.db.session.rollback()
+            raise e
+
+
+class EventDetails:
+    def __init__(self, lambda_event):
+        self._lambda_event = lambda_event
+        self._file_id = None
+        self._check_id = None
+        self._result_id = None
+
+    @property
+    def file_id(self):
+        """
+        Property to access the file_id from the event payload
+        """
+        if self._file_id is None:
+            self._extract_test_details_from_event()
+        return self._file_id
+
+    @property
+    def check_id(self):
+        """
+        Property to access the check_id from the event payload
+        """
+        if self._check_id is None:
+            self._extract_test_details_from_event()
+        return self._check_id
+
+    @property
+    def result_id(self):
+        """
+        Property to access the result_id from the event payload
+        """
+        if self._result_id is None:
+            self._extract_test_details_from_event()
+        return self._result_id
 
     def _extract_test_details_from_event(self):
         """
@@ -257,6 +300,7 @@ class BodsDB:
     def __init__(self):
         self._session = None
         self._classes = None
+        self._engine = None
 
     @property
     def session(self):
@@ -275,10 +319,19 @@ class BodsDB:
         if self._classes is None:
             self._initialise_database()
         return self._classes
-
-    def _initialise_database(self):
+    
+    @property
+    def engine(self):
         """
-        Method to initialise the database connection
+        Property to access the database classes
+        """
+        if self._engine is None:
+            self._engine = self._initialise_engine()
+        return self._engine
+    
+    def _initialise_engine(self):
+        """
+        Method to initialise the database engine
         """
         connection_details = self._get_connection_details()
         logger.debug(
@@ -290,16 +343,27 @@ class BodsDB:
             f"{connection_details['POSTGRES_PORT']}/"
             f"{connection_details['POSTGRES_DB']}"
         )
-        # postgis://transit_odp:transit_odp@localhost:5432/transit_odp_dev_1
+        try:
+            sqlalchemy_engine = create_engine(
+                    f"postgresql+psycopg2://{connection_details['POSTGRES_USER']}:"
+                    f"{connection_details['POSTGRES_PASSWORD']}@"
+                    f"{connection_details['POSTGRES_HOST']}:"
+                    f"{connection_details['POSTGRES_PORT']}/"
+                    f"{connection_details['POSTGRES_DB']}"
+                )
+            
+            return sqlalchemy_engine
+        except Exception as e:
+            logger.error("Failed to obtain engine object to connect to DB")
+            raise e
+
+    def _initialise_database(self):
+        """
+        Method to initialise the database connection
+        """
         try:
             self._sqlalchemy_base = automap_base()
-            sqlalchemy_engine = create_engine(
-                f"postgresql+psycopg2://{connection_details['POSTGRES_USER']}:"
-                f"{connection_details['POSTGRES_PASSWORD']}@"
-                f"{connection_details['POSTGRES_HOST']}:"
-                f"{connection_details['POSTGRES_PORT']}/"
-                f"{connection_details['POSTGRES_DB']}"
-            )
+            sqlalchemy_engine = self._initialise_engine()
             logger.debug("Preparing SQLALchemy base")
             self._sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
             logger.debug("Initiating DB session")
@@ -318,8 +382,8 @@ class BodsDB:
         connection_details = {}
         logger.debug("Getting DB password from secrets manager")
         try:
-            secrets_manager = client("secretsmanager")
             if environ.get("POSTGRES_PASSWORD_ARN", None):
+                secrets_manager = client("secretsmanager")
                 password_response = secrets_manager.get_secret_value(
                     SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
                 )
@@ -369,3 +433,42 @@ class CheckBasis(Enum):
     timing_patterns = "timing_patterns"
     vehicle_journeys = "vehicle_journeys"
     data_set = "data_set"
+
+
+class DQReport:
+    def __init__(self):
+        self.check = Check()
+
+    def get_dq_reports_by_status(self, status: str, check_id: str):
+        df = pd.DataFrame()
+        try:
+            data_quality_report = self.check.db.classes.data_quality_report
+            select_stmt = select(data_quality_report)
+            if status:
+                select_stmt = select_stmt.where(
+                    data_quality_report.status == status
+                )
+            df = pd.read_sql_query(select_stmt, self.check.db.engine)
+            
+        except Exception as e:
+            logger.error(
+                f"Failed to add obervation for check_id = {str(check_id)}", e
+            )
+            raise e
+        
+        return df
+    
+    @contextmanager
+    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame, check_id: str):
+        
+        try:
+            if not df_dq_reports.empty:
+                dq_reports = self.check.db.classes.data_quality_report
+                self.check.db.session.execute(update(dq_reports), df_dq_reports.to_dict('records'))
+                self.check.db.session.commit()
+        except Exception as e:
+            logger.error(
+                f"Failed to add obervation for check_id = {str(check_id)}", e
+            )
+            self.check.db.session.rollback()
+            raise e
