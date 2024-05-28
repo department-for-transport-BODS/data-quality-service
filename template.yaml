@@ -100,6 +100,12 @@ Resources:
             - postgres
             - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
 
+  GenerateCSVQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Repository}-generate-csv-${Environment}"
+      VisibilityTimeout: 90
+
   MonitorPipelineScheduled:
     Type: AWS::Events::Rule
     Properties:
@@ -164,6 +170,8 @@ Resources:
             - postgres
             - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
           TIMEOUT_HOURS: 12
+          ENV: !Ref Environment
+          REPOSITORY: !Ref Repository
 
 Outputs:
   Env:

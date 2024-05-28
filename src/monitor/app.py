@@ -5,10 +5,9 @@ import os
 
 import pandas as pd
 
-from src.boilerplate.common import Check, DQReport, EventDetails
+from src.boilerplate.common import Check, DQReport
 from src.boilerplate.enums import DQ_Report_Status, DQ_Task_Result_Status
-from src.monitor.utils import map_pipeline_status
-
+from src.monitor.utils import  map_pipeline_status, send_sqs_messages
 
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
@@ -45,6 +44,10 @@ def lambda_handler(event, context):
     df_update_dq_reports = df_update_dq_reports.rename(columns={'pipeline_status': 'status'})
     df_update_dq_reports = df_update_dq_reports[["id", "status"]].drop_duplicates()
     df_update_dq_reports.reset_index(drop=True, inplace=True)
+    df_generate_csv = df_update_dq_reports[df_update_dq_reports['status'].isin([DQ_Report_Status.PIPELINE_SUCCEEDED, DQ_Report_Status.PIPELINE_SUCCEEDED_WITH_ERRORS])]
+    
+    send_sqs_messages(df_generate_csv)
+
     dq_report_instance.update_dq_reports_status_using_ids(df_update_dq_reports, 'pipeline_monitor')
     check.update_task_results_status_using_ids(dq_report_timeout_ids, DQ_Task_Result_Status.TIMEOUT, 'pipeline_monitor')
     logger.info("Monitor pipeline function completed successfully.")

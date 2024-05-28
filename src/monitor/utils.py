@@ -1,7 +1,29 @@
+import os
 import pandas as pd
 
 from src.boilerplate.enums import DQ_Report_Status, DQ_Task_Result_Status
+from src.boilerplate.sqs import SQSClient
 
+
+def get_generate_csv_queue_name() -> str:
+    env = os.environ["ENV"]
+    repo = os.environ["REPOSITORY"]
+    if env and repo:
+        return f"{repo}-generate-csv-{env}"
+    
+    return None
+    
+    
+def entries_generate_csv(df: pd.DataFrame) -> list:
+    return df['id'].to_frame().to_dict('records')
+
+
+def send_sqs_messages(df: pd.DataFrame):
+    sqs = SQSClient()
+    queue = sqs.get_sqs_queue(get_generate_csv_queue_name())
+    sqs_entries = entries_generate_csv(df)
+    sqs.send_messages(sqs_entries, queue)
+    
 
 def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     status = set(df['status'])

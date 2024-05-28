@@ -10,6 +10,9 @@ ENVIRONMENT_INPUT_TEST_VALUES = {
     "POSTGRES_USER": "user",
     "POSTGRES_PORT": "5432",
     "POSTGRES_PASSWORD_ARN": "my_password_location_arn",
+    "ENV": "local",
+    "REPOSITORY": "local",
+    "AWS_REGION": "eu-west-2"
 }
 
 ENVIRONMENT_OUTPUT_TEST_VALUES = {
