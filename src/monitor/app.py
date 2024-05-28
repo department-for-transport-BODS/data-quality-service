@@ -1,3 +1,4 @@
+from datetime import datetime
 from os import environ
 import logging
 import os
@@ -17,8 +18,8 @@ def lambda_handler(event, context):
     logger.info("Starting the monitor pipeline lambda function.")
     dq_report_instance = DQReport()
     dq_reports = dq_report_instance.get_dq_reports_by_status(DQ_Report_Status.PIPELINE_PENDING, 'pipeline_monitor')
-    logger.info(f"dq_reports---{dq_reports}")
-    now = pd.Timestamp.now(tz='UTC')
+    # Overcome issue with Freezegun not freezing date for pd.timestamp.now()
+    now = pd.to_datetime(datetime.now(), utc=True)
     timeout_hours = now - pd.Timedelta(hours=os.getenv('TIMEOUT_HOURS', 12))
 
     dq_report_timeouts = dq_reports[dq_reports['created'] < timeout_hours]
@@ -43,7 +44,7 @@ def lambda_handler(event, context):
     df_update_dq_reports = pd.concat([dq_reports_with_status, dq_report_timeouts[["id", "status"]]])
     df_update_dq_reports = df_update_dq_reports.rename(columns={'pipeline_status': 'status'})
     df_update_dq_reports = df_update_dq_reports[["id", "status"]].drop_duplicates()
-
-    # dq_report_instance.update_dq_reports_status_using_ids(df_update_dq_reports, 'pipeline_monitor')
-    # check.update_task_results_status_using_ids(dq_report_timeout_ids, DQ_Task_Result_Status.TIMEOUT, 'pipeline_monitor')
+    df_update_dq_reports.reset_index(drop=True, inplace=True)
+    dq_report_instance.update_dq_reports_status_using_ids(df_update_dq_reports, 'pipeline_monitor')
+    check.update_task_results_status_using_ids(dq_report_timeout_ids, DQ_Task_Result_Status.TIMEOUT, 'pipeline_monitor')
     logger.info("Monitor pipeline function completed successfully.")
