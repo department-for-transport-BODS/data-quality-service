@@ -42,7 +42,7 @@ rebuild: ## Rebuild the Docker container services and SAM application
 	# pip install -q -r utils/requirements.txt
 	docker-compose down
 	docker-compose up -d
-	samlocal build
+	samlocal build --use-container --parallel
 	python utils/bootstrap_layers.py
 	samlocal deploy \
             --stack-name local \

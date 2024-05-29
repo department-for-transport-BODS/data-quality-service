@@ -38,10 +38,82 @@ Resources:
     Metadata:
       BuildMethod: python3.11
 
-  TemplateQueue:
+  incorrect_noc_queue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Repository}-template-queue-${Environment}"
+      QueueName: !Sub "${Environment}-incorrect_noc_queue"
+      VisibilityTimeout: 90
+
+  first_stop_is_set_down_only_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-first_stop_is_set_down_only_queue"
+      VisibilityTimeout: 90
+
+  last_stop_is_pickup_only_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-last_stop_is_pickup_only_queue"
+      VisibilityTimeout: 90
+
+  first_step_is_not_a_timing_point_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-first_step_is_not_a_timing_point_queue"
+      VisibilityTimeout: 90
+
+  last_stop_is_not_a_timing_point_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-last_stop_is_not_a_timing_point_queue"
+      VisibilityTimeout: 90
+
+  incorrect_stop_type_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-incorrect_stop_type_queue"
+      VisibilityTimeout: 90
+
+  missing_journey_code_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-missing_journey_code_queue"
+      VisibilityTimeout: 90
+
+  duplicate_journey_code_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-duplicate_journey_code_queue"
+      VisibilityTimeout: 90
+
+  missing_bus_working_number_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
+      VisibilityTimeout: 90
+
+  missing_stops_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-missing_stops_queue"
+      VisibilityTimeout: 90
+
+  stops_not_found_in_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-stops_not_found_in_queue"
+      VisibilityTimeout: 90
+
+  same_stop_found_multiple_times_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-same_stop_found_multiple_times_queue"
+      VisibilityTimeout: 90
+
+  incorrect_licence_number_queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-incorrect_licence_number_queue"
       VisibilityTimeout: 90
 
   TemplateFunction:
@@ -77,6 +149,9 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt TemplateQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
       Environment:
         Variables:
           POSTGRES_DB: !If
