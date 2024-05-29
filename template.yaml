@@ -15,20 +15,24 @@ Parameters:
     Type: String
     Description: The Github Repository Name
     Default: local
-  Vpc:
-    Type: String
-    Description: The Vpc to deploy to
-    Default: ''
+  # Commented as the Vpc is not getting used
+  # Vpc:
+  #   Type: String
+  #   Description: The Vpc to deploy to
+  #   Default: ''
   PrivateSubnets:
     Type: String
     Description: The public subnets to deploy to
     Default: ''
 
-Conditions:
-  IsLocal: [!Equals [!Ref ParamEnvironment, 'local']]
+Conditions:  
+  IsLocal: !Equals [!Ref ParamEnvironment, 'local']  
 
 Resources:
-  BoilerPlate:
+
+  # Import the AWS Lambda function from my-long-function-name.yaml    
+
+  BoilerPlate: 
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Sub "${Repository}-boilerplate-layer-${Environment}"
@@ -37,93 +41,117 @@ Resources:
         - python3.11
     Metadata:
       BuildMethod: python3.11
-
-  incorrect_noc_queue:
+  
+  IncorrectNocQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-incorrect_noc_queue"
       VisibilityTimeout: 90
 
-  first_stop_is_set_down_only_queue:
+  FirstStopIsPickUpOnlyQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-first_stop_is_set_down_only_queue"
+      QueueName: !Sub "${Environment}-first_stop_is_pick_up_only_queue"
       VisibilityTimeout: 90
 
-  last_stop_is_pickup_only_queue:
+  LastStopIsSetDownOnlyQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-last_stop_is_pickup_only_queue"
       VisibilityTimeout: 90
 
-  first_step_is_not_a_timing_point_queue:
+  FirstStopIsNotATimingPointQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-first_step_is_not_a_timing_point_queue"
+      QueueName: !Sub "${Environment}-first_stop_is_not_a_timing_point_queue"
       VisibilityTimeout: 90
 
-  last_stop_is_not_a_timing_point_queue:
+  LastStopIsNotATimingPointQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-last_stop_is_not_a_timing_point_queue"
       VisibilityTimeout: 90
 
-  incorrect_stop_type_queue:
+  IncorrectStopTypeQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-incorrect_stop_type_queue"
       VisibilityTimeout: 90
 
-  missing_journey_code_queue:
+  MissingJourneyCodeQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-missing_journey_code_queue"
       VisibilityTimeout: 90
 
-  duplicate_journey_code_queue:
+  DuplicateJourneyCodeQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-duplicate_journey_code_queue"
       VisibilityTimeout: 90
 
-  missing_bus_working_number_queue:
+  MissingBusWorkingNumberQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
       VisibilityTimeout: 90
 
-  missing_stops_queue:
+  MissingStopsQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-missing_stops_queue"
       VisibilityTimeout: 90
 
-  stops_not_found_in_queue:
+  StopsNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-stops_not_found_in_queue"
       VisibilityTimeout: 90
 
-  same_stop_found_multiple_times_queue:
+  SameStopFoundMultipleTimesQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-same_stop_found_multiple_times_queue"
       VisibilityTimeout: 90
 
-  incorrect_licence_number_queue:
+  IncorrectLicenseNumberQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-incorrect_licence_number_queue"
       VisibilityTimeout: 90
 
-  TemplateFunction:
+  FirstStopIsPickUpLambdaRole:
+    Type: AWS::IAM::Role  
+    Properties:  
+      RoleName: my-lambda-role  
+      AssumeRolePolicyDocument:  
+        Version: "2012-10-17"  
+        Statement:  
+          - Effect: Allow  
+            Principal:  
+              Service: lambda.amazonaws.com  
+            Action: sts:AssumeRole  
+      Policies:  
+        - PolicyName: my-lambda-policy  
+          PolicyDocument:  
+            Version: "2012-10-17"  
+            Statement:  
+              - Effect: Allow  
+                Action:  
+                  - logs:CreateLogGroup  
+                  - logs:CreateLogStream  
+                  - logs:PutLogEvents  
+                Resource: arn:aws:logs:*:*:*   
+
+  FirstStopIsPickUpLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${Repository}-template-function-${Environment}"
+      FunctionName: !Sub "${Repository}-first_stop_is_pick_up_lambda-${Environment}"
       CodeUri: src/template
       Handler: app.lambda_handler
       Runtime: python3.11
       Timeout: 60
+      Role: !GetAtt FirstStopIsPickUpLambdaRole.Arn
       Layers: !If 
         - IsLocal
         - !Ref 'AWS::NoValue'
@@ -142,7 +170,7 @@ Resources:
       Policies:
         - SQSPollerPolicy:
             QueueName:
-              !GetAtt TemplateQueue.QueueName
+              !GetAtt FirstStopIsPickUpOnlyQueue.QueueName
         - !If
           - IsLocal
           - !Ref 'AWS::NoValue'
@@ -151,7 +179,7 @@ Resources:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt TemplateQueue.Arn
+            Queue: !GetAtt FirstStopIsPickUpOnlyQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
