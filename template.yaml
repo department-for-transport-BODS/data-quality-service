@@ -178,7 +178,7 @@ Resources:
   GenerateCSVQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Repository}-generate-csv-${Environment}"
+      QueueName: !Sub "${Environment}-generate-csv"
       VisibilityTimeout: 90
 
   MonitorPipelineScheduled:
@@ -246,7 +246,6 @@ Resources:
             - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
           TIMEOUT_HOURS: 12
           ENV: !Ref Environment
-          REPOSITORY: !Ref Repository
 
 Outputs:
   Env:

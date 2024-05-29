@@ -7,9 +7,8 @@ from src.boilerplate.sqs import SQSClient
 
 def get_generate_csv_queue_name() -> str:
     env = os.environ["ENV"]
-    repo = os.environ["REPOSITORY"]
-    if env and repo:
-        return f"{repo}-generate-csv-{env}"
+    if env:
+        return f"{env}-generate-csv"
     
     return None
     
