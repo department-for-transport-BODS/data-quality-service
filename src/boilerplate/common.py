@@ -12,6 +12,8 @@ from sys import stdout
 from enum import Enum, unique
 from contextlib import contextmanager
 
+from src.boilerplate.enums import DQ_Task_Result_Status
+
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 
@@ -219,7 +221,7 @@ class Check:
         try:
             if dq_report_ids:
                 dq_tasks = self.db.classes.data_quality_taskresults
-                update_task_results = self.db.session.query(dq_tasks).filter(dq_tasks.dataquality_report_id.in_(dq_report_ids))
+                update_task_results = self.db.session.query(dq_tasks).filter(dq_tasks.dataquality_report_id.in_(dq_report_ids)).filter(dq_tasks.status == DQ_Task_Result_Status.PENDING)
                 for record in update_task_results:
                     record.status = status
                 self.db.session.commit()
