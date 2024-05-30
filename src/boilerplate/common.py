@@ -47,12 +47,12 @@ class Check:
     observations: list
 
     Properties:
-    result: data_quality_taskresults record for the check
+    result: dqs_taskresults record for the check
     db: Database connection object
     file_id: int
     check_id: int
     result_id: int
-    task_results: data_quality_taskresults table
+    task_results: dqs_taskresults table
 
     Methods:
     add_observation: Add an observation to the check
@@ -74,8 +74,8 @@ class Check:
         try:
             if self._result is None:
                 result = self.db.session.scalar(
-                    select(self.db.classes.data_quality_taskresults).where(
-                        self.db.classes.data_quality_taskresults.id == self.result_id
+                    select(self.db.classes.dqs_taskresults).where(
+                        self.db.classes.dqs_taskresults.id == self.result_id
                     )
                 )
                 self._result = result
@@ -99,7 +99,7 @@ class Check:
         Property to access the data quality task results table
         """
         if self._task_results_table is None:
-            self._task_results_table = self.db.classes.data_quality_taskresults
+            self._task_results_table = self.db.classes.dqs_taskresults
         return self._task_results_table
 
     def add_observation(
@@ -118,7 +118,7 @@ class Check:
             logger.debug(
                 f"Attempting to add obervation for check_id = {str(self.check_id)}"
             )
-            observation = self.db.classes.data_quality_observationresults(
+            observation = self.db.classes.dqs_observationresults(
                 details=details,
                 taskresults_id=self.result_id,
                 vehicle_journey_id=vehicle_journey_id,
@@ -199,7 +199,7 @@ class Check:
     def get_task_results_df(self, dq_report_ids: list, check_id: str):
         df = pd.DataFrame()
         try:
-            dq_tasks = self.db.classes.data_quality_taskresults
+            dq_tasks = self.db.classes.dqs_taskresults
             select_stmt = select(dq_tasks)
             if dq_report_ids:
                 select_stmt = select_stmt.where(
@@ -220,7 +220,7 @@ class Check:
     def update_task_results_status_using_ids(self, dq_report_ids: list, status: str, check_id: str):
         try:
             if dq_report_ids:
-                dq_tasks = self.db.classes.data_quality_taskresults
+                dq_tasks = self.db.classes.dqs_taskresults
                 update_task_results = self.db.session.query(dq_tasks).filter(dq_tasks.dataquality_report_id.in_(dq_report_ids)).filter(dq_tasks.status == DQ_Task_Result_Status.PENDING)
                 for record in update_task_results:
                     record.status = status
@@ -444,11 +444,11 @@ class DQReport:
     def get_dq_reports_by_status(self, status: str, check_id: str):
         df = pd.DataFrame()
         try:
-            data_quality_report = self.check.db.classes.data_quality_report
-            select_stmt = select(data_quality_report)
+            dqs_report = self.check.db.classes.dqs_report
+            select_stmt = select(dqs_report)
             if status:
                 select_stmt = select_stmt.where(
-                    data_quality_report.status == status
+                    dqs_report.status == status
                 )
             df = pd.read_sql_query(select_stmt, self.check.db.engine)
             
@@ -465,7 +465,7 @@ class DQReport:
         
         try:
             if not df_dq_reports.empty:
-                dq_reports = self.check.db.classes.data_quality_report
+                dq_reports = self.check.db.classes.dqs_report
                 self.check.db.session.execute(update(dq_reports), df_dq_reports.to_dict('records'))
                 self.check.db.session.commit()
         except Exception as e:

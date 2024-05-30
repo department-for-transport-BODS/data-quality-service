@@ -1,4 +1,4 @@
-import os
+from os import environ
 import pandas as pd
 
 from src.boilerplate.enums import DQ_Report_Status, DQ_Task_Result_Status
@@ -6,7 +6,7 @@ from src.boilerplate.sqs import SQSClient
 
 
 def get_generate_csv_queue_name() -> str:
-    env = os.environ["ENV"]
+    env = environ.get("ENV", "local")
     if env:
         return f"{env}-generate-csv"
     

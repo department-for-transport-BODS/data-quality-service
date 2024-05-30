@@ -1,10 +1,10 @@
 
-import os
+from os import environ
 import boto3
 
 class SQSClient:
     def __init__(self):
-        self.sqs_resource = boto3.resource('sqs', region_name=os.environ["AWS_REGION"])
+        self.sqs_resource = boto3.resource('sqs', region_name=environ.get("AWS_REGION","eu-west-2"))
 
 
     def get_sqs_queue(self, queue_name):

@@ -42,8 +42,9 @@ rebuild: ## Rebuild the Docker container services and SAM application
 	# pip install -q -r utils/requirements.txt
 	docker-compose down
 	docker-compose up -d
-	samlocal build --use-container --parallel
-	python utils/bootstrap_layers.py
+	samlocal validate --lint
+	samlocal build
+	python utils/bootstrap_layers.py	
 	samlocal deploy \
             --stack-name local \
             --no-fail-on-empty-changeset \
