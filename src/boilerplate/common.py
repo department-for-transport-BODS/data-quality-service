@@ -1,23 +1,12 @@
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select
-import geoalchemy2  # noqa
 from os import environ
 from boto3 import client
-import logging
 from json import loads
 from pydantic import BaseModel
-from sys import stdout
-from enum import Enum, unique
+from dqs_logger import logger
 
-logger = logging.getLogger(__name__)
-logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 
 class EventPayload(BaseModel):
@@ -37,10 +26,7 @@ class EventPayload(BaseModel):
 
 class Check:
     """
-    Class to handle the processing of a data quality check. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to add observations to the check, write the observations to the database, set the status of the check, and validate the check. The class also provides properties to access the file_id, check_id, and result_id from the event payload. The class also provides properties to access the database session and the data quality task results table.
-
-    Attributes:
-    observations: list
+    Class to handle the processing of a data quality check. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the check, and validate the check. The class also provides properties to access the file_id, check_id, and result_id from the event payload. The class also provides properties to access the database session and the data quality task results table.
 
     Properties:
     result: data_quality_taskresults record for the check
@@ -51,8 +37,6 @@ class Check:
     task_results: data_quality_taskresults table
 
     Methods:
-    add_observation: Add an observation to the check
-    write_observations: Write the observations to the database
     set_status: Set the status of the check
     validate_requested_check: Validate the check
     """
@@ -64,7 +48,9 @@ class Check:
         self._db = None
         self._result_id = None
         self._result = None
-        self.observations = []
+
+    def __str__(self) -> str:
+        return f"CheckId: {self._check_id}, FileId: {self._file_id}, ResultId: {self._result_id}"
 
     @property
     def result(self):
@@ -128,57 +114,6 @@ class Check:
         if self._task_results_table is None:
             self._task_results_table = self.db.classes.data_quality_taskresults
         return self._task_results_table
-
-    def add_observation(
-        self, details=None, vehicle_journey_id=None, service_pattern_stop_id=None
-    ):
-        """
-        Method to add an observation to the check
-
-        Args:
-        details: str, optional
-        vehicle_journey_id: int, optional
-        service_pattern_stop_id: int, optional
-        """
-        try:
-            self.validate_requested_check()
-            logger.debug(
-                f"Attempting to add obervation for check_id = {str(self.check_id)}"
-            )
-            observation = self.db.classes.data_quality_observationresults(
-                details=details,
-                taskresults_id=self.result_id,
-                vehicle_journey_id=vehicle_journey_id,
-                service_pattern_stop_id=service_pattern_stop_id,
-            )
-            self.db.session.add(observation)
-            self.observations.append(observation)
-        except Exception as e:
-            logger.error(
-                f"Failed to add obervation for check_id = {str(self.check_id)}", e
-            )
-            raise e
-
-    def write_observations(self):
-        """
-        Method to write the added observations to the database
-        """
-        try:
-            if len(self.observations) < 1:
-                logger.info(
-                    f"No obervations to write for check_id = {str(self.check_id)}"
-                )
-                return
-            logger.debug(
-                f"Attempting to add {str(len(self.observations))} obervation(s) for check_id = {str(self.check_id)}"
-            )
-            self.db.session.flush()
-            self.db.session.commit()
-        except Exception as e:
-            logger.error(
-                f"Attempting to add obervation for check_id = {str(self.check_id)}", e
-            )
-            raise e
 
     def set_status(self, status):
         """
@@ -245,6 +180,7 @@ class Check:
         self._result_id = check_details.result_id
 
 
+
 class BodsDB:
     """
     Class to handle the connection to the BODS database. The class provides properties to access the database session and the database classes.
@@ -283,13 +219,7 @@ class BodsDB:
         connection_details = self._get_connection_details()
         logger.debug(
             "Connecting to DB with connection string "
-            "postgresql+psycopg2://"
-            f"{connection_details['POSTGRES_USER']}@"
-            f"{connection_details['POSTGRES_HOST']}:"
-            f"{connection_details['POSTGRES_PORT']}/"
-            f"{connection_details['POSTGRES_DB']}"
         )
-        # postgis://transit_odp:transit_odp@localhost:5432/transit_odp_dev_1
         try:
             self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = create_engine(
@@ -346,25 +276,3 @@ class BodsDB:
         except Exception as e:
             logger.error("Failed to get connection details for database")
             raise e
-
-
-@unique
-class Level(Enum):
-    critical = "Critical"
-    advisory = "Advisory"
-
-
-@unique
-class Category(Enum):
-    stops = "Stops"
-    timing = "Timing"
-    journey = "Journey"
-    data_set = "Data set"
-
-
-class CheckBasis(Enum):
-    stops = "stops"
-    lines = "lines"
-    timing_patterns = "timing_patterns"
-    vehicle_journeys = "vehicle_journeys"
-    data_set = "data_set"
