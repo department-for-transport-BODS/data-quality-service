@@ -1,8 +1,6 @@
 from common import Check
 from dqs_logger import logger
 
-
-
 class ObservationResult:
     """
     Class to handle the observation result table in database.

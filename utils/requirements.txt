@@ -3,3 +3,4 @@ aws-sam-cli-local
 pyyaml
 cfn-flip
 cfn-tools
+black

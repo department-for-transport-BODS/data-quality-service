@@ -1,5 +1,7 @@
 from src.template.app import lambda_handler
-from src.template.last_stop_is_set_down import lambda_handler as last_stop_is_set_down_lambda_handler
+from src.template.last_stop_is_pick_up import (
+    lambda_handler as last_stop_is_set_down_lambda_handler,
+)
 from json import dumps
 
 import argparse
