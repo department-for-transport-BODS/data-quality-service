@@ -1,7 +1,7 @@
 from src.template.app import lambda_handler
-from src.template.last_stop_is_pick_up import (
-    lambda_handler as last_stop_is_set_down_lambda_handler,
-)
+from src.template.last_stop_is_set_down import lambda_handler as last_stop_is_set_down_lambda_handler
+from src.template.incorrect_stop_type import (
+    lambda_handler as incorrect_stop_type_lambda_handler,
 from json import dumps
 
 import argparse
@@ -21,6 +21,7 @@ def main():
     functions_to_run = {
         "lambda_handler": lambda_handler,
         "last_stop_is_set_down_lambda_handler": last_stop_is_set_down_lambda_handler,
+        "incorrect_stop_type_lambda_handler": incorrect_stop_type_lambda_handler,
     }
 
     functions_to_run[args.function_name](
