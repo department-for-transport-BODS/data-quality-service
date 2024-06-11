@@ -152,7 +152,7 @@ Resources:
     Properties:
       FunctionName: !Sub "${Repository}-first_stop_is_pick_up_only_lambda-${Environment}"
       CodeUri: src/template
-      Handler: app.lambda_handler
+      Handler: first_stop_is_set_down_only.lambda_handler
       Runtime: python3.11
       Timeout: 60
       Role: !GetAtt DQSLambdaRole.Arn
@@ -221,7 +221,7 @@ Resources:
     Properties:
       FunctionName: !Sub "${Repository}-last_stop_is_set_down_only_lambda-${Environment}"
       CodeUri: src/template
-      Handler: last_stop_is_set_down_only.lambda_handler
+      Handler: last_stop_is_pick_up_only.lambda_handler
       Runtime: python3.11
       Timeout: 60
       Role: !GetAtt DQSLambdaRole.Arn
