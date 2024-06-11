@@ -12,6 +12,7 @@ from src.template.last_stop_is_pick_up_only import (
 from src.template.last_stop_is_timing_point import (
     lambda_handler as last_stop_is_timing_point_lambda_handler,
 )
+from src.template.incorrect_noc import lambda_handler as incorrect_noc_lambda_handler
 from json import dumps
 
 import argparse
@@ -37,6 +38,7 @@ def main():
         "stop_not_found_in_naptan_lambda_handler": stop_not_found_in_naptan_lambda_handler,
         "last_stop_is_pick_up_only_lambda_handler": last_stop_is_pick_up_only_lambda_handler,
         "last_stop_is_timing_point_lambda_handler": last_stop_is_timing_point_lambda_handler,
+        "incorrect_noc_lambda_handler": incorrect_noc_lambda_handler
     }
 
     functions_to_run[args.function_name](
