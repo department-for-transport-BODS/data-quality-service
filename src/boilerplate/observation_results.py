@@ -1,6 +1,7 @@
 from common import Check
 from dqs_logger import logger
 
+
 class ObservationResult:
     """
     Class to handle the observation result table in database.
@@ -9,7 +10,7 @@ class ObservationResult:
     observations: list
 
     Properties:
-    task_results: data_quality_taskresults table
+    task_results: dqs_taskresults table
 
     Methods:
     add_observation: Add an observation to the check
@@ -19,7 +20,7 @@ class ObservationResult:
     def __init__(self, check: Check):
         self._check = check
         self.observations = []
-        self._table = check.db.classes.data_quality_observationresults
+        self._table = check.db.classes.dqs_observationresults
 
     def add_observation(
         self, details=None, vehicle_journey_id=None, service_pattern_stop_id=None

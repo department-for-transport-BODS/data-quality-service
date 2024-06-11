@@ -1,6 +1,7 @@
 import logging
 from os import environ
 from sys import stdout
+
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
 handler = logging.StreamHandler(stdout)

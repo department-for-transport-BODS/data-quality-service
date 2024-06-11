@@ -100,16 +100,16 @@ Resources:
       QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  MissingStopsQueue:
+  MissingStopQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-missing_stops_queue"
+      QueueName: !Sub "${Environment}-missing_stop_queue"
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  StopsNotFoundQueue:
+  StopNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-stops_not_found_in_queue"
+      QueueName: !Sub "${Environment}-stop_not_found_in_queue"
       VisibilityTimeout: !Ref VisibilityTimeout
 
   SameStopFoundMultipleTimesQueue:

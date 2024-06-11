@@ -1,8 +1,10 @@
 from common import Check
 import pandas as pd
+import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
 from sqlalchemy import and_
+
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
     """
@@ -36,8 +38,11 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
         )
         .where(Service.txcfileattributes_id == check.file_id)
         .with_entities(
+            ServicePatternStop.is_timing_point.label("is_timing_point"),
+            ServicePatternStop.naptan_stop_id.label("naptan_stop_id"),
             ServicePatternStop.sequence_number.label("sequence_number"),
             ServicePatternStop.atco_code.label("atco_code"),
+            ServicePatternStop.is_timing_point.label("is_timing_point"),
             coalesce(
                 NaptanStopPoint.common_name, ServicePatternStop.txc_common_name
             ).label("common_name"),
@@ -48,7 +53,6 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             VehicleJourney.id.label("vehicle_journey_id"),
         )
     )
-
     return pd.read_sql_query(result.statement, check.db.session.bind)
 
 

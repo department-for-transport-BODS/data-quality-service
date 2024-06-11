@@ -1,10 +1,10 @@
-from common import Check
-from observation_results import ObservationResult
-from dataframes import get_df_vehicle_journey
 from dqs_logger import logger
+from common import Check
+from dataframes import get_df_vehicle_journey
+from observation_results import ObservationResult
 
-# List of allowed activities for first stop
-_ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest"]
+
+_ALLOWED_IS_TIMING_POINT = True
 
 
 def lambda_handler(event, context):
@@ -19,21 +19,20 @@ def lambda_handler(event, context):
     df = get_df_vehicle_journey(check)
     logger.info(f"Looking in the Dataframes: {df.size}")
     if not df.empty:
-        df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmax()]
-        df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_LAST_STOP)]
-
+        df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmin()]
+        df = df[~df["is_timing_point"] == _ALLOWED_IS_TIMING_POINT]
         logger.info("Iterating over rows to add observations")
 
         ### ADD AN OBSERVATION FOR YOUR CHECK
         for row in df.itertuples():
-            details = f"The last stop ({row.common_name}) on the {row.start_time} {row.direction} journey is incorrectly set to pick up passengers."
+            details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a principal timing point."
             observation.add_observation(
                 details=details,
                 vehicle_journey_id=row.vehicle_journey_id,
                 service_pattern_stop_id=row.service_pattern_stop_id,
             )
 
-        logger.info("Observations added in memory")
+            logger.info("Observation added in memory")
         ### WRITE ALL OBSERVATIONS TO DATABASE
         if len(observation.observations) > 0:
             observation.write_observations()
