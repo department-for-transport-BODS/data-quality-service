@@ -28,12 +28,12 @@ class Check:
     Class to handle the processing of a data quality check. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the check, and validate the check. The class also provides properties to access the file_id, check_id, and result_id from the event payload. The class also provides properties to access the database session and the data quality task results table.
 
     Properties:
-    result: data_quality_taskresults record for the check
+    result: dqs_taskresults record for the check
     db: Database connection object
     file_id: int
     check_id: int
     result_id: int
-    task_results: data_quality_taskresults table
+    task_results: dqs_taskresults table
 
     Methods:
     set_status: Set the status of the check
@@ -59,8 +59,8 @@ class Check:
         try:
             if self._result is None:
                 result = self.db.session.scalar(
-                    select(self.db.classes.data_quality_taskresults).where(
-                        self.db.classes.data_quality_taskresults.id == self.result_id
+                    select(self.db.classes.dqs_taskresults).where(
+                        self.db.classes.dqs_taskresults.id == self.result_id
                     )
                 )
                 self._result = result
@@ -111,7 +111,7 @@ class Check:
         Property to access the data quality task results table
         """
         if self._task_results_table is None:
-            self._task_results_table = self.db.classes.data_quality_taskresults
+            self._task_results_table = self.db.classes.dqs_taskresults
         return self._task_results_table
 
     def set_status(self, status):

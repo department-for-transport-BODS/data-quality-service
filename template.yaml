@@ -48,10 +48,10 @@ Resources:
       QueueName: !Sub "${Environment}-incorrect_noc_queue"
       VisibilityTimeout: 90
 
-  FirstStopIsPickUpOnlyQueue:
+  FirstStopIsSetDownOnlyQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-first_stop_is_pick_up_only_queue"
+      QueueName: !Sub "${Environment}-first_stop_is_set_down_only_queue"
       VisibilityTimeout: 90
 
   LastStopIsSetDownOnlyQueue:
@@ -96,16 +96,16 @@ Resources:
       QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
       VisibilityTimeout: 90
 
-  MissingStopsQueue:
+  MissingStopQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-missing_stops_queue"
+      QueueName: !Sub "${Environment}-missing_stop_queue"
       VisibilityTimeout: 90
 
-  StopsNotFoundQueue:
+  StopNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-stops_not_found_in_queue"
+      QueueName: !Sub "${Environment}-stop_not_found_in_queue"
       VisibilityTimeout: 90
 
   SameStopFoundMultipleTimesQueue:
