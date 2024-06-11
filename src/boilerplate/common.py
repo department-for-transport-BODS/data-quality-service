@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from dqs_logger import logger
 
 
-
 class EventPayload(BaseModel):
     """
     Pydantic model for the payload of the SQS event that triggers the Lambda function
@@ -180,7 +179,6 @@ class Check:
         self._result_id = check_details.result_id
 
 
-
 class BodsDB:
     """
     Class to handle the connection to the BODS database. The class provides properties to access the database session and the database classes.
@@ -217,9 +215,7 @@ class BodsDB:
         Method to initialise the database connection
         """
         connection_details = self._get_connection_details()
-        logger.debug(
-            "Connecting to DB with connection string "
-        )
+        logger.debug("Connecting to DB with connection string ")
         try:
             self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = create_engine(
