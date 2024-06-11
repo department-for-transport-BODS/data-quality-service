@@ -1,5 +1,4 @@
 from src.template.app import lambda_handler
-from src.template.last_stop_is_pick_up import lambda_handler as last_stop_is_pick_up_lambda_handler
 from src.template.first_stop_is_not_a_timing_point import lambda_handler as first_stop_is_not_a_timing_point_lambda_handler
 
 from src.template.incorrect_stop_type import lambda_handler as incorrect_stop_type_lambda_handler
@@ -13,7 +12,7 @@ from src.template.incorrect_stop_type import (
 from src.template.last_stop_is_pick_up_only import (
     lambda_handler as last_stop_is_pick_up_only_lambda_handler,
 )
-from src.template.last_stop_is_timing_point import (
+from src.template.last_stop_is_not_a_timing_point import (
     lambda_handler as last_stop_is_timing_point_lambda_handler,
 )
 from src.template.incorrect_noc import lambda_handler as incorrect_noc_lambda_handler
