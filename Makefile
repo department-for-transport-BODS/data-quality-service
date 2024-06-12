@@ -38,8 +38,7 @@ test: ## Run the tests
 	pytest --continue-on-collection-errors -rPp --cov=. --cov-report term-missing
 
 rebuild: ## Rebuild the Docker container services and SAM application
-	rm -Rf .aws-sam 
-	# pip install -q -r utils/requirements.txt
+	rm -Rf .aws-sam
 	docker-compose down
 	docker-compose up -d
 	samlocal validate --lint

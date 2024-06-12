@@ -7,7 +7,7 @@ Repository is managed by user - PCridKPMG
 
 Sandbox
 
-## installtion
+## installation
 pip install aws-sam-cli-local  
 
 ## Tech Stack

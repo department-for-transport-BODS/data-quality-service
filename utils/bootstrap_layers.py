@@ -71,35 +71,5 @@ class Function:
                 self.layer_refs.append(layer)
 
 
-# def handle_if():
-
-
-# with open('template.yaml', 'r') as sam_template_file:
-#     sam_template = load_yaml(sam_template_file)
-
-# print(sam_template['Parameters'])
-
-# for resource, resource_values in sam_template['Resources'].items():
-#     if resource_values['Type'] == 'AWS::Serverless::Function':
-#         print(resource)
-#         print(resource_values)
-#         if resource_values['Properties'].get('Layers', None):
-#             print(resource_values['Properties'].get('Layers', None))
-#             print('layers')
-#             layers = resource_values['Properties'].get('Layers')
-#             if isinstance(layers, list):
-
-#                 for layer in resource_values['Properties']['Layers']:
-#                     print('layer')
-#                     print(layer)
-#             elif isinstance(layers, ODict):
-#                 if layers.get('Fn::If'):
-#                     print(layers['Fn::If'])
-
-
-#                 if type(layer) == Ref:
-#                     if str(layer.data) in sam_template['Resources']:
-#                         print(f"Resource {resource} has layer {layer.data}")
-
 if __name__ == "__main__":
     template = SamTemplate("template.yaml")

@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Stub for DQS
 
@@ -15,7 +15,7 @@ Parameters:
     Type: String
     Description: The Github Repository Name
     Default: local
-  # Commented as the Vpc is not getting used
+  # Commented for future use as VPC will be used in AWS deployment
   # Vpc:
   #   Type: String
   #   Description: The Vpc to deploy to
@@ -23,15 +23,16 @@ Parameters:
   PrivateSubnets:
     Type: String
     Description: The public subnets to deploy to
-    Default: ""
+    Default: ''
 
-Conditions:
-  IsLocal: !Equals [!Ref ParamEnvironment, "local"]
+Conditions:  
+  IsLocal: !Equals [!Ref ParamEnvironment, 'local']  
 
 Resources:
-  # Import the AWS Lambda function from my-long-function-name.yaml
 
-  BoilerPlate:
+  # Import the AWS Lambda function from my-long-function-name.yaml    
+
+  BoilerPlate: 
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Sub "${Repository}-boilerplate-layer-${Environment}"
@@ -40,17 +41,17 @@ Resources:
         - python3.11
     Metadata:
       BuildMethod: python3.11
-
+  
   IncorrectNocQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${Environment}-incorrect_noc_queue"
       VisibilityTimeout: 90
 
-  FirstStopIsPickUpOnlyQueue:
+  FirstStopIsSetDownOnlyQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-first_stop_is_pick_up_only_queue"
+      QueueName: !Sub "${Environment}-first_stop_is_set_down_only_queue"
       VisibilityTimeout: 90
 
   LastStopIsSetDownOnlyQueue:
@@ -95,16 +96,16 @@ Resources:
       QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
       VisibilityTimeout: 90
 
-  MissingStopsQueue:
+  MissingStopQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-missing_stops_queue"
+      QueueName: !Sub "${Environment}-missing_stop_queue"
       VisibilityTimeout: 90
 
-  StopsNotFoundQueue:
+  StopNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-stops_not_found_in_queue"
+      QueueName: !Sub "${Environment}-stop_not_found_in_queue"
       VisibilityTimeout: 90
 
   SameStopFoundMultipleTimesQueue:
@@ -120,27 +121,27 @@ Resources:
       VisibilityTimeout: 90
 
   FirstStopIsPickUpLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: my-lambda-role
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: my-lambda-policy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: arn:aws:logs:*:*:*
+    Type: AWS::IAM::Role  
+    Properties:  
+      RoleName: my-lambda-role  
+      AssumeRolePolicyDocument:  
+        Version: "2012-10-17"  
+        Statement:  
+          - Effect: Allow  
+            Principal:  
+              Service: lambda.amazonaws.com  
+            Action: sts:AssumeRole  
+      Policies:  
+        - PolicyName: my-lambda-policy  
+          PolicyDocument:  
+            Version: "2012-10-17"  
+            Statement:  
+              - Effect: Allow  
+                Action:  
+                  - logs:CreateLogGroup  
+                  - logs:CreateLogStream  
+                  - logs:PutLogEvents  
+                Resource: arn:aws:logs:*:*:*   
 
   FirstStopIsPickUpLambda:
     Type: AWS::Serverless::Function
@@ -151,26 +152,30 @@ Resources:
       Runtime: python3.11
       Timeout: 60
       Role: !GetAtt FirstStopIsPickUpLambdaRole.Arn
-      Layers: !If
+      Layers: !If 
         - IsLocal
-        - !Ref "AWS::NoValue"
-        - !Ref BoilerPlate
+        - !Ref 'AWS::NoValue'
+        - 
+          - !Ref BoilerPlate
       VpcConfig:
         SubnetIds: !If
           - IsLocal
-          - !Ref "AWS::NoValue"
-          - - !Ref PrivateSubnets
-        SecurityGroupIds: !If
+          - !Ref 'AWS::NoValue'
+          - 
+            - !Ref PrivateSubnets
+        SecurityGroupIds: !If 
           - IsLocal
-          - !Ref "AWS::NoValue"
-          - - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}"
+          - !Ref 'AWS::NoValue'
+          - 
+            - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
       Policies:
         - SQSPollerPolicy:
-            QueueName: !GetAtt FirstStopIsPickUpOnlyQueue.QueueName
+            QueueName:
+              !GetAtt FirstStopIsPickUpOnlyQueue.QueueName
         - !If
           - IsLocal
-          - !Ref "AWS::NoValue"
-          - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}"
+          - !Ref 'AWS::NoValue'
+          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -181,99 +186,33 @@ Resources:
               MaximumConcurrency: 100
       Environment:
         Variables:
-          POSTGRES_DB: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}"
-          POSTGRES_HOST: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}"
-          POSTGRES_PASSWORD_ARN: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}"
-          POSTGRES_PORT: !If
-            - IsLocal
-            - 3128
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}"
-          POSTGRES_USER: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
+          POSTGRES_DB: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
+          POSTGRES_HOST: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
+          POSTGRES_PASSWORD_ARN: 
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
+          POSTGRES_PORT: 
+            !If
+              - IsLocal
+              - 3128
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
+          POSTGRES_USER:
+            !If
+              - IsLocal
+              - postgres
+              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
 
-  GenerateCSVQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-generate-csv"
-      VisibilityTimeout: 90
 
-  MonitorPipelineScheduled:
-    Type: AWS::Events::Rule
-    Properties:
-      ScheduleExpression: "rate(15 minutes)"
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt MonitorPipeline.Arn
-          Id: "MonitorPipelineTarget"
-      Description: "Schedule to update the status of dqs tasks"
-
-  MonitorPipeline:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${Repository}-montior-pipeline-${Environment}"
-      CodeUri: src/monitor
-      Handler: app.lambda_handler
-      Runtime: python3.11
-      Role: !GetAtt FirstStopIsPickUpLambdaRole.Arn
-      Timeout: 120
-      Layers: !If
-        - IsLocal
-        - !Ref "AWS::NoValue"
-        - !Ref BoilerPlate
-      VpcConfig:
-        SubnetIds: !If
-          - IsLocal
-          - !Ref "AWS::NoValue"
-          - - !Ref PrivateSubnets
-        SecurityGroupIds: !If
-          - IsLocal
-          - !Ref "AWS::NoValue"
-          - - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}"
-      Policies:
-        - !If
-          - IsLocal
-          - !Ref "AWS::NoValue"
-          - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}"
-      Events:
-        ScheduledEvent:
-          Type: Schedule
-          Properties:
-            Schedule: "rate(15 minutes)"
-      Environment:
-        Variables:
-          POSTGRES_DB: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}"
-          POSTGRES_HOST: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}"
-          POSTGRES_PASSWORD_ARN: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}"
-          POSTGRES_PORT: !If
-            - IsLocal
-            - 3128
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}"
-          POSTGRES_USER: !If
-            - IsLocal
-            - postgres
-            - !Sub "{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}"
-          TIMEOUT_HOURS: 12
-          ENV: !Ref Environment
 
 Outputs:
   Env:

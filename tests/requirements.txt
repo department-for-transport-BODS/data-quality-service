@@ -3,4 +3,3 @@ pytest-cov
 mock-alchemy
 moto
 psycopg2
-freezegun==1.5.1
