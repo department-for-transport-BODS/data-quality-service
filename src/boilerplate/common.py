@@ -2,7 +2,6 @@ import pandas as pd
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, update
-import geoalchemy2  # noqa
 from os import environ
 from boto3 import client
 import logging
@@ -11,7 +10,7 @@ from pydantic import BaseModel
 from sys import stdout
 from enum import Enum, unique
 from contextlib import contextmanager
-
+from dqs_logger import logger
 from src.boilerplate.enums import DQTaskResultStatus
 
 logger = logging.getLogger(__name__)
@@ -45,6 +44,7 @@ class Check:
 
     Attributes:
     observations: list
+    Class to handle the processing of a data quality check. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the check, and validate the check. The class also provides properties to access the file_id, check_id, and result_id from the event payload. The class also provides properties to access the database session and the data quality task results table.
 
     Properties:
     result: dqs_taskresults record for the check
@@ -60,11 +60,18 @@ class Check:
     set_status: Set the status of the check
     validate_requested_check: Validate the check
     """
-
-    def __init__(self):
+        
+    def __init__(self, lambda_event):
+        self._lambda_event = lambda_event
+        self._file_id = None
+        self._check_id = None
         self._db = None
+        self._result_id = None
         self._result = None
         self.observations = []
+
+    def __str__(self) -> str:
+        return f"CheckId: {self._check_id}, FileId: {self._file_id}, ResultId: {self._result_id}"
 
     @property
     def result(self):
@@ -92,6 +99,33 @@ class Check:
         if self._db is None:
             self._db = BodsDB()
         return self._db
+
+    @property
+    def file_id(self):
+        """
+        Property to access the file_id from the event payload
+        """
+        if self._file_id is None:
+            self._extract_test_details_from_event()
+        return self._file_id
+
+    @property
+    def check_id(self):
+        """
+        Property to access the check_id from the event payload
+        """
+        if self._check_id is None:
+            self._extract_test_details_from_event()
+        return self._check_id
+
+    @property
+    def result_id(self):
+        """
+        Property to access the result_id from the event payload
+        """
+        if self._result_id is None:
+            self._extract_test_details_from_event()
+        return self._result_id
 
     @property
     def task_results(self):
@@ -366,6 +400,17 @@ class BodsDB:
         try:
             self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = self._initialise_engine()
+        connection_details = self._get_connection_details()
+        logger.debug("Connecting to DB with connection string ")
+        try:
+            self._sqlalchemy_base = automap_base()
+            sqlalchemy_engine = create_engine(
+                f"postgresql+psycopg2://{connection_details['POSTGRES_USER']}:"
+                f"{connection_details['POSTGRES_PASSWORD']}@"
+                f"{connection_details['POSTGRES_HOST']}:"
+                f"{connection_details['POSTGRES_PORT']}/"
+                f"{connection_details['POSTGRES_DB']}"
+            )
             logger.debug("Preparing SQLALchemy base")
             self._sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
             logger.debug("Initiating DB session")
@@ -384,8 +429,8 @@ class BodsDB:
         connection_details = {}
         logger.debug("Getting DB password from secrets manager")
         try:
+            secrets_manager = client("secretsmanager")
             if environ.get("POSTGRES_PASSWORD_ARN", None):
-                secrets_manager = client("secretsmanager")
                 password_response = secrets_manager.get_secret_value(
                     SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
                 )
