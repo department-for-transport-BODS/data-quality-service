@@ -1,6 +1,12 @@
 from enum import Enum
 
-class DQ_Report_Status(str, Enum):
+class DQTaskResultStatus(str, Enum):
+    PENDING = "PENDING"
+    FAILED = "FAILED"
+    TIMEOUT = "TIMEOUT"
+    SUCCESS = "SUCCESS"
+
+class DQReportStatus(str, Enum):
     PIPELINE_PENDING = 'PIPELINE_PENDING'
     PIPELINE_SUCCEEDED = 'PIPELINE_SUCCEEDED'
     PIPELINE_SUCCEEDED_WITH_ERRORS = 'PIPELINE_SUCCEEDED_WITH_ERRORS'
@@ -9,8 +15,5 @@ class DQ_Report_Status(str, Enum):
     COMPLETED_WITH_ERRORS = 'COMPLETED_WITH_ERRORS'
     TIMEOUT = "TIMEOUT"
 
-class DQ_Task_Result_Status(str, Enum):
-    PENDING = "PENDING"
-    FAILED = "FAILED"
-    TIMEOUT = "TIMEOUT"
-    SUCCESS = "SUCCESS"
+class Timeouts(int, Enum):
+    TIMEOUT_HOURS = 12

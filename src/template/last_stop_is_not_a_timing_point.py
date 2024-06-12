@@ -5,7 +5,8 @@ from observation_results import ObservationResult
 from boilerplate.enums import DQTaskResultStatus
 
 
-_ALLOWED_IS_TIMING_POINT = True
+# Allowed is_timing_points
+_ALLOWED_IS_TIMING_POINTS = True
 
 
 def lambda_handler(event, context):
@@ -21,20 +22,20 @@ def lambda_handler(event, context):
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmin()]
-            df = df[~df["is_timing_point"] == _ALLOWED_IS_TIMING_POINT]
+            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmax()]
+            df = df[~df["is_timing_point"] == _ALLOWED_IS_TIMING_POINTS]
             logger.info("Iterating over rows to add observations")
 
             ### ADD AN OBSERVATION FOR YOUR CHECK
             for row in df.itertuples():
-                details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a principal timing point."
+                details = f"The last stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a principal timing point."
                 observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
                     service_pattern_stop_id=row.service_pattern_stop_id,
                 )
 
-                logger.info("Observation added in memory")
+            logger.info("Observations added in memory")
             ### WRITE ALL OBSERVATIONS TO DATABASE
             if len(observation.observations) > 0:
                 observation.write_observations()

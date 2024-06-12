@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.first_stop_is_set_down import lambda_handler
+from src.template.first_stop_is_set_down_only import lambda_handler
 
 
 logger = logging.getLogger(__name__)

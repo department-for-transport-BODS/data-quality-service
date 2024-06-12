@@ -1,11 +1,9 @@
-from os import environ
-from boto3 import client  # noqa
-import logging
 from sqlalchemy.orm.exc import NoResultFound
 from common import Check
 from organisation_txcfileattributes import OrganisationTxcFileAttributes
 from observation_results import ObservationResult
 from dqs_logger import logger
+from boilerplate.enums import DQTaskResultStatus
 
 
 def lambda_handler(event, context) -> None:
@@ -15,10 +13,10 @@ def lambda_handler(event, context) -> None:
         check.validate_requested_check()
     except ValueError as e:
         logger.error(e)
-        check.set_status(status="FAILED")
+        check.set_status(status=DQTaskResultStatus.FAILED)
         return
 
-    status = "SUCCESS"
+    status = DQTaskResultStatus.SUCCESS
     observation = ObservationResult(check)
     try:
         org_txc_attributes = OrganisationTxcFileAttributes(check)
@@ -29,7 +27,7 @@ def lambda_handler(event, context) -> None:
             observation.write_observations()
     except Exception as e:
         logger.error(e)
-        status = "FAILED"
+        status = DQTaskResultStatus.FAILED
     finally:
         check.set_status(status)
 

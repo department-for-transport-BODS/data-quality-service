@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.last_stop_is_timing_point import lambda_handler
+from src.template.last_stop_is_not_a_timing_point import lambda_handler
 
 
 @patch("src.template.last_stop_is_timing_point.Check")

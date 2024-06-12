@@ -2,6 +2,8 @@ from common import Check
 from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
 from dqs_logger import logger
+from boilerplate.enums import DQTaskResultStatus
+
 
 # List of allowed activities for first stop
 _ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest"]
@@ -41,9 +43,10 @@ def lambda_handler(event, context):
                 logger.info("Observations written in DB")
 
         ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
-        check.set_status("SUCCESS")
+        check.set_status(DQTaskResultStatus.SUCCESS)
         logger.info("Check status updated in DB")
     except Exception as e:
         logger.error(f"Error: {e}")
+        check.set_status(DQTaskResultStatus.FAILED)
 
     return
