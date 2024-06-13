@@ -1,22 +1,15 @@
-from src.template.app import lambda_handler
-from src.template.last_stop_is_pick_up import lambda_handler as last_stop_is_pick_up_lambda_handler
-from src.template.first_stop_is_not_a_timing_point import lambda_handler as first_stop_is_not_a_timing_point_lambda_handler
+import importlib
 
-from src.template.incorrect_stop_type import lambda_handler as incorrect_stop_type_lambda_handler
-
-from src.template.stop_not_found_in_naptan import (
-    lambda_handler as stop_not_found_in_naptan_lambda_handler,
-)
-from src.template.incorrect_stop_type import (
-    lambda_handler as incorrect_stop_type_lambda_handler,
-)
-from src.template.last_stop_is_pick_up_only import (
-    lambda_handler as last_stop_is_pick_up_only_lambda_handler,
-)
-from src.template.last_stop_is_timing_point import (
-    lambda_handler as last_stop_is_timing_point_lambda_handler,
-)
-from src.template.incorrect_noc import lambda_handler as incorrect_noc_lambda_handler
+lambdas = [
+    "app",
+    "incorrect_noc",
+    "incorrect_stop_type",
+    "stop_not_found_in_naptan",
+    "first_stop_is_set_down_only",
+    "last_stop_is_pick_up_only",
+    "first_stop_is_not_a_timing_point",
+    "last_stop_is_not_a_timing_point",
+]
 
 from json import dumps
 
@@ -27,28 +20,33 @@ def main():
     """
     Run lambda functions manually
     Command line example:
-    python run_lambda.py --function_name=stop_not_found_in_naptan_lambda_handler --file_id=40 --check_id=1 --result_id=8
+    python run_lambda.py --file_id=40 --check_id=1 --result_id=8
     """
+
+    print("Here is the lamda list::::")
+    for idx, name in enumerate(lambdas):
+        print(f"{idx+1}: {name}")
+
+    module_input = input("Choose the module from the above list ")
     parser = argparse.ArgumentParser(description="Run lambda functions manually")
-    parser.add_argument(
-        "--function_name", help="Add function name to run", default="lambda_handler"
-    )
+
     parser.add_argument("--file_id", help="A value for file_id", default=1)
     parser.add_argument("--check_id", help="A value for check_id", default=1)
     parser.add_argument("--result_id", help="A value for result_id", default=1)
     args = parser.parse_args()
-    functions_to_run = {
-        "lambda_handler": lambda_handler,
-        "last_stop_is_pick_up_lambda_handler": last_stop_is_pick_up_lambda_handler,
-        "first_stop_is_not_a_timing_point_lambda_handler": first_stop_is_not_a_timing_point_lambda_handler,
-        "incorrect_stop_type_lambda_handler": incorrect_stop_type_lambda_handler,
-        "stop_not_found_in_naptan_lambda_handler": stop_not_found_in_naptan_lambda_handler,
-        "last_stop_is_pick_up_only_lambda_handler": last_stop_is_pick_up_only_lambda_handler,
-        "last_stop_is_timing_point_lambda_handler": last_stop_is_timing_point_lambda_handler,
-        "incorrect_noc_lambda_handler": incorrect_noc_lambda_handler
-    }
 
-    functions_to_run[args.function_name](
+    module_name = "app"
+    if module_input.isdigit() and int(module_input) <= len(lambdas):
+        module_name = lambdas[int(module_input) - 1]
+
+    module_path = f"src.template.{module_name}"
+    module = importlib.import_module(module_path)
+    lambda_handler = module.lambda_handler
+
+    print(
+        f"Running the lambda: {module_path}::lambda_handler with file_id: {args.file_id}, check_id: {args.check_id}, result_id: {args.result_id}"
+    )
+    lambda_handler(
         event={
             "Records": [
                 {
