@@ -105,7 +105,7 @@ Resources:
   StopNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-stop_not_found_in_queue"
+      QueueName: !Sub "${Environment}-stop_not_found_in_naptan_queue"
       VisibilityTimeout: 90
 
   SameStopFoundMultipleTimesQueue:
