@@ -120,6 +120,7 @@ jobs:
               --region $AWS_REGION \
               --no-confirm-changeset \
               --no-fail-on-empty-changeset \
+              --resolve-s3 \
               --tags "BuiltFrom=${VERSION}"
 
           echo "[INFO] Application components with version ${VERSION} successfully built and deployed into ${RC_ENV^^}"
