@@ -42,4 +42,3 @@ def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     if (df['status'] == DQTaskResultStatus.FAILED).all() or DQTaskResultStatus.SUCCESS not in status:
         df['status'] = DQReportStatus.PIPELINE_FAILED
         return df
-    

@@ -53,3 +53,4 @@ def lambda_handler(event, context):
     dq_report_instance.update_dq_reports_status_using_ids(df_update_dq_reports, 'pipeline_monitor')
     check.update_task_results_status_using_ids(dq_report_timeout_ids, DQTaskResultStatus.TIMEOUT, 'pipeline_monitor')
     logger.info("Monitor pipeline function completed successfully.")
+    
