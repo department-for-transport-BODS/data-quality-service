@@ -30,11 +30,12 @@ def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     if DQTaskResultStatus.PENDING in status:
         return pd.DataFrame()
          
-    if ((DQTaskResultStatus.SUCCESS in status) and (DQTaskResultStatus.FAILED in  status or DQTaskResultStatus.TIMEOUT in  status)):
+    if ((DQTaskResultStatus.SUCCESS in status) and (DQTaskResultStatus.FAILED in status or DQTaskResultStatus.TIMEOUT in status)):
         df['status'] = DQReportStatus.PIPELINE_SUCCEEDED_WITH_ERRORS
         return df
     
-    if (df['status'] == DQTaskResultStatus.SUCCESS).all():
+    # Temporary status - DUMMY_SUCCESS. This is temporary until we finish all the DQ checks
+    if (df['status'] == DQTaskResultStatus.SUCCESS).all() or DQTaskResultStatus.SUCCESS_DUMMY in status:
         df['status'] = DQReportStatus.PIPELINE_SUCCEEDED
         return df
     

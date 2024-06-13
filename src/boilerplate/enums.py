@@ -5,6 +5,7 @@ class DQTaskResultStatus(str, Enum):
     FAILED = "FAILED"
     TIMEOUT = "TIMEOUT"
     SUCCESS = "SUCCESS"
+    SUCCESS_DUMMY = "SUCCESS_DUMMY"
 
 class DQReportStatus(str, Enum):
     PIPELINE_PENDING = 'PIPELINE_PENDING'
