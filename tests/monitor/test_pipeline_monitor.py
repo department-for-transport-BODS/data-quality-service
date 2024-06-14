@@ -20,19 +20,20 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 @pytest.mark.parametrize(
-        "folder, task_result_ids, sqs_msgs",
-        [
-        ("pending_and_timeout", [5], [{'id': 2}, {'id': 3}]),
-        ("empty_dq_report",[], []),
-        ("empty_task_results",[], [])
-        ]
+    "folder, task_result_ids, sqs_msgs",
+    [
+        ("pending_and_timeout", [5], [{"id": 2}, {"id": 3}]),
+        ("empty_dq_report", [], []),
+        ("empty_task_results", [], []),
+    ],
 )
 @patch("src.boilerplate.sqs.SQSClient.send_messages")
 @patch("src.boilerplate.common.Check.update_task_results_status_using_ids")
 @patch("src.boilerplate.common.DQReport.update_dq_reports_status_using_ids")
 @patch("src.boilerplate.common.DQReport.get_dq_reports_by_status")
-@patch("src.boilerplate.common.Check.get_task_results_df")
+@patch("src.boilerplate.task_results.get_task_results_df")
 @patch.dict(environ, ENVIRONMENT_INPUT_TEST_VALUES)
 @freeze_time("2024-05-22 15:37:29")
 @mock_aws

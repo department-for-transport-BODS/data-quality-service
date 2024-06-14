@@ -7,8 +7,6 @@ from boto3 import client
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
-from enum import Enum, unique
-from contextlib import contextmanager
 
 
 class EventPayload(BaseModel):
@@ -158,42 +156,6 @@ class Check:
             )
         else:
             return True
-        
-    def get_task_results_df(self, dq_report_ids: list, check_id: str):
-        df = pd.DataFrame()
-        try:
-            dq_tasks = self.db.classes.dqs_taskresults
-            select_stmt = select(dq_tasks)
-            if dq_report_ids:
-                select_stmt = select_stmt.where(
-                    dq_tasks.dataquality_report_id.in_(dq_report_ids)
-                )
-            df = pd.read_sql_query(select_stmt,self.db.engine)
-            
-        except Exception as e:
-            logger.error(
-                f"Failed to add obervation for check_id = {str(check_id)}", e
-            )
-            raise e
-        
-        return df
-    
-    
-    @contextmanager
-    def update_task_results_status_using_ids(self, dq_report_ids: list, status: str, check_id: str):
-        try:
-            if dq_report_ids:
-                dq_tasks = self.db.classes.dqs_taskresults
-                update_task_results = self.db.session.query(dq_tasks).filter(dq_tasks.dataquality_report_id.in_(dq_report_ids)).filter(dq_tasks.status == DQ_Task_Result_Status.PENDING)
-                for record in update_task_results:
-                    record.status = status
-                self.db.session.commit()
-        except Exception as e:
-            logger.error(
-                f"Failed to add obervation for check_id = {str(check_id)}", e
-            )
-            self.db.session.rollback()
-            raise e
 
     def _extract_test_details_from_event(self):
         """
@@ -310,65 +272,4 @@ class BodsDB:
             return connection_details
         except Exception as e:
             logger.error("Failed to get connection details for database")
-            raise e
-
-
-@unique
-class Level(Enum):
-    critical = "Critical"
-    advisory = "Advisory"
-
-
-@unique
-class Category(Enum):
-    stops = "Stops"
-    timing = "Timing"
-    journey = "Journey"
-    data_set = "Data set"
-
-
-class CheckBasis(Enum):
-    stops = "stops"
-    lines = "lines"
-    timing_patterns = "timing_patterns"
-    vehicle_journeys = "vehicle_journeys"
-    data_set = "data_set"
-
-
-class DQReport:
-    def __init__(self):
-        self.check = Check()
-
-    def get_dq_reports_by_status(self, status: str, check_id: str):
-        df = pd.DataFrame()
-        try:
-            dqs_report = self.check.db.classes.dqs_report
-            select_stmt = select(dqs_report)
-            if status:
-                select_stmt = select_stmt.where(
-                    dqs_report.status == status
-                )
-            df = pd.read_sql_query(select_stmt, self.check.db.engine)
-            
-        except Exception as e:
-            logger.error(
-                f"Failed to add obervation for check_id = {str(check_id)}", e
-            )
-            raise e
-        
-        return df
-    
-    @contextmanager
-    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame, check_id: str):
-        
-        try:
-            if not df_dq_reports.empty:
-                dq_reports = self.check.db.classes.dqs_report
-                self.check.db.session.execute(update(dq_reports), df_dq_reports.to_dict('records'))
-                self.check.db.session.commit()
-        except Exception as e:
-            logger.error(
-                f"Failed to add obervation for check_id = {str(check_id)}", e
-            )
-            self.check.db.session.rollback()
             raise e
