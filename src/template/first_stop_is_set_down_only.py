@@ -1,21 +1,21 @@
 from common import Check
+from enums import DQSTaskResultStatus
 from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
 from dqs_logger import logger
-from boilerplate.enums import DQTaskResultStatus
 
 # List of allowed activities for first stop
 _ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest"]
 
 
 def lambda_handler(event, context):
-    try:
-        check = Check(event)
 
-        ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING
-        if not check.validate_requested_check():
-            logger.warning(f"Request is invalid: {check}")
-            return
+    status = DQSTaskResultStatus.SUCCESS
+    try:
+
+        check = Check(event)
+        observation = ObservationResult(check)
+        check.validate_requested_check()
 
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
@@ -25,28 +25,26 @@ def lambda_handler(event, context):
 
             logger.info("Iterating over rows to add observations")
 
-            obs_result = ObservationResult(check)
-            ### ADD AN OBSERVATION FOR YOUR CHECK
+            # Add the observation for check
             for row in df.itertuples():
                 details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is incorrectly set to set down passengers."
-                obs_result.add_observation(
+                observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
                     service_pattern_stop_id=row.service_pattern_stop_id,
                 )
 
             logger.info("Observations added in memory")
-            ### WRITE ALL OBSERVATIONS TO DATABASE
-            if len(obs_result.observations) > 0:
-                obs_result.write_observations()
+            # Write the observations to database
+            if len(observation.observations) > 0:
+                observation.write_observations()
                 logger.info("Observations written in DB")
 
-        ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
-        check.set_status(DQTaskResultStatus.SUCCESS)
         logger.info("Check status updated in DB")
-
     except Exception as e:
-        check.set_status(DQTaskResultStatus.FAILED)
-        logger.error(f"Error: {e}")
+        status = DQSTaskResultStatus.FAILED
+        logger.error(f"Check status failed due to {e}")
+    finally:
+        check.set_status(status)
 
     return
