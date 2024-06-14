@@ -54,6 +54,7 @@ jobs:
             echo "[INFO] Running on a feature branch, skipping version increment"
             echo "VERSION=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
           else
+            echo "[INFO] TBD"
             ### LOGIC TO FULLY IMPLEMENT (TBD)
             # # install yq for parsing yaml files
             # sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
