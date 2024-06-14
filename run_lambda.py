@@ -12,9 +12,10 @@ lambdas = [
 ]
 
 from json import dumps
-
+import sys
 import argparse
 
+sys.path.append("./src/boilerplate")
 
 def main():
     """

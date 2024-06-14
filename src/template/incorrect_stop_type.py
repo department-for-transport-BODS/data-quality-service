@@ -1,10 +1,5 @@
-from os import environ
-from boto3 import client  # noqa
-import logging
 from common import Check
-import pandas as pd
-from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.functions import coalesce
+from enums import DQSTaskResultStatus
 from dqs_logger import logger
 from observation_results import ObservationResult
 from dataframes import get_df_stop_type
@@ -15,46 +10,51 @@ _ALLOWED_STOP_TYPES = ["BCT", "BCQ", "BCS"]
 
 def lambda_handler(event, context):
 
-    check = Check(event)
+    status = DQSTaskResultStatus.SUCCESS
+    try:
 
-    ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING
-    if not check.validate_requested_check():
-        logger.warning(f"Request is invalid")
-        return
+        check = Check(event)
+        observation = ObservationResult(check)
+        check.validate_requested_check()
 
-    df = get_df_stop_type(check, _ALLOWED_STOP_TYPES)
-    logger.info("Looking in the Dataframes")
-    if not df.empty:
-        logger.info("Iterating over rows to add observations")
+        df = get_df_stop_type(check, _ALLOWED_STOP_TYPES)
+        logger.info("Looking in the Dataframes")
+        if not df.empty:
+            logger.info("Iterating over rows to add observations")
 
-        if len(_ALLOWED_STOP_TYPES) > 1:
-            expected_stop_types = (
-                ", ".join(_ALLOWED_STOP_TYPES[:-1]) + " or " + _ALLOWED_STOP_TYPES[-1]
-            )
-        else:
-            expected_stop_types = _ALLOWED_STOP_TYPES[0]
-        obs_result = ObservationResult(check)
-        ### ADD AN OBSERVATION FOR YOUR CHECK
-        for row in df.itertuples():
+            if len(_ALLOWED_STOP_TYPES) > 1:
+                expected_stop_types = (
+                    ", ".join(_ALLOWED_STOP_TYPES[:-1])
+                    + " or "
+                    + _ALLOWED_STOP_TYPES[-1]
+                )
+            else:
+                expected_stop_types = _ALLOWED_STOP_TYPES[0]
 
-            details = f"The {row.common_name} ({row.atco_code}) stop is registered as stop type {row.stop_type} with NaPTAN. Expected bus stop types are {expected_stop_types}."
-            obs_result.add_observation(
-                details=details,
-                vehicle_journey_id=row.vehicle_journey_id,
-                service_pattern_stop_id=row.service_pattern_stop_id,
-            )
-            logger.info(
-                f"Adding observation:: {details}:: {row.vehicle_journey_id}:: {row.service_pattern_stop_id}"
-            )
+            # Add the observation for check
+            for row in df.itertuples():
 
-        logger.info("Observations added in memory")
-        ### WRITE ALL OBSERVATIONS TO DATABASE
-        if len(obs_result.observations) > 0:
-            obs_result.write_observations()
-        logger.info("Observations written in DB")
+                details = f"The {row.common_name} ({row.atco_code}) stop is registered as stop type {row.stop_type} with NaPTAN. Expected bus stop types are {expected_stop_types}."
+                observation.add_observation(
+                    details=details,
+                    vehicle_journey_id=row.vehicle_journey_id,
+                    service_pattern_stop_id=row.service_pattern_stop_id,
+                )
+                logger.info(
+                    f"Adding observation:: {details}:: {row.vehicle_journey_id}:: {row.service_pattern_stop_id}"
+                )
 
-    ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
-    check.set_status("SUCCESS")
-    logger.info("Check status updated in DB")
+            logger.info("Observations added in memory")
+            # Write the observations to database
+            if len(observation.observations) > 0:
+                observation.write_observations()
+            logger.info("Observations written in DB")
+
+        logger.info("Check status updated in DB")
+    except Exception as e:
+        status = DQSTaskResultStatus.FAILED
+        logger.error(f"Check status failed due to {e}")
+    finally:
+        check.set_status(status)
 
     return

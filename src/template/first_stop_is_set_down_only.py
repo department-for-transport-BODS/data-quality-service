@@ -1,10 +1,7 @@
-from os import environ
-from boto3 import client  # noqa
-import logging
 from common import Check
+from enums import DQSTaskResultStatus
 from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
-from sys import stdout
 from dqs_logger import logger
 
 # List of allowed activities for first stop
@@ -13,39 +10,41 @@ _ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest"]
 
 def lambda_handler(event, context):
 
-    check = Check(event)
+    status = DQSTaskResultStatus.SUCCESS
+    try:
 
-    ### VALIDATE THAT CHECK ID SENT TO LAMBDA EXISTS AND HAS A STATUS OF PENDING
-    if not check.validate_requested_check():
-        logger.warning(f"Request is invalid: {check}")
-        return
+        check = Check(event)
+        observation = ObservationResult(check)
+        check.validate_requested_check()
 
-    df = get_df_vehicle_journey(check)
-    logger.info(f"Looking in the Dataframes: {df.size}")
-    if not df.empty:
-        df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmin()]
-        df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_FIRST_STOP)]
+        df = get_df_vehicle_journey(check)
+        logger.info(f"Looking in the Dataframes: {df.size}")
+        if not df.empty:
+            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmin()]
+            df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_FIRST_STOP)]
 
-        logger.info("Iterating over rows to add observations")
+            logger.info("Iterating over rows to add observations")
 
-        obs_result = ObservationResult(check)
-        ### ADD AN OBSERVATION FOR YOUR CHECK
-        for row in df.itertuples():
-            details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is incorrectly set to set down passengers."
-            obs_result.add_observation(
-                details=details,
-                vehicle_journey_id=row.vehicle_journey_id,
-                service_pattern_stop_id=row.service_pattern_stop_id,
-            )
+            # Add the observation for check
+            for row in df.itertuples():
+                details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is incorrectly set to set down passengers."
+                observation.add_observation(
+                    details=details,
+                    vehicle_journey_id=row.vehicle_journey_id,
+                    service_pattern_stop_id=row.service_pattern_stop_id,
+                )
 
-        logger.info("Observations added in memory")
-        ### WRITE ALL OBSERVATIONS TO DATABASE
-        if len(obs_result.observations) > 0:
-            obs_result.write_observations()
-            logger.info("Observations written in DB")
+            logger.info("Observations added in memory")
+            # Write the observations to database
+            if len(observation.observations) > 0:
+                observation.write_observations()
+                logger.info("Observations written in DB")
 
-    ### UPDATE CHECK STATUS FOLLOWING COMPLETION OF CHECKS
-    check.set_status("SUCCESS")
-    logger.info("Check status updated in DB")
+        logger.info("Check status updated in DB")
+    except Exception as e:
+        status = DQSTaskResultStatus.FAILED
+        logger.error(f"Check status failed due to {e}")
+    finally:
+        check.set_status(status)
 
     return
