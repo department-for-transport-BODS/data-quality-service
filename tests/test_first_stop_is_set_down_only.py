@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@patch("src.template.first_stop_pickup.Check")
-@patch("src.template.first_stop_pickup.ObservationResult")
-@patch("src.template.first_stop_pickup.get_df_vehicle_journey")
+@patch("src.template.first_stop_is_set_down_only.Check")
+@patch("src.template.first_stop_is_set_down_only.ObservationResult")
+@patch("src.template.first_stop_is_set_down_only.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey,
     mock_observation,
@@ -52,7 +52,7 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status.assert_called_with("SUCCESS")
 
 
-@patch("src.template.first_stop_pickup.Check")
+@patch("src.template.first_stop_is_set_down_only.Check")
 def test_lambda_handler_invalid_check(mock_check):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
     context = {}

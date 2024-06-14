@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.last_stop_is_timing_point import lambda_handler
+from src.template.last_stop_is_not_a_timing_point import lambda_handler
 
 
-@patch("src.template.last_stop_is_timing_point.Check")
-@patch("src.template.last_stop_is_timing_point.ObservationResult")
-@patch("src.template.last_stop_is_timing_point.get_df_vehicle_journey")
+@patch("src.template.last_stop_is_not_a_timing_point.Check")
+@patch("src.template.last_stop_is_not_a_timing_point.ObservationResult")
+@patch("src.template.last_stop_is_not_a_timing_point.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey, mock_observation, mock_check
 ):
@@ -45,7 +45,7 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status.assert_called_with("SUCCESS")
 
 
-@patch("src.template.last_stop_is_timing_point.Check")
+@patch("src.template.last_stop_is_not_a_timing_point.Check")
 def test_lambda_handler_invalid_check(mock_check):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
     context = {}

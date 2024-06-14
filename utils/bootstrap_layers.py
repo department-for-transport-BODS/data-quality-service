@@ -9,7 +9,7 @@ formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s
 stream_handler = logging.StreamHandler(stdout)
 stream_handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
-logger.setLevel(environ.get("LOG_LEVEL", "DEBUG"))
+logger.setLevel(environ.get("LOG_LEVEL", "INFO"))
 logger.addHandler(stream_handler)
 
 
@@ -58,7 +58,7 @@ class Function:
         if isinstance(layers_construct, ODict):
             if_values = layers_construct.get("Fn::If", [])
             if len(if_values) > 0:
-                list_of_potential_layers = if_values[-1]
+                list_of_potential_layers = if_values[1]
             else:
                 list_of_potential_layers = []
                 logger.debug(f"No layers found for function{self.name}")

@@ -1,220 +1,680 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Stub for DQS
+Description: >
+  This SAM template deploys resources associated with the DQS (Data Quality Service) for BODS
 
 Parameters:
   Environment:
     Type: String
-    Description: The environment to deploy to
-    Default: local
-  ParamEnvironment:
+    Description: The environment into which the stack is being deployed
+  ProjectName:
+    Description: The name of the project
     Type: String
-    Description: The environment to pull params for
-    Default: local
-  Repository:
+  RdsDbHostAddr:
     Type: String
-    Description: The Github Repository Name
-    Default: local
-  # Commented for future use as VPC will be used in AWS deployment
-  # Vpc:
-  #   Type: String
-  #   Description: The Vpc to deploy to
-  #   Default: ''
-  PrivateSubnets:
-    Type: String
-    Description: The public subnets to deploy to
     Default: ''
+  RdsDbPort:
+    Type: Number
+    Default: 5432
+  VisibilityTimeout:
+    Type: Number
+    Description: Time allowed for processing of a SQS message by Lambda before returning to queue (s)
+    Default: 90
 
-Conditions:  
-  IsLocal: !Equals [!Ref ParamEnvironment, 'local']  
+Conditions:
+  IsNotLocal: !Not [!Equals [!Ref Environment, 'local']]
+
+Globals:
+  Function:
+    Architectures:
+      - x86_64
+    Runtime: python3.11
+    Timeout: 60
+    MemorySize: 128
+    VpcConfig: !If
+      - IsNotLocal
+      -
+        - SubnetIds: [!Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}']
+        - SecurityGroupIds:
+          - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
+      - !Ref 'AWS::NoValue'
+    Environment:
+      Variables:
+        PROJECT_ENV: !Ref Environment
+        PROJECT_NAME: !Ref ProjectName
+        POSTGRES_HOST: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-host}}'
+            - !Ref RdsDbHostAddr
+        POSTGRES_PORT: !Ref RdsDbPort
+        POSTGRES_DB: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-db-name}}'
+            - postgres
+        POSTGRES_USER: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
+            - postgres
+        POSTGRES_PASSWORD_ARN: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-password-arn}}'
+            - postgres
 
 Resources:
+  #########################################
+  #### GENERAL CONFIGURATION RESOURCES ####
+  #########################################
+  DqsCommonLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsNotLocal
+    Properties:
+      GroupDescription: !Sub 'Security group for ${ProjectName}-${Environment} DQS related lambda functions'
+      GroupName: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
+      SecurityGroupEgress: 
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
+      Tags:
+        - Key: Name
+          Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
 
-  # Import the AWS Lambda function from my-long-function-name.yaml    
-
-  BoilerPlate: 
+  BoilerplateLambdaLayer: 
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: !Sub "${Repository}-boilerplate-layer-${Environment}"
-      ContentUri: src/boilerplate
+      LayerName: !Sub '${ProjectName}-${Environment}-boilerplate-layer'
+      ContentUri: ./src/boilerplate
       CompatibleRuntimes:
         - python3.11
     Metadata:
       BuildMethod: python3.11
-  
-  IncorrectNocQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-incorrect_noc_queue"
-      VisibilityTimeout: 90
 
+  #####################################
+  #### FIRST STOP IS SET DOWN ONLY ####
+  #####################################
   FirstStopIsSetDownOnlyQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${Environment}-first_stop_is_set_down_only_queue"
-      VisibilityTimeout: 90
+      QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
 
-  LastStopIsSetDownOnlyQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-last_stop_is_pickup_only_queue"
-      VisibilityTimeout: 90
-
-  FirstStopIsNotATimingPointQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-first_stop_is_not_a_timing_point_queue"
-      VisibilityTimeout: 90
-
-  LastStopIsNotATimingPointQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-last_stop_is_not_a_timing_point_queue"
-      VisibilityTimeout: 90
-
-  IncorrectStopTypeQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-incorrect_stop_type_queue"
-      VisibilityTimeout: 90
-
-  MissingJourneyCodeQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-missing_journey_code_queue"
-      VisibilityTimeout: 90
-
-  DuplicateJourneyCodeQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-duplicate_journey_code_queue"
-      VisibilityTimeout: 90
-
-  MissingBusWorkingNumberQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-missing_bus_working_number_queue"
-      VisibilityTimeout: 90
-
-  MissingStopQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-missing_stop_queue"
-      VisibilityTimeout: 90
-
-  StopNotFoundQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-stop_not_found_in_naptan_queue"
-      VisibilityTimeout: 90
-
-  SameStopFoundMultipleTimesQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-same_stop_found_multiple_times_queue"
-      VisibilityTimeout: 90
-
-  IncorrectLicenseNumberQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${Environment}-incorrect_licence_number_queue"
-      VisibilityTimeout: 90
-
-  FirstStopIsPickUpLambdaRole:
-    Type: AWS::IAM::Role  
-    Properties:  
-      RoleName: my-lambda-role  
-      AssumeRolePolicyDocument:  
-        Version: "2012-10-17"  
-        Statement:  
-          - Effect: Allow  
-            Principal:  
-              Service: lambda.amazonaws.com  
-            Action: sts:AssumeRole  
-      Policies:  
-        - PolicyName: my-lambda-policy  
-          PolicyDocument:  
-            Version: "2012-10-17"  
-            Statement:  
-              - Effect: Allow  
-                Action:  
-                  - logs:CreateLogGroup  
-                  - logs:CreateLogStream  
-                  - logs:PutLogEvents  
-                Resource: arn:aws:logs:*:*:*   
-
-  FirstStopIsPickUpLambda:
+  FirstStopIsSetDownOnlyLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${Repository}-first_stop_is_pick_up_lambda-${Environment}"
-      CodeUri: src/template
-      Handler: app.lambda_handler
-      Runtime: python3.11
-      Timeout: 60
-      Role: !GetAtt FirstStopIsPickUpLambdaRole.Arn
+      FunctionName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-lambda'
+      CodeUri: ./src/template
+      Handler: first_stop_is_set_down_only.lambda_handler
       Layers: !If 
-        - IsLocal
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
-        - 
-          - !Ref BoilerPlate
-      VpcConfig:
-        SubnetIds: !If
-          - IsLocal
-          - !Ref 'AWS::NoValue'
-          - 
-            - !Ref PrivateSubnets
-        SecurityGroupIds: !If 
-          - IsLocal
-          - !Ref 'AWS::NoValue'
-          - 
-            - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/celeryworker-sg-id}}'
       Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
         - SQSPollerPolicy:
-            QueueName:
-              !GetAtt FirstStopIsPickUpOnlyQueue.QueueName
+            QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
         - !If
-          - IsLocal
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
           - !Ref 'AWS::NoValue'
-          - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/secrets-manager-policy-arn}}'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt FirstStopIsPickUpOnlyQueue.Arn
+            Queue: !GetAtt FirstStopIsSetDownOnlyQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
-      Environment:
-        Variables:
-          POSTGRES_DB: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-name}}'
-          POSTGRES_HOST: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-host}}'
-          POSTGRES_PASSWORD_ARN: 
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-password-arn}}'
-          POSTGRES_PORT: 
-            !If
-              - IsLocal
-              - 3128
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/rds-db-port}}'
-          POSTGRES_USER:
-            !If
-              - IsLocal
-              - postgres
-              - !Sub '{{resolve:ssm:/bodds/${ParamEnvironment}/pg-rw-user}}'
+      LoggingConfig:
+        LogGroup: !Ref FirstStopIsSetDownOnlyLambdaLogGroup
 
+  FirstStopIsSetDownOnlyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-set-down-only-lambda'
+      RetentionInDays: 30
 
+  ###################################
+  #### LAST STOP IS PICK UP ONLY ####
+  ###################################
+  LastStopIsPickUpOnlyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  LastStopIsPickUpOnlyLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-lambda'
+      CodeUri: ./src/template
+      Handler: last_stop_is_pick_up_only.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt LastStopIsPickUpOnlyQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref LastStopIsPickUpOnlyLambdaLogGroup
+
+  LastStopIsPickUpOnlyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-pickup-only-lambda'
+      RetentionInDays: 30
+
+  ##########################################
+  #### FIRST STOP IS NOT A TIMING POINT ####
+  ##########################################
+  FirstStopIsNotATimingPointQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  FirstStopIsNotATimingPointLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-lambda'
+      CodeUri: ./src/template
+      Handler: first_stop_is_not_a_timing_point.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FirstStopIsNotATimingPointQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref FirstStopIsNotATimingPointLambdaLogGroup
+
+  FirstStopIsNotATimingPointLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-lambda'
+      RetentionInDays: 30
+
+  #########################################
+  #### LAST STOP IS NOT A TIMING POINT ####
+  #########################################
+  LastStopIsNotATimingPointQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  LastStopIsNotATimingPointLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      CodeUri: ./src/template
+      Handler: last_stop_is_not_a_timing_point.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt LastStopIsNotATimingPointQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref LastStopIsNotATimingPointLambdaLogGroup
+
+  LastStopIsNotATimingPointLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      RetentionInDays: 30
+
+  #######################
+  #### INCORRECT NOC ####
+  #######################
+  IncorrectNocQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-noc-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  IncorrectNocLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-noc-lambda'
+      CodeUri: ./src/template
+      Handler: incorrect_noc.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectNocQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectNocQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectNocLambdaLogGroup
+
+  IncorrectNocLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-noc-lambda'
+      RetentionInDays: 30
+
+  #############################
+  #### INCORRECT STOP TYPE ####
+  #############################
+  IncorrectStopTypeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  IncorrectStopTypeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-lambda'
+      CodeUri: ./src/template
+      Handler: incorrect_stop_type.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectStopTypeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectStopTypeLambdaLogGroup
+
+  IncorrectStopTypeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-stop-type-lambda'
+      RetentionInDays: 30
+
+  ##################################
+  #### INCORRECT LICENSE NUMBER ####
+  ##################################
+  IncorrectLicenseNumberQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-license-number-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  IncorrectLicenseNumberLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-license-number-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectLicenseNumberQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectLicenseNumberQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectLicenseNumberLambdaLogGroup
+
+  IncorrectLicenseNumberLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-license-number-lambda'
+      RetentionInDays: 30
+
+  ##############################
+  #### MISSING JOURNEY CODE ####
+  ##############################
+  MissingJourneyCodeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code_queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  MissingJourneyCodeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-journey-code-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingJourneyCodeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingJourneyCodeLambdaLogGroup
+
+  MissingJourneyCodeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-journey-code-lambda'
+      RetentionInDays: 30
+
+  ######################
+  #### MISSING STOP ####
+  ######################
+  MissingStopQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-stop-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  MissingStopLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-stop-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingStopQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingStopQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingStopLambdaLogGroup
+
+  MissingStopLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-stop-lambda'
+      RetentionInDays: 30
+
+  ####################################
+  #### MISSING BUS WORKING NUMBER ####
+  ####################################
+  MissingBusWorkingNumberQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  MissingBusWorkingNumberLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingBusWorkingNumberQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingBusWorkingNumberLambdaLogGroup
+
+  MissingBusWorkingNumberLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-bus-working-number-lambda'
+      RetentionInDays: 30
+
+  ################################
+  #### DUPLICATE JOURNEY CODE ####
+  ################################
+  DuplicateJourneyCodeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code_queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+      
+  DuplicateJourneyCodeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt DuplicateJourneyCodeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref DuplicateJourneyCodeLambdaLogGroup
+
+  DuplicateJourneyCodeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-duplicate-journey-code-lambda'
+      RetentionInDays: 30
+
+  ########################
+  #### STOP NOT FOUND ####
+  ########################
+  StopNotFoundQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  StopNotFoundLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt StopNotFoundQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt StopNotFoundQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref StopNotFoundLambdaLogGroup
+
+  StopNotFoundLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-lambda'
+      RetentionInDays: 30
+
+  ########################################
+  #### SAME STOP FOUND MULTIPLE TIMES ####
+  ########################################
+  SameStopFoundMultipleTimesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  SameStopFoundMultipleTimesLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SameStopFoundMultipleTimesQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref SameStopFoundMultipleTimesLambdaLogGroup
+
+  SameStopFoundMultipleTimesLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      RetentionInDays: 30
 
 Outputs:
   Env:
-    Description: "Environment"
+    Description: 'Deployment Environment'
     Value: !Ref Environment
