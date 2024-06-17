@@ -1,7 +1,7 @@
 from os import environ
 import pandas as pd
 
-from src.boilerplate.enums import DQTaskResultStatus, DQReportStatus
+from src.boilerplate.enums import DQSTaskResultStatus, DQSReportStatus
 from src.boilerplate.sqs import SQSClient
 
 
@@ -27,19 +27,19 @@ def send_sqs_messages(df: pd.DataFrame):
 def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     status = set(df['status'])
     
-    if DQTaskResultStatus.PENDING in status:
+    if DQSTaskResultStatus.PENDING in status:
         return pd.DataFrame()
          
-    if ((DQTaskResultStatus.SUCCESS in status) and (DQTaskResultStatus.FAILED in status or DQTaskResultStatus.TIMEOUT in status)):
-        df['status'] = DQReportStatus.PIPELINE_SUCCEEDED_WITH_ERRORS
+    if ((DQSTaskResultStatus.SUCCESS in status) and (DQSTaskResultStatus.FAILED in status or DQSTaskResultStatus.TIMEOUT in status)):
+        df['status'] = DQSReportStatus.PIPELINE_SUCCEEDED_WITH_ERRORS
         return df
     
     # Temporary status - DUMMY_SUCCESS. This is temporary until we finish all the DQ checks
-    if (df['status'] == DQTaskResultStatus.SUCCESS).all() or DQTaskResultStatus.SUCCESS_DUMMY in status:
-        df['status'] = DQReportStatus.PIPELINE_SUCCEEDED
+    if (df['status'] == DQSTaskResultStatus.SUCCESS).all() or DQSTaskResultStatus.DUMMY_SUCCESS in status:
+        df['status'] = DQSReportStatus.PIPELINE_SUCCEEDED
         return df
     
     # The or condition is to mark the DQ Report as failed when there are no SUCCESS tasks and all tasks are either FAILED or TIMEOUT
-    if (df['status'] == DQTaskResultStatus.FAILED).all() or DQTaskResultStatus.SUCCESS not in status:
-        df['status'] = DQReportStatus.PIPELINE_FAILED
+    if (df['status'] == DQSTaskResultStatus.FAILED).all() or DQSTaskResultStatus.SUCCESS not in status:
+        df['status'] = DQSReportStatus.PIPELINE_FAILED
         return df

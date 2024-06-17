@@ -7,8 +7,9 @@ from freezegun import freeze_time
 import pandas as pd
 import pytest
 
-from src.boilerplate.common import Check, DQReport
-from src.boilerplate.enums import DQ_Task_Result_Status
+from src.boilerplate.task_results import TaskResult
+from src.boilerplate.dqs_report import DQReport
+from src.boilerplate.enums import DQSTaskResultStatus
 from src.monitor.app import lambda_handler
 from tests.test_boilerplate_db import ENVIRONMENT_INPUT_TEST_VALUES
 from tests.utils import modify_date_columns
@@ -30,10 +31,10 @@ logger.setLevel(logging.DEBUG)
     ],
 )
 @patch("src.boilerplate.sqs.SQSClient.send_messages")
-@patch("src.boilerplate.common.Check.update_task_results_status_using_ids")
+@patch("src.boilerplate.task_results.TaskResult.update_task_results_status_using_ids")
 @patch("src.boilerplate.common.DQReport.update_dq_reports_status_using_ids")
 @patch("src.boilerplate.common.DQReport.get_dq_reports_by_status")
-@patch("src.boilerplate.task_results.get_task_results_df")
+@patch("src.boilerplate.task_results.TaskResult.get_task_results_df")
 @patch.dict(environ, ENVIRONMENT_INPUT_TEST_VALUES)
 @freeze_time("2024-05-22 15:37:29")
 @mock_aws
@@ -61,4 +62,4 @@ def test_pipeline_for_pending_and_timeout(mock_get_task_results_df, mock_get_dq_
     
     assert queue_msgs == sqs_msgs
     pd.testing.assert_frame_equal(df_mocked_dq_reports, csv_output)
-    mock_update_task_results_status_using_ids.assert_called_with(task_result_ids, DQ_Task_Result_Status.TIMEOUT, 'pipeline_monitor')
+    mock_update_task_results_status_using_ids.assert_called_with(task_result_ids, DQSTaskResultStatus.TIMEOUT, 'pipeline_monitor')
