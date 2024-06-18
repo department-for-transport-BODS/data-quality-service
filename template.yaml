@@ -35,7 +35,7 @@ Globals:
       - IsNotLocal
       -
         SubnetIds: 
-          - [!Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}']
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
         SecurityGroupIds: 
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
