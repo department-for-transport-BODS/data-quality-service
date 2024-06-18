@@ -33,12 +33,9 @@ Globals:
     MemorySize: 128
     VpcConfig: !If
       - IsNotLocal
-      -
-        - SubnetIds: 
-          - 'subnet-0429f95ef3c12f40b'
-        - SecurityGroupIds:
-          - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
+      - SecurityGroupIds:
+        - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
+        - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
       - !Ref 'AWS::NoValue'
     Environment:
       Variables:
