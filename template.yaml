@@ -34,7 +34,10 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        - SubnetIds: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-test}}'
+        - SubnetIds: 
+          - 'subnet-0429f95ef3c12f40b'
+          - 'subnet-06c9c3b51a775a994'
+          - 'subnet-0ad21ef6a405c4fcb'
         - SecurityGroupIds:
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
