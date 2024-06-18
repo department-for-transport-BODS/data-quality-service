@@ -74,7 +74,7 @@ Resources:
       SecurityGroupEgress: 
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
-      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
+      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/vpc-id}}'
       Tags:
         - Key: Name
           Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
