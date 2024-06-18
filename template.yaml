@@ -34,9 +34,13 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        - SubnetIds: []
+        - SubnetIds: 
+          - subnet-0429f95ef3c12f40b
+          - subnet-06c9c3b51a775a994
+          - subnet-0ad21ef6a405c4fcb
           # - [!Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}']
-        - SecurityGroupIds: []
+        - SecurityGroupIds: 
+          - sg-0686ef33a540a7487
           # - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           # - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
       - !Ref 'AWS::NoValue'
