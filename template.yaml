@@ -19,7 +19,7 @@ Parameters:
   VisibilityTimeout:
     Type: Number
     Description: Time allowed for processing of a SQS message by Lambda before returning to queue (s)
-    Default: 90
+    Default: 300
 
 Conditions:
   IsNotLocal: !Not [!Equals [!Ref Environment, 'local']]
@@ -29,8 +29,8 @@ Globals:
     Architectures:
       - x86_64
     Runtime: python3.11
-    Timeout: 60
-    MemorySize: 128
+    Timeout: 120
+    MemorySize: 512
     VpcConfig: !If
       - IsNotLocal
       -
