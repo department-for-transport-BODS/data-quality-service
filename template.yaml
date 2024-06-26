@@ -34,8 +34,11 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        - SubnetIds: [!Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}']
-        - SecurityGroupIds:
+        SubnetIds: 
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-0}}' 
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-1}}' 
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-2}}'
+        SecurityGroupIds: 
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
       - !Ref 'AWS::NoValue'
@@ -74,7 +77,7 @@ Resources:
       SecurityGroupEgress: 
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
-      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
+      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/vpc-id}}'
       Tags:
         - Key: Name
           Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
@@ -587,13 +590,13 @@ Resources:
   ########################
   #### STOP NOT FOUND ####
   ########################
-  StopNotFoundInNaptanQueue:
+  StopNotFoundQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  StopNotFoundInNaptanLambda:
+  StopNotFoundLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-lambda'
@@ -607,7 +610,7 @@ Resources:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
         - SQSPollerPolicy:
-            QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
+            QueueName: !GetAtt StopNotFoundQueue.QueueName
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
@@ -616,14 +619,14 @@ Resources:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt StopNotFoundInNaptanQueue.Arn
+            Queue: !GetAtt StopNotFoundQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
       LoggingConfig:
-        LogGroup: !Ref StopNotFoundInNaptanLambdaLogGroup
+        LogGroup: !Ref StopNotFoundLambdaLogGroup
 
-  StopNotFoundInNaptanLambdaLogGroup:
+  StopNotFoundLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-lambda'
