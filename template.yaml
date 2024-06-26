@@ -19,7 +19,7 @@ Parameters:
   VisibilityTimeout:
     Type: Number
     Description: Time allowed for processing of a SQS message by Lambda before returning to queue (s)
-    Default: 90
+    Default: 300
 
 Conditions:
   IsNotLocal: !Not [!Equals [!Ref Environment, 'local']]
@@ -29,16 +29,13 @@ Globals:
     Architectures:
       - x86_64
     Runtime: python3.11
-    Timeout: 60
-    MemorySize: 128
+    Timeout: 120
+    MemorySize: 512
     VpcConfig: !If
       - IsNotLocal
       -
-        SubnetIds: 
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-0}}' 
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-1}}' 
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets-2}}'
-        SecurityGroupIds: 
+        - SubnetIds: [!Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}']
+        - SecurityGroupIds:
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
       - !Ref 'AWS::NoValue'
@@ -77,7 +74,7 @@ Resources:
       SecurityGroupEgress: 
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
-      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/vpc-id}}'
+      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
       Tags:
         - Key: Name
           Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
@@ -590,13 +587,13 @@ Resources:
   ########################
   #### STOP NOT FOUND ####
   ########################
-  StopNotFoundQueue:
+  StopNotFoundInNaptanQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  StopNotFoundLambda:
+  StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-lambda'
@@ -610,7 +607,7 @@ Resources:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
         - SQSPollerPolicy:
-            QueueName: !GetAtt StopNotFoundQueue.QueueName
+            QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
@@ -619,14 +616,14 @@ Resources:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt StopNotFoundQueue.Arn
+            Queue: !GetAtt StopNotFoundInNaptanQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
       LoggingConfig:
-        LogGroup: !Ref StopNotFoundLambdaLogGroup
+        LogGroup: !Ref StopNotFoundInNaptanLambdaLogGroup
 
-  StopNotFoundLambdaLogGroup:
+  StopNotFoundInNaptanLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-lambda'
@@ -675,6 +672,83 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      RetentionInDays: 30
+
+
+  ########################################
+  #### PIPELINE MONITOR LAMBDA ####
+  ########################################
+ 
+  PipelineMonitorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref PipelineMonitorLambdaLogGroup
+
+  PipelineMonitorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      RetentionInDays: 30
+
+
+  ########################################
+  #### GENERATE DQS REPORT CSV ####
+  ########################################
+  GenerateDQSCSVReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  GenerateDQSCSVReportQueueLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      CodeUri: ./src/observation_report
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
+
+  GenerateDQSCSVReportLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
       RetentionInDays: 30
 
 Outputs:
