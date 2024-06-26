@@ -31,7 +31,6 @@ Globals:
     Runtime: python3.11
     Timeout: 60
     MemorySize: 128
-    Tracing: Active
     VpcConfig: !If
       - IsNotLocal
       -
@@ -110,14 +109,11 @@ Resources:
       Handler: first_stop_is_set_down_only.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
         - !If
@@ -158,14 +154,11 @@ Resources:
       Handler: last_stop_is_pick_up_only.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
         - !If
@@ -206,14 +199,11 @@ Resources:
       Handler: first_stop_is_not_a_timing_point.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
         - !If
@@ -254,14 +244,11 @@ Resources:
       Handler: last_stop_is_not_a_timing_point.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
         - !If
@@ -302,14 +289,11 @@ Resources:
       Handler: incorrect_noc.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectNocQueue.QueueName
         - !If
@@ -350,14 +334,11 @@ Resources:
       Handler: incorrect_stop_type.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
         - !If
@@ -398,14 +379,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectLicenseNumberQueue.QueueName
         - !If
@@ -446,14 +424,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
         - !If
@@ -494,14 +469,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingStopQueue.QueueName
         - !If
@@ -542,14 +514,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
         - !If
@@ -590,14 +559,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
         - !If
@@ -638,14 +604,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt StopNotFoundQueue.QueueName
         - !If
@@ -686,14 +649,11 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
         - !If

@@ -55,15 +55,13 @@ class Function:
         logger.debug(f"Looking for layers associated with function {self.name}")
         self.layer_refs = []
         layers_construct = self.properties.get("Layers", None)
-        list_of_potential_layers = []
         if isinstance(layers_construct, ODict):
             if_values = layers_construct.get("Fn::If", [])
             if len(if_values) > 0:
-                potential_layers = if_values[1]
-                if potential_layers:
-                    list_of_potential_layers = potential_layers[:1]
+                list_of_potential_layers = if_values[1]
             else:
-                logger.debug(f"No layers found for function {self.name}")
+                list_of_potential_layers = []
+                logger.debug(f"No layers found for function{self.name}")
         for layer in list_of_potential_layers:
             if isinstance(layer, ODict):
                 logger.debug(f"Found layer {layer.get('Ref')} for function {self.name}")
@@ -71,6 +69,7 @@ class Function:
             else:
                 logger.debug(f"Found layer {layer} for function {self.name}")
                 self.layer_refs.append(layer)
+
 
 if __name__ == "__main__":
     template = SamTemplate("template.yaml")
