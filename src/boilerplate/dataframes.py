@@ -1,9 +1,9 @@
-from common import Check
+from common import Check, DQSReport
 import pandas as pd
 import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
-from sqlalchemy import and_
+from sqlalchemy import and_, select, select_from
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -106,3 +106,52 @@ def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
     result = result.all()
 
     return pd.DataFrame.from_records(result, columns=columns)
+
+
+def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
+    """
+    Get the dataframe with observation results
+    """
+    dqs_observationresults = report.db.classes.dqs_observationresults
+    dqs_taskresults = report.db.classes.dqs_taskresults
+    dqs_report = report.db.classes.dqs_report
+    dqs_checks = report.db.classes.dqs_checks
+    organisation_txcfileattributes = report.db.classes.organisation_txcfileattributes
+    transmodel_service = report.db.classes.transmodel_service
+
+    query = (
+        select([
+            dqs_observationresults.importance,
+            dqs_observationresults.category,
+            dqs_observationresults.observation.label("data_quality_observation"),
+            transmodel_service.service_code,
+            organisation_txcfileattributes.details,
+            transmodel_service.name.label("line_name"),
+            dqs_observationresults.vehicle_journey_id
+        ])
+        .select_from(
+            dqs_observationresults
+            .join(dqs_taskresults, dqs_observationresults.c.taskresults_id == dqs_taskresults.id)
+            .join(dqs_report, dqs_taskresults.c.dataquality_report_id == dqs_report.id)
+            .join(dqs_checks, dqs_taskresults.c.checks_id == dqs_checks.id)
+            .join(organisation_txcfileattributes, organisation_txcfileattributes.c.id == dqs_taskresults.c.transmodel_txcfileattributes_id)
+            .join(transmodel_service, transmodel_service.c.txcfileattributes_id == organisation_txcfileattributes.c.id)
+        )
+        .where(dqs_report.id == report.report_id)
+    )
+
+    results = report.db.session.execute(query).fetchall()
+
+    columns = [
+        "importance",
+        "category",
+        "data_quality_observation",
+        "service_code",
+        "details",
+        "line_name",
+        "vehicle_journey_id"
+    ]
+    df = pd.DataFrame.from_records(results, columns=columns)
+
+    return df
+

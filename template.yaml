@@ -717,6 +717,83 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
       RetentionInDays: 30
 
+
+  ########################################
+  #### PIPELINE MONITOR LAMBDA ####
+  ########################################
+ 
+  PipelineMonitorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref PipelineMonitorLambdaLogGroup
+
+  PipelineMonitorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      RetentionInDays: 30
+
+
+  ########################################
+  #### GENERATE DQS REPORT CSV ####
+  ########################################
+  GenerateDQSCSVReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
+  GenerateDQSCSVReportQueueLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      CodeUri: ./src/observation_report
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
+
+  GenerateDQSCSVReportLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      RetentionInDays: 30
+
 Outputs:
   Env:
     Description: 'Deployment Environment'

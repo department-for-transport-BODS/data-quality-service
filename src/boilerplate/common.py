@@ -23,6 +23,16 @@ class EventPayload(BaseModel):
     check_id: int
     result_id: int
 
+class ReportEventPayload(BaseModel):
+    """
+    Pydantic model for the payload of the SQS event that triggers the Lambda function for DQS report generation
+
+    Attributes:
+    report_id: int
+    """
+
+    report_id: int
+
 
 class Check:
     """
@@ -244,27 +254,29 @@ class BodsDB:
         connection_details = {}
         logger.debug("Getting DB password from secrets manager")
         try:
-            secrets_manager = client("secretsmanager")
-            if environ.get("POSTGRES_PASSWORD_ARN", None):
-                password_response = secrets_manager.get_secret_value(
-                    SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
-                )
-                connection_details["POSTGRES_PASSWORD"] = password_response[
-                    "SecretString"
-                ]
-            else:
-                logger.debug(
-                    "No password ARN found in environment variables, getting DB password direct"
-                )
-                connection_details["POSTGRES_PASSWORD"] = environ.get(
-                    "POSTGRES_PASSWORD"
-                )
-            logger.debug("Got DB password")
-
-            connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")
-            connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
-            connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
-            connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
+            # secrets_manager = client("secretsmanager")
+            # if environ.get("POSTGRES_PASSWORD_ARN", None):
+            #     password_response = secrets_manager.get_secret_value(
+            #         SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
+            #     )
+            #     connection_details["POSTGRES_PASSWORD"] = password_response[
+            #         "SecretString"
+            #     ]
+            # else:
+            #     logger.debug(
+            #         "No password ARN found in environment variables, getting DB password direct"
+            #     )
+            #     connection_details["POSTGRES_PASSWORD"] = environ.get(
+            #         "POSTGRES_PASSWORD"
+            #     )
+            # logger.debug("Got DB password")
+            print(f"environ_get {environ.get('POSTGRES_HOST')}")
+            connection_details["POSTGRES_HOST"] = "localhost"
+            connection_details["POSTGRES_DB"] = "transit_odp"
+            connection_details["POSTGRES_USER"] = "transit_odp"
+            connection_details["POSTGRES_PORT"] = "54325"
+            connection_details["POSTGRES_PASSWORD"] = "transit_odp"
+            
             for key, value in connection_details.items():
                 if value is None:
                     logger.error(f"Missing connection details value: {key}")
@@ -273,3 +285,118 @@ class BodsDB:
         except Exception as e:
             logger.error("Failed to get connection details for database")
             raise e
+
+
+class DQSReport:
+    """
+    Class to handle the processing of a data quality report generation. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the event, and validate the event.
+    """
+
+    def __init__(self, lambda_event):
+        self._lambda_event = lambda_event
+        self._report_id = None
+        self._db = None
+        self._report = None
+
+    def __str__(self) -> str:
+        return f"ReportId: {self._report_id}"
+
+
+    @property
+    def db(self):
+        """
+        Property to access the database connection object
+        """
+        if self._db is None:
+            self._db = BodsDB()
+        return self._db
+
+    @property
+    def report_id(self):
+        """
+        Property to access the file_id from the event payload
+        """
+        if self._report_id is None:
+            self._extract_report_details_from_event()
+        return self._report_id
+
+    @property
+    def report(self):
+        """
+        Property to access the data quality task result record for the check
+        """
+        try:
+            if self._report_id is None:
+                report = self.db.session.scalar(
+                    select(self.db.classes.dqs_report).where(
+                        self.db.classes.dqs_report.id == self._report_id
+                    )
+                )
+                self._report = report
+            return self._report
+        except Exception as e:
+            logger.error(f"No report record found for report_id {str(self.report_id)}")
+            raise e
+
+
+    def set_status(self, status):
+        """
+        Method to set the status of the check
+
+        Args:
+        status: str
+        """
+        try:
+            self.validate_requested_report_event()
+            logger.debug(
+                f"Attempting to set status from {self.result.status} to {status}"
+            )
+            self.result.status = status
+            self.db.session.commit()
+        except Exception as e:
+            logger.error("Failed to set result status")
+            raise e
+
+    def validate_requested_report_event(self):
+        """
+        Method to validate the report_id requested in the event payload is in the database
+        """
+        logger.debug(f"Validating requested report {str(self._report_id)} is in database")
+        returned_id = getattr(self.report, "id", None)
+        returned_status = getattr(self.report, "status", None)
+        if returned_id != self.report_id:
+            logger.error(
+                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
+            )
+            raise ValueError(
+                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
+            )
+        elif returned_status != "PIPELINE_SUCCEEDED" or returned_status != "PIPELINE_SUCCEEDED_WITH_ERRORS":
+            logger.error(
+                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
+            )
+            raise ValueError(
+                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
+            )
+        else:
+            return True
+
+    def _extract_report_details_from_event(self):
+        """
+        Method to extract the file_id, check_id, and result_id from the event payload
+        """
+        logger.debug("Event received:")
+        logger.debug(self._lambda_event)
+        try:
+            event_payload = loads(self._lambda_event["Records"][0]["body"])
+            logger.debug("Extracted Payload from event:")
+            logger.debug(event_payload)
+            logger.debug("Checking payload has required field(s)")
+            report_payload_details = ReportEventPayload(**event_payload)
+        except Exception as e:
+            logger.error("Failed to extract a valid payload from the event")
+            raise e
+        logger.debug(
+            f"Report details found for report_id={str(report_payload_details.report_id)}"
+        )
+        self._report_id = report_payload_details.report_id
