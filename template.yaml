@@ -633,7 +633,7 @@ Resources:
   StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-lambda'
+      FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
       CodeUri: ./src/template
       Handler: app.lambda_handler
       Layers: !If 

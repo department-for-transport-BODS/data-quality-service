@@ -10,7 +10,7 @@ _ALLOWED_STOP_TYPES = ["BCT", "BCQ", "BCS"]
 
 def lambda_handler(event, context):
 
-    status = DQSTaskResultStatus.SUCCESS
+    status = DQSTaskResultStatus.SUCCESS.value
     try:
 
         check = Check(event)
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
 
         logger.info("Check status updated in DB")
     except Exception as e:
-        status = DQSTaskResultStatus.FAILED
+        status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)

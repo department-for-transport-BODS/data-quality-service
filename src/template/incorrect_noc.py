@@ -7,7 +7,7 @@ from dqs_logger import logger
 
 def lambda_handler(event, context) -> None:
 
-    status = DQSTaskResultStatus.SUCCESS
+    status = DQSTaskResultStatus.SUCCESS.value
     try:
 
         check = Check(event)
@@ -21,7 +21,7 @@ def lambda_handler(event, context) -> None:
             observation.add_observation(details=details)
             observation.write_observations()
     except Exception as e:
-        status = DQSTaskResultStatus.FAILED
+        status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
