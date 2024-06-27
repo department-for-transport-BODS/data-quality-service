@@ -666,7 +666,7 @@ Resources:
   StopNotFoundInNaptanLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-lambda'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
       RetentionInDays: 30
 
   ########################################
