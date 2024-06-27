@@ -624,13 +624,13 @@ Resources:
   ########################
   #### STOP NOT FOUND ####
   ########################
-  StopNotFoundQueue:
+  StopNotFoundInNaptanQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  StopNotFoundLambda:
+  StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-lambda'
@@ -647,7 +647,7 @@ Resources:
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
-            QueueName: !GetAtt StopNotFoundQueue.QueueName
+            QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
@@ -656,14 +656,14 @@ Resources:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt StopNotFoundQueue.Arn
+            Queue: !GetAtt StopNotFoundInNaptanQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
       LoggingConfig:
-        LogGroup: !Ref StopNotFoundLambdaLogGroup
+        LogGroup: !Ref StopNotFoundInNaptanLambdaLogGroup
 
-  StopNotFoundLambdaLogGroup:
+  StopNotFoundInNaptanLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-lambda'
