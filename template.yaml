@@ -243,7 +243,7 @@ Resources:
   LastStopIsNotATimingPointQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
   LastStopIsNotATimingPointLambda:
@@ -382,18 +382,18 @@ Resources:
       RetentionInDays: 30
 
   ##################################
-  #### INCORRECT LICENSE NUMBER ####
+  #### INCORRECT LICENCE NUMBER ####
   ##################################
-  IncorrectLicenseNumberQueue:
+  IncorrectLicenceNumberQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-license-number-queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
-  IncorrectLicenseNumberLambda:
+  IncorrectLicenceNumberLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-license-number-lambda'
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-lambda'
       CodeUri: ./src/template
       Handler: app.lambda_handler
       Layers: !If 
@@ -407,7 +407,7 @@ Resources:
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
-            QueueName: !GetAtt IncorrectLicenseNumberQueue.QueueName
+            QueueName: !GetAtt IncorrectLicenceNumberQueue.QueueName
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
@@ -416,17 +416,17 @@ Resources:
         SQSTemplateTriggerEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt IncorrectLicenseNumberQueue.Arn
+            Queue: !GetAtt IncorrectLicenceNumberQueue.Arn
             BatchSize: 1
             ScalingConfig:
               MaximumConcurrency: 100
       LoggingConfig:
-        LogGroup: !Ref IncorrectLicenseNumberLambdaLogGroup
+        LogGroup: !Ref IncorrectLicenceNumberLambdaLogGroup
 
-  IncorrectLicenseNumberLambdaLogGroup:
+  IncorrectLicenceNumberLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-license-number-lambda'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-licence-number-lambda'
       RetentionInDays: 30
 
   ##############################
@@ -435,7 +435,7 @@ Resources:
   MissingJourneyCodeQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code_queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
 
   MissingJourneyCodeLambda:
@@ -579,7 +579,7 @@ Resources:
   DuplicateJourneyCodeQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code_queue'
+      QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-queue'
       VisibilityTimeout: !Ref VisibilityTimeout
       
   DuplicateJourneyCodeLambda:
@@ -621,9 +621,9 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-duplicate-journey-code-lambda'
       RetentionInDays: 30
 
-  ########################
-  #### STOP NOT FOUND ####
-  ########################
+  ##################################
+  #### STOP NOT FOUND IN NAPTAN ####
+  ##################################      
   StopNotFoundInNaptanQueue:
     Type: AWS::SQS::Queue
     Properties:
