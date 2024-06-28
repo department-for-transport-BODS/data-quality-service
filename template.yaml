@@ -628,7 +628,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
-      VisibilityTimeout: !Ref VisibilityTimeout
+      VisibilityTimeout: 300
 
   StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
