@@ -256,28 +256,27 @@ class BodsDB:
         connection_details = {}
         logger.debug("Getting DB password from secrets manager")
         try:
-            # secrets_manager = client("secretsmanager")
-            # if environ.get("POSTGRES_PASSWORD_ARN", None):
-            #     password_response = secrets_manager.get_secret_value(
-            #         SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
-            #     )
-            #     connection_details["POSTGRES_PASSWORD"] = password_response[
-            #         "SecretString"
-            #     ]
-            # else:
-            #     logger.debug(
-            #         "No password ARN found in environment variables, getting DB password direct"
-            #     )
-            #     connection_details["POSTGRES_PASSWORD"] = environ.get(
-            #         "POSTGRES_PASSWORD"
-            #     )
-            # logger.debug("Got DB password")
-            print(f"environ_get {environ.get('POSTGRES_HOST')}")
-            connection_details["POSTGRES_HOST"] = "localhost"
-            connection_details["POSTGRES_DB"] = "transit_odp"
-            connection_details["POSTGRES_USER"] = "transit_odp"
-            connection_details["POSTGRES_PORT"] = "54325"
-            connection_details["POSTGRES_PASSWORD"] = "transit_odp"
+            secrets_manager = client("secretsmanager")
+            if environ.get("POSTGRES_PASSWORD_ARN", None):
+                password_response = secrets_manager.get_secret_value(
+                    SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
+                )
+                connection_details["POSTGRES_PASSWORD"] = password_response[
+                    "SecretString"
+                ]
+            else:
+                logger.debug(
+                    "No password ARN found in environment variables, getting DB password direct"
+                )
+                connection_details["POSTGRES_PASSWORD"] = environ.get(
+                    "POSTGRES_PASSWORD"
+                )
+            logger.debug("Got DB password")
+
+            connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")
+            connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
+            connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
+            connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
             
             for key, value in connection_details.items():
                 if value is None:
