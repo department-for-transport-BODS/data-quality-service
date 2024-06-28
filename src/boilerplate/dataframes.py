@@ -3,7 +3,7 @@ import pandas as pd
 import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
-from sqlalchemy import and_, select, select_from
+from sqlalchemy import and_, select
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -42,7 +42,6 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             ServicePatternStop.naptan_stop_id.label("naptan_stop_id"),
             ServicePatternStop.sequence_number.label("sequence_number"),
             ServicePatternStop.atco_code.label("atco_code"),
-            ServicePatternStop.is_timing_point.label("is_timing_point"),
             coalesce(
                 NaptanStopPoint.common_name, ServicePatternStop.txc_common_name
             ).label("common_name"),
