@@ -166,7 +166,7 @@ class Check:
                 f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING"
             )
         else:
-            self.set_status(DQSTaskResultStatus.PROCESSING)
+            self.set_status(DQSTaskResultStatus.PROCESSING.value)
             return True
 
     def _extract_test_details_from_event(self):
