@@ -635,7 +635,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: stop_not_found_in_naptan.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
