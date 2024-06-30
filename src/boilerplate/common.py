@@ -7,7 +7,6 @@ from boto3 import client
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
-from enums import DQSTaskResultStatus
 
 
 class EventPayload(BaseModel):
@@ -166,7 +165,6 @@ class Check:
                 f"Unable to validate check {str(self.result_id)}: Status {returned_status} != PENDING"
             )
         else:
-            self.set_status(DQSTaskResultStatus.PROCESSING.value)
             return True
 
     def _extract_test_details_from_event(self):
