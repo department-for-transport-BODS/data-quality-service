@@ -7,6 +7,7 @@ class DQSTaskResultStatus(str, Enum):
     TIMEOUT = "TIMEOUT"
     SUCCESS = "SUCCESS"
     DUMMY_SUCCESS = "DUMMY_SUCCESS"
+    PROCESSING = "PROCESSING"
 
 class DQSReportStatus(str, Enum):
     PIPELINE_PENDING = "PIPELINE_PENDING"
