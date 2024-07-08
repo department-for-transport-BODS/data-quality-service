@@ -722,8 +722,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
-      CodeUri: ./src/monitor
-      Handler: app.lambda_handler
+      CodeUri: ./src/template
+      Handler: monitor.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
