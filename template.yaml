@@ -717,7 +717,12 @@ Resources:
   ########################################
   #### PIPELINE MONITOR LAMBDA ####
   ########################################
- 
+  GenerateDQSCSVReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      VisibilityTimeout: !Ref VisibilityTimeout
+
   PipelineMonitorLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -748,11 +753,6 @@ Resources:
   ########################################
   #### GENERATE DQS REPORT CSV LAMDA #####
   ########################################
-  # GenerateDQSCSVReportQueue:
-  #   Type: AWS::SQS::Queue
-  #   Properties:
-  #     QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
-  #     VisibilityTimeout: !Ref VisibilityTimeout
 
   # GenerateDQSCSVReportQueueLambda:
   #   Type: AWS::Serverless::Function
