@@ -721,7 +721,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
-      VisibilityTimeout: !Ref VisibilityTimeout
+      VisibilityTimeout: 300
 
   PipelineMonitorLambda:
     Type: AWS::Serverless::Function
