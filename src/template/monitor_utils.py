@@ -2,9 +2,8 @@ from os import environ
 from dqs_logger import logger
 import pandas as pd
 import json
-
-from src.boilerplate.enums import DQSTaskResultStatus, DQSReportStatus
-from src.boilerplate.sqs import SQSClient
+from sqs import SQSClient
+from enums import DQSTaskResultStatus, DQSReportStatus, Timeouts
 
 
 def get_generate_csv_queue_name() -> str:
@@ -13,8 +12,8 @@ def get_generate_csv_queue_name() -> str:
         return f"dqs-{env}-generate-csv-queue"
     
     return None
-    
-    
+
+
 def generate_sqs_payload(df: pd.DataFrame) -> list:
     entries = []
     for index, row in df.iterrows():
@@ -29,9 +28,10 @@ def generate_sqs_payload(df: pd.DataFrame) -> list:
 def send_sqs_messages(df: pd.DataFrame):
     sqs_client = SQSClient()
     queue_name = get_generate_csv_queue_name()
+    logger.info(f"Getting Queue with name: {queue_name}")
     queue_url = sqs_client.get_sqs_queue_url(queue_name)
     sqs_entries = generate_sqs_payload(df)
-    
+
     batch_size = 10
     for i in range(0, len(sqs_entries), batch_size):
         batch_entries = sqs_entries[i:i+batch_size]
@@ -40,7 +40,7 @@ def send_sqs_messages(df: pd.DataFrame):
             logger.info(f"Batch sent successfully to queue: {queue_name}.")
         else:
             logger.info(f"Failed to send batch to queue: {queue_name}.")
-            
+
 
 def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     status = set(df['status'])
