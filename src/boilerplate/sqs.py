@@ -1,5 +1,6 @@
 from os import environ
 import boto3
+from dqs_logger import logger
 
 class SQSClient:
     def __init__(self):
@@ -8,7 +9,14 @@ class SQSClient:
         )
 
     def get_sqs_queue_url(self, queue_name):
-        response = self._sqs_client.get_queue_url(QueueName=queue_name)
+        try:
+            response = self._sqs_client.get_queue_url(QueueName=queue_name)
+        except self._sqs_client.exceptions.QueueDoesNotExist:
+            logger.error(f"Queue with name {queue_name} does not exist.")
+            raise
+        except Exception as e:
+            logger.error(f"Error getting queue URL: {e}")
+            raise
         return response['QueueUrl']
 
     def send_messages_batch(self, queue_url, entries):
