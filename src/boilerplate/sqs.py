@@ -4,8 +4,9 @@ from dqs_logger import logger
 
 class SQSClient:
     def __init__(self):
+        self.endpoint_url = environ.get("SQS_QUEUE_ENDPOINT_URL", "")
         self._sqs_client = boto3.client(
-            "sqs", region_name=environ.get("AWS_REGION", "eu-west-2")
+            "sqs", endpoint_url=self.endpoint_url
         )
 
     def get_sqs_queue_url(self, queue_name):
