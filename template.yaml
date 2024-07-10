@@ -733,6 +733,9 @@ Resources:
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazon.aws.com/'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
@@ -740,6 +743,17 @@ Resources:
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
           - !Ref 'AWS::NoValue'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
       LoggingConfig:
         LogGroup: !Ref PipelineMonitorLambdaLogGroup
 
