@@ -735,7 +735,7 @@ Resources:
         - !Ref 'AWS::NoValue'
       Environment:
         Variables:
-          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazon.aws.com/'
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
