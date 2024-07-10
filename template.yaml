@@ -107,10 +107,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   FirstStopIsSetDownOnlyLambda:
@@ -161,10 +158,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   LastStopIsPickUpOnlyLambda:
@@ -215,10 +209,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   FirstStopIsNotATimingPointLambda:
@@ -269,10 +260,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   LastStopIsNotATimingPointLambda:
@@ -323,10 +311,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-noc-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   IncorrectNocLambda:
@@ -377,10 +362,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   IncorrectStopTypeLambda:
@@ -431,10 +413,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   IncorrectLicenceNumberLambda:
@@ -485,10 +464,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   MissingJourneyCodeLambda:
@@ -539,10 +515,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-stop-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   MissingStopLambda:
@@ -593,10 +566,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   MissingBusWorkingNumberLambda:
@@ -647,10 +617,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
       
   DuplicateJourneyCodeLambda:
@@ -701,10 +668,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   StopNotFoundInNaptanLambda:
@@ -755,10 +719,7 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DQSDeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 5
 
   SameStopFoundMultipleTimesLambda:
