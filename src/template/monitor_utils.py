@@ -7,7 +7,7 @@ from enums import DQSTaskResultStatus, DQSReportStatus, Timeouts
 
 
 def get_generate_csv_queue_name() -> str:
-    env = environ.get("ENV", "local")
+    env = environ.get("PROJECT_ENV", "local")
     if env:
         return f"dqs-{env}-generate-csv-queue"
     
