@@ -19,7 +19,7 @@ def generate_sqs_payload(df: pd.DataFrame) -> list:
     for index, row in df.iterrows():
         entry = {
             'Id': str(row['id']),
-            'MessageBody': json.dumps({'id': row['id']})
+            'MessageBody': json.dumps({'report_id': row['id']})
         }
         entries.append(entry)
     return entries

@@ -1,4 +1,5 @@
 from datetime import datetime
+from os import environ
 import uuid
 import boto3
 from dqs_logger import logger
@@ -15,7 +16,7 @@ unique_id = uuid.uuid4()
 s3_client = boto3.client('s3')
 
 # Define S3 bucket name and file name
-S3_BUCKET_NAME = 'bucket-name'
+S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports")
 CSV_FILE_NAME = f"{today_date}-dqs_observations-{unique_id}.csv"
 
 def lambda_handler(event, context):

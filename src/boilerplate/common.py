@@ -382,7 +382,7 @@ class DQSReport:
 
     def _extract_report_details_from_event(self):
         """
-        Method to extract the file_id, check_id, and result_id from the event payload
+        Method to extract the report_id from the event payload
         """
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
