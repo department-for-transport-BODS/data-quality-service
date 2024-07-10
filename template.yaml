@@ -828,6 +828,9 @@ Resources:
       FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
       CodeUri: ./src/observation_report
       Handler: app.lambda_handler
+      Environment:
+        Variables:
+          S3_BUCKET_DQS_CSV_REPORT: 'bodds-dev-dqs-reports'
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
