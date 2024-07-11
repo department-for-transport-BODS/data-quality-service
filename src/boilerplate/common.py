@@ -310,7 +310,7 @@ class DQSReport:
         return self._db
 
     @property
-    def report_id(self):
+    def _report_id(self):
         """
         Property to access the report_id from the event payload
         """
