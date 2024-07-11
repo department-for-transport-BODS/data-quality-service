@@ -357,8 +357,16 @@ class DQSReport:
         Method to validate the report_id requested in the event payload is in the database
         """
         logger.debug(f"Validating requested report {str(self._report_id)} is in database")
+        report = self.report
+        if report is None:
+            logger.error(f"Unable to validate report {str(self._report_id)}: No report found")
+            raise ValueError(f"Unable to validate report {str(self._report_id)}: No report found")
+        
         returned_id = getattr(self.report, "id", None)
         returned_status = getattr(self.report, "status", None)
+
+        logger.info(f"The returned id is {returned_id} and returned status is {returned_status}")
+        
         if returned_id != self._report_id:
             logger.error(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
             raise ValueError(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
