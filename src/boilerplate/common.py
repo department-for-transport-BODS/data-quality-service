@@ -313,7 +313,7 @@ class DQSReport:
     @property
     def report_id(self):
         """
-        Property to access the file_id from the event payload
+        Property to access the report_id from the event payload
         """
         if self._report_id is None:
             self._extract_report_details_from_event()
@@ -325,7 +325,7 @@ class DQSReport:
         Property to access the data quality task result record for the check
         """
         try:
-            if self._report_id is None:
+            if self._report is None:
                 report = self.db.session.scalar(
                     select(self.db.classes.dqs_report).where(
                         self.db.classes.dqs_report.id == self._report_id
@@ -334,7 +334,7 @@ class DQSReport:
                 self._report = report
             return self._report
         except Exception as e:
-            logger.error(f"No report record found for report_id {str(self.report_id)}")
+            logger.error(f"No report record found for report_id {str(self._report_id)}")
             raise e
 
 
@@ -363,19 +363,19 @@ class DQSReport:
         logger.debug(f"Validating requested report {str(self._report_id)} is in database")
         returned_id = getattr(self.report, "id", None)
         returned_status = getattr(self.report, "status", None)
-        if returned_id != self.report_id:
+        if returned_id != self._report_id:
             logger.error(
-                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
+                f"Unable to validate report {str(self._report_id)}: Record not returned from DB"
             )
             raise ValueError(
-                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
+                f"Unable to validate report {str(self._report_id)}: Record not returned from DB"
             )
         elif returned_status != "PIPELINE_SUCCEEDED" or returned_status != "PIPELINE_SUCCEEDED_WITH_ERRORS":
             logger.error(
-                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
+                f"Unable to validate check {str(self._report_id)}: Status {returned_status} != PENDING"
             )
             raise ValueError(
-                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
+                f"Unable to validate check {str(self._report_id)}: Status {returned_status} != PENDING"
             )
         else:
             return True
@@ -388,9 +388,9 @@ class DQSReport:
         logger.debug(self._lambda_event)
         try:
             event_payload = loads(self._lambda_event["Records"][0]["body"])
-            logger.debug("Extracted Payload from event:")
+            logger.debug("Extracted report payload from event:")
             logger.debug(event_payload)
-            logger.debug("Checking payload has required field(s)")
+            logger.debug("Checking report payload has required field(s)")
             report_payload_details = ReportEventPayload(**event_payload)
         except Exception as e:
             logger.error("Failed to extract a valid payload from the event")
