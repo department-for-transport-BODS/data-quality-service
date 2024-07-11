@@ -372,10 +372,10 @@ class DQSReport:
             )
         elif returned_status != "PIPELINE_SUCCEEDED" or returned_status != "PIPELINE_SUCCEEDED_WITH_ERRORS":
             logger.error(
-                f"Unable to validate check {str(self._report_id)}: Status {returned_status} != PENDING"
+                f"Unable to validate report {str(self._report_id)}: Status {returned_status} != PENDING"
             )
             raise ValueError(
-                f"Unable to validate check {str(self._report_id)}: Status {returned_status} != PENDING"
+                f"Unable to validate report {str(self._report_id)}: Status {returned_status} != PENDING"
             )
         else:
             return True
