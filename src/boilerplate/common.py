@@ -296,6 +296,7 @@ class DQSReport:
         self._report_id = None
         self._db = None
         self._report = None
+        self._extract_report_details_from_event()
 
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
@@ -314,8 +315,8 @@ class DQSReport:
         """
         Property to access the report_id from the event payload
         """
-        if self._report_id is None:
-            self._extract_report_details_from_event()
+        # if self._report_id is None:
+        #     self._extract_report_details_from_event()
         return self._report_id
 
     @property
@@ -388,7 +389,7 @@ class DQSReport:
             event_payload = loads(self._lambda_event["Records"][0]["body"])
             logger.debug("Extracted report payload from event:")
             logger.debug(event_payload)
-            logger.debug("Checking report payload has required field(s)")
+            logger.debug(f"Checking report payload has required field(s):: {event_payload}")
             report_payload_details = ReportEventPayload(**event_payload)
         except Exception as e:
             logger.error("Failed to extract a valid payload from the event")
