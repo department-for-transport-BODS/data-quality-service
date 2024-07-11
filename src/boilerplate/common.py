@@ -362,7 +362,7 @@ class DQSReport:
         if returned_id != self._report_id:
             logger.error(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
             raise ValueError(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
-        elif returned_status != "PIPELINE_SUCCEEDED" and returned_status != "PIPELINE_SUCCEEDED_WITH_ERRORS":
+        elif returned_status not in ["PIPELINE_SUCCEEDED", "PIPELINE_SUCCEEDED_WITH_ERRORS"]:
             logger.error(f"Unable to validate report {str(self._report_id)}: Status {returned_status} != valid status")
             raise ValueError(f"Unable to validate report {str(self._report_id)}: Status {returned_status} != valid status")
         else:
