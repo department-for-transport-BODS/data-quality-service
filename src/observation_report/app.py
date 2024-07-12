@@ -25,6 +25,7 @@ def lambda_handler(event, context):
     try:
         report = DQSReport(event)
         report.validate_requested_report_event()
+        logger.info(f"Report validated successfully")
 
         df = get_df_dqs_observation_results(report)
         logger.info(f"DataFrame size from get_dqs_observation_results: {df.size}")

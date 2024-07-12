@@ -111,6 +111,7 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     """
     Get the dataframe with observation results
     """
+    print("In the DQS REPORT QUERY::")
     dqs_observationresults = report.db.classes.dqs_observationresults
     dqs_taskresults = report.db.classes.dqs_taskresults
     dqs_report = report.db.classes.dqs_report
@@ -150,7 +151,8 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
         "line_name",
         "vehicle_journey_id"
     ]
+    
     df = pd.DataFrame.from_records(results, columns=columns)
-
+    print(f"The dataframe is :: {df}")
     return df
 

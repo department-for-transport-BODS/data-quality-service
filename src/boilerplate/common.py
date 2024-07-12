@@ -334,7 +334,6 @@ class DQSReport:
                     )
                 )
                 self._report = report
-                logger.debug(f"Fetched report: {report}")
             except Exception as e:
                 logger.error(f"No report record found for report_id {str(self.report_id)}")
                 raise e
