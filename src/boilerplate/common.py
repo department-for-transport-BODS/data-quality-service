@@ -296,7 +296,7 @@ class DQSReport:
         self._report_id = None
         self._db = None
         self._report = None
-        self._extract_report_details_from_event()
+        # self._extract_report_details_from_event()
 
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
@@ -327,16 +327,16 @@ class DQSReport:
         """
         if self._report is None:
             try:
-                logger.debug(f"Querying database for report_id: {self._report_id}")
+                logger.debug(f"Querying database for report_id: {self.report_id}")
                 report = self.db.session.scalar(
                     select(self.db.classes.dqs_report).where(
-                        self.db.classes.dqs_report.id == self._report_id
+                        self.db.classes.dqs_report.id == self.report_id
                     )
                 )
                 self._report = report
                 logger.debug(f"Fetched report: {report}")
             except Exception as e:
-                logger.error(f"No report record found for report_id {str(self._report_id)}")
+                logger.error(f"No report record found for report_id {str(self.report_id)}")
                 raise e
         return self._report
 
