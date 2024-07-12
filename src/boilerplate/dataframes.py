@@ -121,13 +121,14 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
 
     query = (
         select([
-            dqs_observationresults.importance,
-            dqs_observationresults.category,
-            dqs_observationresults.observation.label("data_quality_observation"),
+            dqs_checks.importance,
+            dqs_checks.category,
+            dqs_checks.observation,
             transmodel_service.service_code,
-            organisation_txcfileattributes.details,
             transmodel_service.name.label("line_name"),
-            dqs_observationresults.vehicle_journey_id
+            dqs_observationresults.details,
+            # organisation_txcfileattributes.details,
+            # dqs_observationresults.vehicle_journey_id
         ])
         .select_from(
             dqs_observationresults
@@ -145,11 +146,10 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     columns = [
         "importance",
         "category",
-        "data_quality_observation",
+        "type_of_observation"
         "service_code",
-        "details",
         "line_name",
-        "vehicle_journey_id"
+        "data_quality_observation",
     ]
     
     df = pd.DataFrame.from_records(results, columns=columns)
