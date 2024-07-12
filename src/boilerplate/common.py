@@ -388,7 +388,6 @@ class DQSReport:
             event_payload = loads(self._lambda_event["Records"][0]["body"])
             logger.debug("Extracted report payload from event:")
             logger.debug(event_payload)
-            logger.debug(f"Checking report payload has required field(s):: {event_payload}")
             report_payload_details = ReportEventPayload(**event_payload)
         except Exception as e:
             logger.error("Failed to extract a valid payload from the event")
