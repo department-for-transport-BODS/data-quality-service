@@ -28,5 +28,5 @@ class SQSClient:
             )
             return response
         except Exception as e:
-            print(f"Error sending messages in batch: {e}")
-            return None
+            logger.error(f"Error sending messages in batch: {e}")
+            raise
