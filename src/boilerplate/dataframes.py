@@ -146,7 +146,7 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     columns = [
         "importance",
         "category",
-        "type_of_observation"
+        "type_of_observation",
         "service_code",
         "line_name",
         "data_quality_observation",
