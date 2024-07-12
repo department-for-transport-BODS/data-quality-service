@@ -35,16 +35,9 @@ def lambda_handler(event, context):
 
             # Convert DataFrame to CSV
             csv_buffer = StringIO()
-            df.to_csv(csv_buffer, index=False, columns=[
-                "importance",
-                "category",
-                "data_quality_observation",
-                "service_code",
-                "details",
-                "line_name",
-                "vehicle_journey_id"
-            ])
-            
+            df.to_csv(csv_buffer, index=False)
+            csv_content = csv_buffer.getvalue()
+            logger.info(f"The csv content is :: {csv_content}")
             # Upload CSV to S3
             s3_client.put_object(
                 Bucket=S3_BUCKET_NAME,
@@ -58,7 +51,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         status = DQSReportStatus.REPORT_GENERATION_FAILED.value
-        logger.error(f"Check status failed due to {e}")
+        logger.error(f"Report generation failed due to {e}")
 
     finally:
         report.set_status(status)
