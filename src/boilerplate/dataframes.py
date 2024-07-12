@@ -120,7 +120,7 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     transmodel_service = report.db.classes.transmodel_service
 
     query = (
-        select([
+        select(
             dqs_checks.importance,
             dqs_checks.category,
             dqs_checks.observation,
@@ -129,7 +129,7 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
             dqs_observationresults.details,
             # organisation_txcfileattributes.details,
             # dqs_observationresults.vehicle_journey_id
-        ])
+        )
         .select_from(
             dqs_observationresults
             .join(dqs_taskresults, dqs_observationresults.c.taskresults_id == dqs_taskresults.id)
@@ -155,4 +155,3 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     df = pd.DataFrame.from_records(results, columns=columns)
     print(f"The dataframe is :: {df}")
     return df
-
