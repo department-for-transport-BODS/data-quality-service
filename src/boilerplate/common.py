@@ -311,13 +311,14 @@ class DQSReport:
         return self._db
 
     @property
-    def _report_id(self):
+    def report_id(self):
         """
         Property to access the report_id from the event payload
         """
-        # if self._report_id is None:
-        #     self._extract_report_details_from_event()
+        if self._report_id is None:
+            self._extract_report_details_from_event()
         return self._report_id
+
 
     @property
     def report(self):
