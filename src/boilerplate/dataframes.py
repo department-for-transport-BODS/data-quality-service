@@ -119,30 +119,6 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     organisation_txcfileattributes = report.db.classes.organisation_txcfileattributes
     transmodel_service = report.db.classes.transmodel_service
 
-    query = (
-        select(
-            dqs_checks.importance,
-            dqs_checks.category,
-            dqs_checks.observation,
-            transmodel_service.service_code,
-            transmodel_service.name.label("line_name"),
-            dqs_observationresults.details,
-            # organisation_txcfileattributes.details,
-            # dqs_observationresults.vehicle_journey_id
-        )
-        .select_from(
-            dqs_observationresults
-            .join(dqs_taskresults, dqs_observationresults.c.taskresults_id == dqs_taskresults.id)
-            .join(dqs_report, dqs_taskresults.c.dataquality_report_id == dqs_report.id)
-            .join(dqs_checks, dqs_taskresults.c.checks_id == dqs_checks.id)
-            .join(organisation_txcfileattributes, organisation_txcfileattributes.c.id == dqs_taskresults.c.transmodel_txcfileattributes_id)
-            .join(transmodel_service, transmodel_service.c.txcfileattributes_id == organisation_txcfileattributes.c.id)
-        )
-        .where(dqs_report.id == report.report_id)
-    )
-
-    results = report.db.session.execute(query).fetchall()
-
     columns = [
         "importance",
         "category",
@@ -151,7 +127,26 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
         "line_name",
         "data_quality_observation",
     ]
-    
+
+    result = (
+        report.db.session.query(
+            dqs_checks.importance,
+            dqs_checks.category,
+            dqs_checks.observation,
+            transmodel_service.service_code,
+            transmodel_service.name.label("line_name"),
+            dqs_observationresults.details
+        )
+        .join(dqs_taskresults, dqs_observationresults.taskresults_id == dqs_taskresults.id)
+        .join(dqs_report, dqs_taskresults.dataquality_report_id == dqs_report.id)
+        .join(dqs_checks, dqs_taskresults.checks_id == dqs_checks.id)
+        .join(organisation_txcfileattributes, organisation_txcfileattributes.id == dqs_taskresults.transmodel_txcfileattributes_id)
+        .join(transmodel_service, transmodel_service.txcfileattributes_id == organisation_txcfileattributes.id)
+        .filter(dqs_report.id == report.report_id)
+    )
+
+    results = result.all()
+
     df = pd.DataFrame.from_records(results, columns=columns)
     print(f"The dataframe is :: {df}")
     return df
