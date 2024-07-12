@@ -296,7 +296,6 @@ class DQSReport:
         self._report_id = None
         self._db = None
         self._report = None
-        # self._extract_report_details_from_event()
 
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
@@ -374,8 +373,8 @@ class DQSReport:
             logger.error(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
             raise ValueError(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
         elif returned_status not in ["PIPELINE_SUCCEEDED", "PIPELINE_SUCCEEDED_WITH_ERRORS"]:
-            logger.error(f"Unable to validate report {str(self._report_id)}: Status {returned_status} != valid status")
-            raise ValueError(f"Unable to validate report {str(self._report_id)}: Status {returned_status} != valid status")
+            logger.error(f"Unable to validate report {str(self._report_id)}: Status {returned_status}")
+            raise ValueError(f"Unable to validate report {str(self._report_id)}: Status {returned_status}")
         else:
             return True
 
