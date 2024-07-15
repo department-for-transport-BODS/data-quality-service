@@ -288,7 +288,7 @@ class BodsDB:
 
 class DQSReport:
     """
-    Class to handle the processing of a data quality report generation. This class is intended to be used in a Lambda function. The class is initialized with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the event, and validate the event.
+    Class to handle the processing of a data quality report generation. This class is intended to be used in a Lambda function. The class is initialised with the event payload from the SQS event that triggers the Lambda function. The class provides methods to set the status of the event, and validate the event.
     """
 
     def __init__(self, lambda_event):
@@ -326,7 +326,6 @@ class DQSReport:
         """
         if self._report is None:
             try:
-                logger.debug(f"Querying database for report_id: {self.report_id}")
                 report = self.db.session.scalar(
                     select(self.db.classes.dqs_report).where(
                         self.db.classes.dqs_report.id == self.report_id
@@ -358,23 +357,22 @@ class DQSReport:
         """
         Method to validate the report_id requested in the event payload is in the database
         """
-        logger.debug(f"Validating requested report {str(self._report_id)} is in database")
-        report = self.report
-        if report is None:
-            logger.error(f"Unable to validate report {str(self._report_id)}: No report found")
-            raise ValueError(f"Unable to validate report {str(self._report_id)}: No report found")
+        logger.debug(f"Validating requested report {str(self.report_id)} is in database")
+        if self.report is None:
+            logger.error(f"Unable to validate report {str(self.report_id)}: No report found")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: No report found")
         
         returned_id = getattr(self.report, "id", None)
         returned_status = getattr(self.report, "status", None)
 
         logger.info(f"The returned id is {returned_id} and returned status is {returned_status}")
         
-        if returned_id != self._report_id:
-            logger.error(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
-            raise ValueError(f"Unable to validate report {str(self._report_id)}: Record not returned from DB")
+        if returned_id != self.report_id:
+            logger.error(f"Unable to validate report {str(self.report_id)}: Record not returned from DB")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: Record not returned from DB")
         elif returned_status not in ["PIPELINE_SUCCEEDED", "PIPELINE_SUCCEEDED_WITH_ERRORS"]:
-            logger.error(f"Unable to validate report {str(self._report_id)}: Status {returned_status}")
-            raise ValueError(f"Unable to validate report {str(self._report_id)}: Status {returned_status}")
+            logger.error(f"Unable to validate report {str(self.report_id)}: Status {returned_status}")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: Status {returned_status}")
         else:
             return True
 

@@ -118,23 +118,14 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
     organisation_txcfileattributes = report.db.classes.organisation_txcfileattributes
     transmodel_service = report.db.classes.transmodel_service
 
-    columns = [
-        "importance",
-        "category",
-        "type_of_observation",
-        "service_code",
-        "line_name",
-        "data_quality_observation",
-    ]
-
     result = (
         report.db.session.query(
-            dqs_checks.importance,
-            dqs_checks.category,
-            dqs_checks.observation,
-            transmodel_service.service_code,
-            transmodel_service.name.label("line_name"),
-            dqs_observationresults.details
+            dqs_checks.importance.label("Importance"),
+            dqs_checks.category.label("Category"),
+            dqs_checks.observation.label("Observation"),
+            transmodel_service.service_code.label("Service"),
+            transmodel_service.name.label("Line Name"),
+            dqs_observationresults.details.label("Details")
         )
         .join(dqs_taskresults, dqs_observationresults.taskresults_id == dqs_taskresults.id)
         .join(dqs_report, dqs_taskresults.dataquality_report_id == dqs_report.id)
@@ -144,7 +135,5 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
         .filter(dqs_report.id == report.report_id)
     )
 
-    results = result.all()
+    return pd.read_sql_query(result.statement, report.db.session.bind)
 
-    df = pd.DataFrame.from_records(results, columns=columns)
-    return df
