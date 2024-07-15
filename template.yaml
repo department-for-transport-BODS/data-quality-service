@@ -849,13 +849,13 @@ Resources:
            Effect: Allow
            Action:
             - s3:PutObject
-           Resource: !Sub 'arn:aws:s3:::bodds-dev-dqs-reports/*'
+           Resource: 'arn:aws:s3:::bodds-dev-dqs-reports/*'
         - Statement:
             Effect: Allow
             Action:
               - kms:GenerateDataKey
               - kms:Decrypt
-            Resource: !Sub 'arn:aws:kms:eu-west-2:228266753808:key/8291bd02-df93-4b97-9dfe-6c866c95574c'
+            Resource: 'arn:aws:kms:eu-west-2:228266753808:key/8291bd02-df93-4b97-9dfe-6c866c95574c'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
