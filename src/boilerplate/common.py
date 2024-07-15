@@ -300,7 +300,6 @@ class DQSReport:
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
 
-
     @property
     def db(self):
         """
@@ -313,30 +312,30 @@ class DQSReport:
     @property
     def report_id(self):
         """
-        Property to access the file_id from the event payload
+        Property to access the report_id from the event payload
         """
         if self._report_id is None:
             self._extract_report_details_from_event()
         return self._report_id
 
+
     @property
     def report(self):
         """
-        Property to access the data quality task result record for the check
+        Property to access the data quality report record for the validation
         """
-        try:
-            if self._report_id is None:
+        if self._report is None:
+            try:
                 report = self.db.session.scalar(
                     select(self.db.classes.dqs_report).where(
-                        self.db.classes.dqs_report.id == self._report_id
+                        self.db.classes.dqs_report.id == self.report_id
                     )
                 )
                 self._report = report
-            return self._report
-        except Exception as e:
-            logger.error(f"No report record found for report_id {str(self.report_id)}")
-            raise e
-
+            except Exception as e:
+                logger.error(f"No report record found for report_id {str(self.report_id)}")
+                raise e
+        return self._report
 
     def set_status(self, status):
         """
@@ -347,36 +346,33 @@ class DQSReport:
         """
         try:
             self.validate_requested_report_event()
-            logger.debug(
-                f"Attempting to set status from {self.result.status} to {status}"
-            )
-            self.result.status = status
+            logger.debug(f"Attempting to set status from {self.report.status} to {status}")
+            self.report.status = status
             self.db.session.commit()
         except Exception as e:
-            logger.error("Failed to set result status")
+            logger.error("Failed to set report status")
             raise e
 
     def validate_requested_report_event(self):
         """
         Method to validate the report_id requested in the event payload is in the database
         """
-        logger.debug(f"Validating requested report {str(self._report_id)} is in database")
+        logger.debug(f"Validating requested report {str(self.report_id)} is in database")
+        if self.report is None:
+            logger.error(f"Unable to validate report {str(self.report_id)}: No report found")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: No report found")
+        
         returned_id = getattr(self.report, "id", None)
         returned_status = getattr(self.report, "status", None)
+
+        logger.info(f"The returned id is {returned_id} and returned status is {returned_status}")
+        
         if returned_id != self.report_id:
-            logger.error(
-                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
-            )
-            raise ValueError(
-                f"Unable to validate check {str(self.report_id)}: Record not returned from DB"
-            )
-        elif returned_status != "PIPELINE_SUCCEEDED" or returned_status != "PIPELINE_SUCCEEDED_WITH_ERRORS":
-            logger.error(
-                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
-            )
-            raise ValueError(
-                f"Unable to validate check {str(self.report_id)}: Status {returned_status} != PENDING"
-            )
+            logger.error(f"Unable to validate report {str(self.report_id)}: Record not returned from DB")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: Record not returned from DB")
+        elif returned_status not in ["PIPELINE_SUCCEEDED", "PIPELINE_SUCCEEDED_WITH_ERRORS"]:
+            logger.error(f"Unable to validate report {str(self.report_id)}: Status {returned_status}")
+            raise ValueError(f"Unable to validate report {str(self.report_id)}: Status {returned_status}")
         else:
             return True
 
@@ -390,12 +386,9 @@ class DQSReport:
             event_payload = loads(self._lambda_event["Records"][0]["body"])
             logger.debug("Extracted report payload from event:")
             logger.debug(event_payload)
-            logger.debug("Checking report payload has required field(s)")
             report_payload_details = ReportEventPayload(**event_payload)
         except Exception as e:
             logger.error("Failed to extract a valid payload from the event")
             raise e
-        logger.debug(
-            f"Report details found for report_id={str(report_payload_details.report_id)}"
-        )
+        logger.debug(f"Report details found for report_id={str(report_payload_details.report_id)}")
         self._report_id = report_payload_details.report_id

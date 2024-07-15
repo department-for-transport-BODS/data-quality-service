@@ -3,7 +3,7 @@ from dqs_logger import logger
 import pandas as pd
 import json
 from sqs import SQSClient
-from enums import DQSTaskResultStatus, DQSReportStatus, Timeouts
+from enums import DQSTaskResultStatus, DQSReportStatus
 
 
 def get_generate_csv_queue_name() -> str:
