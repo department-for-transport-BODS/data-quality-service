@@ -90,6 +90,15 @@ Resources:
       BuildMethod: python3.11
 
   #####################################
+  ####    DQS DEAD LETTER QUEUE    ####
+  #####################################
+  DQSDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-dead-letter-queue'
+      VisibilityTimeout: 300
+
+  #####################################
   #### FIRST STOP IS SET DOWN ONLY ####
   #####################################
   FirstStopIsSetDownOnlyQueue:
@@ -97,6 +106,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   FirstStopIsSetDownOnlyLambda:
     Type: AWS::Serverless::Function
@@ -145,6 +157,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   LastStopIsPickUpOnlyLambda:
     Type: AWS::Serverless::Function
@@ -193,6 +208,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   FirstStopIsNotATimingPointLambda:
     Type: AWS::Serverless::Function
@@ -241,6 +259,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   LastStopIsNotATimingPointLambda:
     Type: AWS::Serverless::Function
@@ -289,6 +310,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-noc-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   IncorrectNocLambda:
     Type: AWS::Serverless::Function
@@ -337,6 +361,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   IncorrectStopTypeLambda:
     Type: AWS::Serverless::Function
@@ -385,6 +412,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   IncorrectLicenceNumberLambda:
     Type: AWS::Serverless::Function
@@ -433,6 +463,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   MissingJourneyCodeLambda:
     Type: AWS::Serverless::Function
@@ -481,6 +514,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-stop-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   MissingStopLambda:
     Type: AWS::Serverless::Function
@@ -529,6 +565,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   MissingBusWorkingNumberLambda:
     Type: AWS::Serverless::Function
@@ -577,6 +616,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
       
   DuplicateJourneyCodeLambda:
     Type: AWS::Serverless::Function
@@ -625,6 +667,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
@@ -673,6 +718,9 @@ Resources:
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-queue'
       VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
 
   SameStopFoundMultipleTimesLambda:
     Type: AWS::Serverless::Function
@@ -717,17 +765,31 @@ Resources:
   ########################################
   #### PIPELINE MONITOR LAMBDA ####
   ########################################
- 
+  GenerateDQSCSVReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      VisibilityTimeout: 300
+
   PipelineMonitorLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: monitor.lambda_handler
+      Events:
+        MonitorLambdas:
+          Type: Schedule
+          Properties:
+            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
+            Schedule: rate(30 minutes)
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
         - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
@@ -735,6 +797,17 @@ Resources:
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
           - !Ref 'AWS::NoValue'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
       LoggingConfig:
         LogGroup: !Ref PipelineMonitorLambdaLogGroup
 
@@ -745,50 +818,60 @@ Resources:
       RetentionInDays: 30
 
 
-  ########################################
-  #### GENERATE DQS REPORT CSV LAMDA #####
-  ########################################
-  # GenerateDQSCSVReportQueue:
-  #   Type: AWS::SQS::Queue
-  #   Properties:
-  #     QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
-  #     VisibilityTimeout: !Ref VisibilityTimeout
+  #######################################
+  ### GENERATE DQS REPORT CSV LAMDA #####
+  #######################################
 
-  # GenerateDQSCSVReportQueueLambda:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
-  #     CodeUri: ./src/observation_report
-  #     Handler: app.lambda_handler
-  #     Layers: !If 
-  #       - IsNotLocal
-  #       - [!Ref BoilerplateLambdaLayer]
-  #       - !Ref 'AWS::NoValue'
-  #     Policies:
-  #       - 'AWSLambdaBasicExecutionRole'
-  #       - 'AWSLambdaVPCAccessExecutionRole'
-  #       - SQSPollerPolicy:
-  #           QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
-  #       - !If
-  #         - IsNotLocal
-  #         - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
-  #         - !Ref 'AWS::NoValue'
-  #     Events:
-  #       SQSTemplateTriggerEvent:
-  #         Type: SQS
-  #         Properties:
-  #           Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
-  #           BatchSize: 1
-  #           ScalingConfig:
-  #             MaximumConcurrency: 100
-  #     LoggingConfig:
-  #       LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
+  GenerateDQSCSVReportQueueLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      CodeUri: ./src/observation_report
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          S3_BUCKET_DQS_CSV_REPORT: 'bodds-dev-dqs-reports'
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Ref 'AWS::NoValue'
 
-  # GenerateDQSCSVReportLambdaLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
-  #     RetentionInDays: 30
+        - Statement:
+           Effect: Allow
+           Action:
+            - s3:PutObject
+           Resource: 'arn:aws:s3:::bodds-dev-dqs-reports/*'
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+            Resource: 'arn:aws:kms:eu-west-2:228266753808:key/8291bd02-df93-4b97-9dfe-6c866c95574c'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
+
+  GenerateDQSCSVReportLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      RetentionInDays: 30
 
 Outputs:
   Env:

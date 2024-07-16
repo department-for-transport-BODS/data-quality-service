@@ -4,10 +4,9 @@ import os
 import pandas as pd
 
 from task_results import TaskResult
-from common import Check
 from dqs_report import DQReport
 from enums import DQSTaskResultStatus, DQSReportStatus, Timeouts
-from src.monitor.utils import  map_pipeline_status, send_sqs_messages
+from monitor_utils import  map_pipeline_status, send_sqs_messages
 
 
 def lambda_handler(event, context):
