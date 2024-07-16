@@ -123,8 +123,8 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
             dqs_checks.importance.label("Importance"),
             dqs_checks.category.label("Category"),
             dqs_checks.observation.label("Observation"),
-            transmodel_service.service_code.label("Service"),
-            transmodel_service.name.label("Line Name"),
+            transmodel_service.service_code.label("Registration Number"),
+            transmodel_service.name.label("Service"),
             dqs_observationresults.details.label("Details")
         )
         .join(dqs_taskresults, dqs_observationresults.taskresults_id == dqs_taskresults.id)
