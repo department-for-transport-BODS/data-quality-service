@@ -108,7 +108,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   FirstStopIsSetDownOnlyLambda:
     Type: AWS::Serverless::Function
@@ -159,7 +159,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   LastStopIsPickUpOnlyLambda:
     Type: AWS::Serverless::Function
@@ -210,7 +210,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   FirstStopIsNotATimingPointLambda:
     Type: AWS::Serverless::Function
@@ -261,7 +261,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   LastStopIsNotATimingPointLambda:
     Type: AWS::Serverless::Function
@@ -312,7 +312,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   IncorrectNocLambda:
     Type: AWS::Serverless::Function
@@ -363,7 +363,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   IncorrectStopTypeLambda:
     Type: AWS::Serverless::Function
@@ -414,7 +414,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   IncorrectLicenceNumberLambda:
     Type: AWS::Serverless::Function
@@ -465,7 +465,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   MissingJourneyCodeLambda:
     Type: AWS::Serverless::Function
@@ -516,7 +516,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   MissingStopLambda:
     Type: AWS::Serverless::Function
@@ -567,7 +567,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   MissingBusWorkingNumberLambda:
     Type: AWS::Serverless::Function
@@ -618,7 +618,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
       
   DuplicateJourneyCodeLambda:
     Type: AWS::Serverless::Function
@@ -669,7 +669,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   StopNotFoundInNaptanLambda:
     Type: AWS::Serverless::Function
@@ -720,7 +720,7 @@ Resources:
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 3
 
   SameStopFoundMultipleTimesLambda:
     Type: AWS::Serverless::Function
