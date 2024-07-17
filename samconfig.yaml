@@ -57,8 +57,8 @@ test:
       parameter_overrides:
         ProjectName='dqs'
         Environment='test'
-        # VpcId='/bodds/test/vpc-id'
-        # VpcSubnets='/bodds/test/private-subnets'
+        VpcId='/bodds/test/vpc-id'
+        VpcSubnets='/bodds/test/private-subnets'
 
 uat:
   deploy:
@@ -69,8 +69,8 @@ uat:
       parameter_overrides:
         ProjectName='dqs'
         Environment='uat'
-        # VpcId='/bodds/uat/vpc-id'
-        # VpcSubnets='/bodds/uat/private-subnets'
+        VpcId='/bodds/uat/vpc-id'
+        VpcSubnets='/bodds/uat/private-subnets'
 
 prod:
   sync:
@@ -84,5 +84,5 @@ prod:
       parameter_overrides:
         ProjectName='dqs'
         Environment='prod'
-        # VpcId='/bodds/prod/vpc-id'
-        # VpcSubnets='/bodds/prod/private-subnets'
+        VpcId='/bodds/prod/vpc-id'
+        VpcSubnets='/bodds/prod/private-subnets'
