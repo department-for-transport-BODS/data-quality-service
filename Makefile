@@ -40,7 +40,7 @@ rebuild: ## Rebuild the Docker container services and SAM application
 	# samlocal validate --lint
 	cfn-lint template.yaml --ignore-checks W1001 W8001 W2001
 	samlocal build
-	python3 utils/bootstrap_layers.py	
+	python utils/bootstrap_layers.py	
 	samlocal deploy \
             --config-env local \
             --no-fail-on-empty-changeset \
