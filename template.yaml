@@ -37,7 +37,9 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        SubnetIds: !Ref VpcSubnets
+        SubnetIds: !Split
+          - ','
+          - !Ref VpcSubnets
         SecurityGroupIds: 
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
