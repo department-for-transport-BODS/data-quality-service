@@ -16,12 +16,6 @@ Parameters:
   RdsDbPort:
     Type: Number
     Default: 5432
-  VpcId:
-    Type: String
-    Default: ''
-  VpcSubnets:
-    Type: List<String>
-    Default: ''
 
 Conditions:
   IsNotLocal: !Not [!Equals [!Ref Environment, 'local']]
@@ -37,10 +31,10 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        SubnetIds: 
-          !Split
-            - ','
-            - !Ref VpcSubnets
+        SubnetIds:
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-0}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-1}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-2}}'
         SecurityGroupIds: 
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
@@ -850,7 +844,6 @@ Resources:
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
           - !Ref 'AWS::NoValue'
-
         - Statement:
            Effect: Allow
            Action:
