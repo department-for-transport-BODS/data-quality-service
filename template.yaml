@@ -31,7 +31,10 @@ Globals:
     VpcConfig: !If
       - IsNotLocal
       -
-        SubnetIds: !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnets}}'
+        SubnetIds:
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-0}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-1}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-2}}'
         SecurityGroupIds: 
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
           - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
@@ -841,18 +844,20 @@ Resources:
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
           - !Ref 'AWS::NoValue'
-
         - Statement:
            Effect: Allow
            Action:
             - s3:PutObject
-           Resource: 'arn:aws:s3:::bodds-dev-dqs-reports/*'
-        - Statement:
-            Effect: Allow
-            Action:
-              - kms:GenerateDataKey
-              - kms:Decrypt
-            Resource: 'arn:aws:kms:eu-west-2:228266753808:key/8291bd02-df93-4b97-9dfe-6c866c95574c'
+           Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
+        - !If
+          - IsNotLocal
+          - Statement:
+              Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/s3-kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
