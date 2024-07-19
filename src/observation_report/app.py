@@ -17,7 +17,7 @@ s3_client = boto3.client('s3')
 
 # Define S3 bucket name and file name
 S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports")
-CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}-{unique_id}.csv"
+CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{unique_id}.csv"
 
 def lambda_handler(event, context):
     status = DQSReportStatus.REPORT_GENERATED.value
