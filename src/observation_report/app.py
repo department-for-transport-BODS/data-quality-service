@@ -54,6 +54,6 @@ def lambda_handler(event, context):
         logger.error(f"Report generation failed due to {e}")
 
     finally:
-        report.set_status(status)
+        report.set_status(status, CSV_FILE_NAME)
 
     return

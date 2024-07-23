@@ -337,7 +337,7 @@ class DQSReport:
                 raise e
         return self._report
 
-    def set_status(self, status):
+    def set_status(self, status, file_name):
         """
         Method to set the status of the check
 
@@ -348,6 +348,7 @@ class DQSReport:
             self.validate_requested_report_event()
             logger.debug(f"Attempting to set status from {self.report.status} to {status}")
             self.report.status = status
+            self.report.file_name = file_name
             self.db.session.commit()
         except Exception as e:
             logger.error("Failed to set report status")
