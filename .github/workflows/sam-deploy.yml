@@ -121,6 +121,6 @@ jobs:
               --no-confirm-changeset \
               --no-fail-on-empty-changeset \
               --resolve-s3 \
-              --tags "BuiltFrom=${VERSION}"
+              --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
 
           echo "[INFO] Application components with version ${VERSION} successfully built and deployed into ${RC_ENV^^}"

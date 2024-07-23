@@ -35,9 +35,8 @@ Globals:
           - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-0}}'
           - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-1}}'
           - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-2}}'
-        SecurityGroupIds: 
+        SecurityGroupIds:
           - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/celeryworker-sg-id}}'
       - !Ref 'AWS::NoValue'
     Environment:
       Variables:
@@ -45,7 +44,7 @@ Globals:
         PROJECT_NAME: !Ref ProjectName
         POSTGRES_HOST: !If
             - IsNotLocal
-            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-host}}'
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-endpoint}}'
             - !Ref RdsDbHostAddr
         POSTGRES_PORT: !Ref RdsDbPort
         POSTGRES_DB: !If
@@ -55,10 +54,6 @@ Globals:
         POSTGRES_USER: !If
             - IsNotLocal
             - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
-            - postgres
-        POSTGRES_PASSWORD_ARN: !If
-            - IsNotLocal
-            - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-password-arn}}'
             - postgres
 
 Resources:
@@ -78,6 +73,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
+
+  DqsCommonLambdaSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: IsNotLocal
+    Properties:
+      GroupId: !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-sg-id}}'
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !GetAtt DqsCommonLambdaSecurityGroup.GroupId
 
   BoilerplateLambdaLayer: 
     Type: AWS::Serverless::LayerVersion
@@ -130,7 +135,11 @@ Resources:
             QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -181,7 +190,11 @@ Resources:
             QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -232,7 +245,11 @@ Resources:
             QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -283,7 +300,11 @@ Resources:
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -334,7 +355,11 @@ Resources:
             QueueName: !GetAtt IncorrectNocQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -385,7 +410,11 @@ Resources:
             QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -436,7 +465,11 @@ Resources:
             QueueName: !GetAtt IncorrectLicenceNumberQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -487,7 +520,11 @@ Resources:
             QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -538,7 +575,11 @@ Resources:
             QueueName: !GetAtt MissingStopQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -589,7 +630,11 @@ Resources:
             QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -640,7 +685,11 @@ Resources:
             QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -691,7 +740,11 @@ Resources:
             QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -742,7 +795,11 @@ Resources:
             QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
@@ -761,66 +818,14 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
       RetentionInDays: 30
 
-
-  ########################################
-  #### PIPELINE MONITOR LAMBDA ####
-  ########################################
+  #######################################
+  ### GENERATE DQS REPORT CSV LAMDA #####
+  #######################################
   GenerateDQSCSVReportQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
       VisibilityTimeout: 300
-
-  PipelineMonitorLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
-      CodeUri: ./src/template
-      Handler: monitor.lambda_handler
-      Events:
-        MonitorLambdas:
-          Type: Schedule
-          Properties:
-            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
-            Schedule: rate(30 minutes)
-      Layers: !If 
-        - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer]
-        - !Ref 'AWS::NoValue'
-      Environment:
-        Variables:
-          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
-      Policies:
-        - 'AWSLambdaBasicExecutionRole'
-        - 'AWSLambdaVPCAccessExecutionRole'
-        - !If
-          - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
-          - !Ref 'AWS::NoValue'
-        - Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-              - 'sqs:GetQueueUrl'
-              - 'sqs:SendMessage'
-            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
-          - Effect: Allow
-            Action:
-              - 'sqs:ListQueues'
-            Resource: '*'
-      LoggingConfig:
-        LogGroup: !Ref PipelineMonitorLambdaLogGroup
-
-  PipelineMonitorLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
-      RetentionInDays: 30
-
-
-  #######################################
-  ### GENERATE DQS REPORT CSV LAMDA #####
-  #######################################
 
   GenerateDQSCSVReportQueueLambda:
     Type: AWS::Serverless::Function
@@ -830,7 +835,7 @@ Resources:
       Handler: app.lambda_handler
       Environment:
         Variables:
-          S3_BUCKET_DQS_CSV_REPORT: 'bodds-dev-dqs-reports'
+          S3_BUCKET_DQS_CSV_REPORT: !Sub 'bodds-${Environment}-dqs-reports'
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
@@ -838,17 +843,24 @@ Resources:
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
-        - !If
-          - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/secrets-manager-policy-arn}}'
-          - !Ref 'AWS::NoValue'
         - Statement:
            Effect: Allow
            Action:
             - s3:PutObject
            Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - Statement:
@@ -875,7 +887,58 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
       RetentionInDays: 30
 
-Outputs:
-  Env:
-    Description: 'Deployment Environment'
-    Value: !Ref Environment
+  #################################
+  #### PIPELINE MONITOR LAMBDA ####
+  #################################
+  PipelineMonitorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      CodeUri: ./src/template
+      Handler: monitor.lambda_handler
+      Events:
+        MonitorLambdas:
+          Type: Schedule
+          Properties:
+            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
+            Schedule: rate(30 minutes)
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref PipelineMonitorLambdaLogGroup
+
+  PipelineMonitorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      RetentionInDays: 30
