@@ -50,7 +50,7 @@ class OrganisationTxcFileAttributes:
         try:
             result = (
                 self._check.db.session.query(OrganisationDatasetRevision)
-                .where(OrganisationDatasetRevision.revision_id == self.revision_id)
+                .where(OrganisationDatasetRevision.id == self.revision_id)
                 .first()
             )
             self.dataset_id = result.dataset_id
