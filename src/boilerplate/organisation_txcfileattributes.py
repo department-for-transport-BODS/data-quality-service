@@ -1,7 +1,6 @@
 from common import Check
 from dqs_logger import logger
-from sqlalchemy import select
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import and_
 
 
 class OrganisationTxcFileAttributes:
@@ -15,8 +14,14 @@ class OrganisationTxcFileAttributes:
     def __init__(self, check: Check):
         self._check = check
         self.org_noc = None
+        self.revision_id = None
+        self.dataset_id = None
+        self.organisation_id = None
         self._table = check.db.classes.organisation_txcfileattributes
         self._get_noc()
+        self._get_organisation_dataset()
+        self._get_organisation_id()
+
 
     def _get_noc(self):
         """
@@ -29,9 +34,48 @@ class OrganisationTxcFileAttributes:
                 .first()
             )
             self.org_noc = result.national_operator_code
+            self.revision_id = result.revision_id
         except Exception as e:
             logger.error(
                 f"Attempting to fetch details of organisation_txcfileattributes for id = {str(self._check.file_id)}",
+                e,
+            )
+            raise e
+    
+    def _get_organisation_dataset(self):
+        """
+        Method to get the organisation dataset objects
+        """
+        OrganisationDatasetRevision = self._check.db.classes.organisation_datasetrevision
+        try:
+            result = (
+                self._check.db.session.query(OrganisationDatasetRevision)
+                .where(OrganisationDatasetRevision.revision_id == self.revision_id)
+                .first()
+            )
+            self.dataset_id = result.dataset_id
+        except Exception as e:
+            logger.error(
+                f"Attempting to fetch details of organisation_dataset for id = {str(self._check.file_id)}",
+                e,
+            )
+            raise e
+    
+    def _get_organisation_id(self):
+        """
+        Method to get the organisation dataset objects
+        """
+        OrganisationDataset = self._check.db.classes.organisation_dataset
+        try:
+            result = (
+                self._check.db.session.query(OrganisationDataset)
+                .where(OrganisationDataset.id == self.dataset_id)
+                .first()
+            )
+            self.organisation_id = result.organisation_id
+        except Exception as e:
+            logger.error(
+                f"Attempting to fetch details of organisation_dataset for id = {str(self._check.file_id)}",
                 e,
             )
             raise e
@@ -42,13 +86,12 @@ class OrganisationTxcFileAttributes:
         """
         try:
             OperatorCode = self._check.db.classes.organisation_operatorcode
-            row = (
+            row_operator_code = (
                 self._check.db.session.query(OperatorCode)
-                .where(OperatorCode.noc == self.org_noc)
+                .filter(and_(OperatorCode.noc == self.org_noc, OperatorCode.organisation_id == self.organisation_id))
                 .first()
             )
-
-            if not row:
+            if not row_operator_code:
                 return False
             return True
         except Exception as e:

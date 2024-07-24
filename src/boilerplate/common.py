@@ -1,9 +1,10 @@
+import boto3
 import pandas as pd
+import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select
 from os import environ
-from boto3 import client
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
@@ -226,15 +227,11 @@ class BodsDB:
         Method to initialise the database connection
         """
         connection_details = self._get_connection_details()
-        logger.debug("Connecting to DB with connection string ")
+        logger.debug("Connecting to DB with connection string")
         try:
             self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = create_engine(
-                f"postgresql+psycopg2://{connection_details['POSTGRES_USER']}:"
-                f"{connection_details['POSTGRES_PASSWORD']}@"
-                f"{connection_details['POSTGRES_HOST']}:"
-                f"{connection_details['POSTGRES_PORT']}/"
-                f"{connection_details['POSTGRES_DB']}"
+                self._generate_connection_string(**connection_details)
             )
             logger.debug("Preparing SQLALchemy base")
             self._sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
@@ -252,30 +249,26 @@ class BodsDB:
         Method to get the connection details for the database from the environment variables
         """
         connection_details = {}
-        logger.debug("Getting DB password from secrets manager")
+        connection_details["host"] = environ.get("POSTGRES_HOST")
+        connection_details["dbname"] = environ.get("POSTGRES_DB")
+        connection_details["user"] = environ.get("POSTGRES_USER")
+        connection_details["port"] = environ.get("POSTGRES_PORT")
         try:
-            secrets_manager = client("secretsmanager")
-            if environ.get("POSTGRES_PASSWORD_ARN", None):
-                password_response = secrets_manager.get_secret_value(
-                    SecretId=environ.get("POSTGRES_PASSWORD_ARN"),
+            if environ.get("PROJECT_ENV") != 'local':
+                logger.debug("Getting DB token")
+                connection_details["password"] = self._generate_rds_iam_auth_token(
+                    connection_details["host"],
+                    connection_details["port"],
+                    connection_details["user"]
                 )
-                connection_details["POSTGRES_PASSWORD"] = password_response[
-                    "SecretString"
-                ]
+                logger.debug("Got DB token")
+                connection_details["sslmode"] = "require"
             else:
-                logger.debug(
-                    "No password ARN found in environment variables, getting DB password direct"
-                )
-                connection_details["POSTGRES_PASSWORD"] = environ.get(
-                    "POSTGRES_PASSWORD"
-                )
-            logger.debug("Got DB password")
+                logger.debug("No password ARN found in environment variables, getting DB password direct")
+                connection_details["password"] = environ.get("POSTGRES_PASSWORD")
+                logger.debug("Got DB password")
+                connection_details["sslmode"] = "disable"
 
-            connection_details["POSTGRES_HOST"] = environ.get("POSTGRES_HOST")
-            connection_details["POSTGRES_DB"] = environ.get("POSTGRES_DB")
-            connection_details["POSTGRES_USER"] = environ.get("POSTGRES_USER")
-            connection_details["POSTGRES_PORT"] = environ.get("POSTGRES_PORT")
-            
             for key, value in connection_details.items():
                 if value is None:
                     logger.error(f"Missing connection details value: {key}")
@@ -284,6 +277,68 @@ class BodsDB:
         except Exception as e:
             logger.error("Failed to get connection details for database")
             raise e
+
+    def _generate_connection_string(self, **kwargs) -> str:
+        """
+        Generates an AWS RDS IAM authentication token for a given RDS instance.
+
+        Parameters:
+        - **kwargs (any): A dictionary of key/value pairs that correspond to the expected values below
+
+        Returns:
+        - str: The generated connection string from parsed key/value pairs
+        """
+        user_password = ""
+        if kwargs.get("user"):
+            user_password += kwargs.get("user")
+            if kwargs.get("password"):
+                user_password += ":" + kwargs.get("password")
+            user_password += "@"
+
+        # Construct other parts
+        other_parts = ""
+        for key, value in kwargs.items():
+            if key not in ["host", "port", "user", "password", "dbname"] and value:
+                other_parts += f"{key}={value}&"
+
+        # Construct the final connection string
+        connection_string = f"postgresql+psycopg2://{user_password}{kwargs.get('host', '')}"
+        if kwargs.get("port"):
+            connection_string += f":{kwargs.get('port')}"
+        connection_string += f"/{kwargs.get('dbname', '')}"
+        if other_parts:
+            connection_string += f"?{other_parts[:-1]}"
+
+        return connection_string
+
+    def _generate_rds_iam_auth_token(self, host, port, username) -> str:
+        """
+        Generates an AWS RDS IAM authentication token for a given RDS instance.
+
+        Parameters:
+        - hostname (str): The endpoint of the RDS instance.
+        - port (int): The port number for the RDS instance.
+        - username (str): The database username.
+
+        Returns:
+        - str: The generated IAM authentication token if successful.
+        - None: If an error occurs during token generation.
+        """
+        try:
+            session = boto3.session.Session()
+            client = session.client(
+                service_name="rds",
+                region_name=environ.get("AWS_REGION")
+            )
+            token = client.generate_db_auth_token(
+                DBHostname=host,
+                DBUsername=username,
+                Port=port
+            )
+            return urllib.parse.quote_plus(token)
+        except Exception as e:
+            logger.error(f"An error occurred while generating the IAM auth token: {e}")
+            return None
 
 
 class DQSReport:
@@ -337,7 +392,7 @@ class DQSReport:
                 raise e
         return self._report
 
-    def set_status(self, status):
+    def set_status(self, status, file_name):
         """
         Method to set the status of the check
 
@@ -348,6 +403,7 @@ class DQSReport:
             self.validate_requested_report_event()
             logger.debug(f"Attempting to set status from {self.report.status} to {status}")
             self.report.status = status
+            self.report.file_name = file_name
             self.db.session.commit()
         except Exception as e:
             logger.error("Failed to set report status")
