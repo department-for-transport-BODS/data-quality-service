@@ -901,7 +901,7 @@ Resources:
           Type: Schedule
           Properties:
             Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
-            Schedule: rate(30 minutes)
+            Schedule: rate(5 minutes)
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
