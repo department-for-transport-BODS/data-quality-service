@@ -35,8 +35,8 @@ test: ## Run the tests
 
 rebuild: ## Rebuild the Docker container services and SAM application
 	rm -Rf .aws-sam
-	docker-compose down
-	docker-compose up -d
+	docker compose down
+	docker compose up -d
 	# samlocal validate --lint
 	cfn-lint template.yaml --ignore-checks W1001 W8001 W2001
 	samlocal build
