@@ -23,6 +23,10 @@ jobs:
     outputs:
       VERSION: ${{ steps.validate.outputs.VERSION }}
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -40,32 +44,28 @@ jobs:
         id: validate
         run: |
           if [[ ${{ !(contains(fromJSON('["test", "main"]'), github.ref_name) || startsWith(github.ref, 'refs/tags/v')) }} ]]; then
-            if [[ ${{ contains('dev', github.ref_name }} ]]; then
+            if [[ ${GITHUB_REF_NAME} == 'dev' ]]; then
               # install yq for parsing yaml files
               sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/itm/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
                 sudo chmod 755 /usr/bin/yq
               new_version=$(yq e '.version' VERSION)
-              echo "VERSION=v${new_version}" >> "$GITHUB_OUTPUT"
+              echo "VERSION=${new_version}" >> "$GITHUB_OUTPUT"
 
-              rc_path="$RC_DST/releases/$vurrent_version"
+              rc_path="$RC_DST/releases/$current_version"
               if [[ `aws s3 ls s3://$rc_path|head` ]]; then
                 echo "[INFO] Release candidate version [${new_version}] already exists. Version number must be incremented to allow for a new build. Exiting"
                 exit 1
               else
-                echo "[INFO] Running on development branch, building as release for promotion through to live
+                echo "[INFO] Running on development branch, building as release for promotion through to live"
               fi
             else
-              echo "[INFO] Running on feature branch, building as release for development environment
+              echo "[INFO] Running on feature branch, building as release for development environment"
+              echo "VERSION=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
             fi
           else
-              echo "[ERROR] It is only possible to build from dev/a feature branch. Exiting
-              exit 1
+            echo "[ERROR] It is only possible to build from dev/a feature branch. Exiting"
+            exit 1
           fi
-
-          echo """ \
-            Executing build and release job using parameter(s):
-              (Release Version) - $new_version
-          """
 
   build:
     runs-on: pcoe-runner-linux-small-prod
@@ -102,7 +102,7 @@ jobs:
         env: 
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
-          [[ $VERSION =~ ^v[0-9]+(\.[0-9]+){2}$ ]] && rc_path="$RC_DST/releases/$VERSION" || rc_path="$RC_DST/releases-dev/$VERSION"
+          [[ $VERSION =~ ^v[0-9]+(\.[0-9]+){2}$ ]] && rc_path="releases/$VERSION" || rc_path="releases-dev/$VERSION"
 
           sam build && \
             sam package \

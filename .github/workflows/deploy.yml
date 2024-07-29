@@ -4,7 +4,7 @@ run-name: deploy application to ${{ github.event_name == 'repository_dispatch' &
     github.event_name == 'workflow_dispatch' && (
       startsWith(github.ref, 'refs/tags/v') && 'prod' ||
       github.ref_name == 'main' && 'uat' ||
-      github.ref_name == 'test' && 'test' ||
+      github.ref_name == 'test' && 'test'
     ) || 'dev' }}
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ concurrency:
     github.event_name == 'workflow_dispatch' && (
       startsWith(github.ref, 'refs/tags/v') && 'prod' ||
       github.ref_name == 'main' && 'uat' ||
-      github.ref_name == 'test' && 'test' ||
+      github.ref_name == 'test' && 'test'
     ) || 'dev' }}
   cancel-in-progress: false
 
@@ -36,22 +36,28 @@ env:
     github.event_name == 'workflow_dispatch' && (
       startsWith(github.ref, 'refs/tags/v') && 'prod' ||
       github.ref_name == 'main' && 'uat' ||
-      github.ref_name == 'test' && 'test' ||
+      github.ref_name == 'test' && 'test'
     ) || 'dev' }}
   RC_VER: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.release_version ||
-    github.event_name == 'release' && github.event.release.tag_name || 'null'
+    github.event_name == 'release' && github.event.release.tag_name || 'null' }}
   RC_SRC: ${{ vars.DEPLOYMENT_ARTEFACTS_S3_BUCKET }}
 
-permissions:
-  id-token: write
 
 jobs:
   validation:
     runs-on: pcoe-runner-linux-small-prod
     outputs:
-      VERSION: ${{ steps.verify.outputs.VERSION }}
+      VERSION: ${{ steps.validate.outputs.VERSION }}
+
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
+      - name: checkout
+        if: ${{ env.RC_VER == 'null' }}
+        uses: actions/checkout@v4
+
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -103,6 +109,10 @@ jobs:
     runs-on: pcoe-runner-linux-small-prod
     needs: validation
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: setup sam
         uses: aws-actions/setup-sam@v2
@@ -122,7 +132,7 @@ jobs:
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
-          [[ $VERSION =~ ^v[0-9]+(\.[0-9]+){2}$ ]] && rc_path="releases/$VERSION/backend" || rc_path="releases-dev/$VERSION/backend"
+          [[ $VERSION =~ ^v[0-9]+(\.[0-9]+){2}$ ]] && rc_path="releases/$VERSION" || rc_path="releases-dev/$VERSION"
 
           aws s3 cp s3://$RC_SRC/$rc_path/packaged.yaml .
           aws s3 cp s3://$RC_SRC/$rc_path/samconfig.yaml .
@@ -134,7 +144,7 @@ jobs:
         with:
           cmd: yq -r '."${{ env.RC_ENV }}".deploy.parameters.stack_name' samconfig.yaml
 
-      - name: deploy backend for ${{ env.RC_ENV }}
+      - name: deploy application for ${{ env.RC_ENV }}
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
@@ -146,4 +156,5 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
+
           echo "[INFO] Application with version ${VERSION} successfully deployed into ${RC_ENV^^}"
