@@ -32,7 +32,7 @@ collaborators:
     permission: admin
 
 branches:
-  - name: main
+  - name: dev
     # https://docs.github.com/en/rest/reference/repos#update-branch-protection
     # Branch Protection settings. Set to null to disable
     protection:
