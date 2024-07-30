@@ -162,4 +162,5 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
+
           echo "[INFO] Application with version [${VERSION}] successfully deployed into ${RC_ENV^^}"
