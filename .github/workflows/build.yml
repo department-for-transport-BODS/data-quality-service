@@ -158,5 +158,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           repository: ${{ github.repository }}
-          event-type: automated-deploy
+          event-type: automated-deploy-dev
           client-payload: '{ "environment": "dev", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
