@@ -135,7 +135,7 @@ jobs:
 
           aws s3 cp s3://$RC_SRC/$rc_path/packaged.yaml .
           aws s3 cp s3://$RC_SRC/$rc_path/samconfig.yaml .
-          echo "[INFO] Application with version ${VERSION} successfully downloaded"
+          echo "[INFO] Application with version [${VERSION}] successfully downloaded"
       
       - name: get stack name
         id: get-stack
@@ -155,4 +155,4 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
-          echo "[INFO] Application with version ${VERSION} successfully deployed into ${RC_ENV^^}"
+          echo "[INFO] Application with version [${VERSION}] successfully deployed into ${RC_ENV^^}"

@@ -113,7 +113,7 @@ jobs:
           aws s3 cp packaged.yaml s3://$RC_DST/$rc_path/
           aws s3 cp samconfig.yaml s3://$RC_DST/$rc_path/
 
-          echo "[INFO] Application with version ${VERSION} successfully build and uploaded to deployment artefacts storage"
+          echo "[INFO] Application with version [${VERSION}] successfully build and uploaded to deployment artefacts storage"
 
   commit-and-tag:
     if: ${{ always() && !cancelled() && !contains(needs.*.result, 'failure') && contains(github.ref, 'dev') }}
