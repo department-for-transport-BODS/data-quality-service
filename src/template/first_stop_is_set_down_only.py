@@ -5,7 +5,7 @@ from dataframes import get_df_vehicle_journey
 from dqs_logger import logger
 
 # List of allowed activities for first stop
-_ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest"]
+_ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest", "pickUpAndSetDown"]
 
 
 def lambda_handler(event, context):
@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmin()]
+            df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmin()]
             df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_FIRST_STOP)]
 
             logger.info("Iterating over rows to add observations")

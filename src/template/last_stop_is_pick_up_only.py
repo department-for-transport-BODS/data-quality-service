@@ -6,7 +6,7 @@ from dataframes import get_df_vehicle_journey
 
 
 # List of allowed activities for first stop
-_ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest"]
+_ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest", "pickUpAndSetDown"]
 
 
 def lambda_handler(event, context):
@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmax()]
+            df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmax()]
             df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_LAST_STOP)]
 
             logger.info("Iterating over rows to add observations")
