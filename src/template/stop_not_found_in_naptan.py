@@ -18,7 +18,7 @@ def lambda_handler(event, context):
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df = df[df["naptan_stop_id"].isnull()]
-            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmax()]
+            df = df.loc[df.groupby("vehicle_journey_id")]
 
             logger.info("Iterating over rows to add observations")
 
