@@ -6,7 +6,7 @@ from dataframes import get_df_vehicle_journey
 
 
 # List of allowed activities for first stop
-_ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest"]
+_ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest", "pickUpAndSetDown"]
 
 
 def lambda_handler(event, context):
