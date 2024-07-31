@@ -41,6 +41,7 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             ServicePatternStop.is_timing_point.label("is_timing_point"),
             ServicePatternStop.naptan_stop_id.label("naptan_stop_id"),
             ServicePatternStop.sequence_number.label("sequence_number"),
+            ServicePatternStop.auto_sequence_number.label("auto_sequence_number"),
             ServicePatternStop.atco_code.label("atco_code"),
             coalesce(
                 NaptanStopPoint.common_name, ServicePatternStop.txc_common_name
