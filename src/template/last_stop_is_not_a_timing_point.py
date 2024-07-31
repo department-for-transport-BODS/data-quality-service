@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            df = df.loc[df.groupby("vehicle_journey_id").sequence_number.idxmax()]
+            df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmax()]
             df = df[~df["is_timing_point"] == _ALLOWED_IS_TIMING_POINTS]
             logger.info("Iterating over rows to add observations")
 
