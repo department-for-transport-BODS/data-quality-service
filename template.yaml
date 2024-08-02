@@ -1,0 +1,944 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  This SAM template deploys resources associated with the DQS (Data Quality Service) for BODS
+
+Parameters:
+  Environment:
+    Type: String
+    Description: The environment into which the stack is being deployed
+  ProjectName:
+    Description: The name of the project
+    Type: String
+  RdsDbHostAddr:
+    Type: String
+    Default: ''
+  RdsDbPort:
+    Type: Number
+    Default: 5432
+
+Conditions:
+  IsNotLocal: !Not [!Equals [!Ref Environment, 'local']]
+
+Globals:
+  Function:
+    Architectures:
+      - x86_64
+    Runtime: python3.11
+    Timeout: 120
+    MemorySize: 512
+    Tracing: Active
+    VpcConfig: !If
+      - IsNotLocal
+      -
+        SubnetIds:
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-0}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-1}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/private-subnet-2}}'
+        SecurityGroupIds:
+          - !GetAtt DqsCommonLambdaSecurityGroup.GroupId
+      - !Ref 'AWS::NoValue'
+    Environment:
+      Variables:
+        PROJECT_ENV: !Ref Environment
+        PROJECT_NAME: !Ref ProjectName
+        POSTGRES_HOST: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-endpoint}}'
+            - !Ref RdsDbHostAddr
+        POSTGRES_PORT: !Ref RdsDbPort
+        POSTGRES_DB: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-db-name}}'
+            - postgres
+        POSTGRES_USER: !If
+            - IsNotLocal
+            - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
+            - postgres
+
+Resources:
+  #########################################
+  #### GENERAL CONFIGURATION RESOURCES ####
+  #########################################
+  DqsCommonLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsNotLocal
+    Properties:
+      GroupDescription: !Sub 'Security group for ${ProjectName}-${Environment} DQS related lambda functions'
+      GroupName: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
+      SecurityGroupEgress: 
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/vpc-id}}'
+      Tags:
+        - Key: Name
+          Value: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
+
+  DqsCommonLambdaSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: IsNotLocal
+    Properties:
+      GroupId: !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-sg-id}}'
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !GetAtt DqsCommonLambdaSecurityGroup.GroupId
+
+  BoilerplateLambdaLayer: 
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub '${ProjectName}-${Environment}-boilerplate-layer'
+      ContentUri: ./src/boilerplate
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
+  #####################################
+  ####    DQS DEAD LETTER QUEUE    ####
+  #####################################
+  DQSDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-dead-letter-queue'
+      VisibilityTimeout: 300
+
+  #####################################
+  #### FIRST STOP IS SET DOWN ONLY ####
+  #####################################
+  FirstStopIsSetDownOnlyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  FirstStopIsSetDownOnlyLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-lambda'
+      CodeUri: ./src/template
+      Handler: first_stop_is_set_down_only.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FirstStopIsSetDownOnlyQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref FirstStopIsSetDownOnlyLambdaLogGroup
+
+  FirstStopIsSetDownOnlyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-set-down-only-lambda'
+      RetentionInDays: 30
+
+  ###################################
+  #### LAST STOP IS PICK UP ONLY ####
+  ###################################
+  LastStopIsPickUpOnlyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  LastStopIsPickUpOnlyLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-lambda'
+      CodeUri: ./src/template
+      Handler: last_stop_is_pick_up_only.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt LastStopIsPickUpOnlyQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref LastStopIsPickUpOnlyLambdaLogGroup
+
+  LastStopIsPickUpOnlyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-pickup-only-lambda'
+      RetentionInDays: 30
+
+  ##########################################
+  #### FIRST STOP IS NOT A TIMING POINT ####
+  ##########################################
+  FirstStopIsNotATimingPointQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  FirstStopIsNotATimingPointLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-lambda'
+      CodeUri: ./src/template
+      Handler: first_stop_is_not_a_timing_point.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FirstStopIsNotATimingPointQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref FirstStopIsNotATimingPointLambdaLogGroup
+
+  FirstStopIsNotATimingPointLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-lambda'
+      RetentionInDays: 30
+
+  #########################################
+  #### LAST STOP IS NOT A TIMING POINT ####
+  #########################################
+  LastStopIsNotATimingPointQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  LastStopIsNotATimingPointLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      CodeUri: ./src/template
+      Handler: last_stop_is_not_a_timing_point.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt LastStopIsNotATimingPointQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref LastStopIsNotATimingPointLambdaLogGroup
+
+  LastStopIsNotATimingPointLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      RetentionInDays: 30
+
+  #######################
+  #### INCORRECT NOC ####
+  #######################
+  IncorrectNocQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-noc-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  IncorrectNocLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-noc-lambda'
+      CodeUri: ./src/template
+      Handler: incorrect_noc.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectNocQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectNocQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectNocLambdaLogGroup
+
+  IncorrectNocLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-noc-lambda'
+      RetentionInDays: 30
+
+  #############################
+  #### INCORRECT STOP TYPE ####
+  #############################
+  IncorrectStopTypeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  IncorrectStopTypeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-lambda'
+      CodeUri: ./src/template
+      Handler: incorrect_stop_type.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectStopTypeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectStopTypeLambdaLogGroup
+
+  IncorrectStopTypeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-stop-type-lambda'
+      RetentionInDays: 30
+
+  ##################################
+  #### INCORRECT LICENCE NUMBER ####
+  ##################################
+  IncorrectLicenceNumberQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  IncorrectLicenceNumberLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt IncorrectLicenceNumberQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt IncorrectLicenceNumberQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref IncorrectLicenceNumberLambdaLogGroup
+
+  IncorrectLicenceNumberLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-licence-number-lambda'
+      RetentionInDays: 30
+
+  ##############################
+  #### MISSING JOURNEY CODE ####
+  ##############################
+  MissingJourneyCodeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  MissingJourneyCodeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-journey-code-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingJourneyCodeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingJourneyCodeLambdaLogGroup
+
+  MissingJourneyCodeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-journey-code-lambda'
+      RetentionInDays: 30
+
+  ######################
+  #### MISSING STOP ####
+  ######################
+  MissingStopQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-stop-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  MissingStopLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-stop-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingStopQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingStopQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingStopLambdaLogGroup
+
+  MissingStopLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-stop-lambda'
+      RetentionInDays: 30
+
+  ####################################
+  #### MISSING BUS WORKING NUMBER ####
+  ####################################
+  MissingBusWorkingNumberQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  MissingBusWorkingNumberLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MissingBusWorkingNumberQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref MissingBusWorkingNumberLambdaLogGroup
+
+  MissingBusWorkingNumberLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-bus-working-number-lambda'
+      RetentionInDays: 30
+
+  ################################
+  #### DUPLICATE JOURNEY CODE ####
+  ################################
+  DuplicateJourneyCodeQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+      
+  DuplicateJourneyCodeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt DuplicateJourneyCodeQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref DuplicateJourneyCodeLambdaLogGroup
+
+  DuplicateJourneyCodeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-duplicate-journey-code-lambda'
+      RetentionInDays: 30
+
+  ##################################
+  #### STOP NOT FOUND IN NAPTAN ####
+  ##################################      
+  StopNotFoundInNaptanQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  StopNotFoundInNaptanLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
+      CodeUri: ./src/template
+      Handler: stop_not_found_in_naptan.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt StopNotFoundInNaptanQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref StopNotFoundInNaptanLambdaLogGroup
+
+  StopNotFoundInNaptanLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
+      RetentionInDays: 30
+
+  ########################################
+  #### SAME STOP FOUND MULTIPLE TIMES ####
+  ########################################
+  SameStopFoundMultipleTimesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-queue'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  SameStopFoundMultipleTimesLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      CodeUri: ./src/template
+      Handler: app.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SameStopFoundMultipleTimesQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref SameStopFoundMultipleTimesLambdaLogGroup
+
+  SameStopFoundMultipleTimesLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      RetentionInDays: 30
+
+  #######################################
+  ### GENERATE DQS REPORT CSV LAMDA #####
+  #######################################
+  GenerateDQSCSVReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      VisibilityTimeout: 300
+
+  GenerateDQSCSVReportQueueLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      CodeUri: ./src/observation_report
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          S3_BUCKET_DQS_CSV_REPORT: !Sub 'bodds-${Environment}-dqs-reports'
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
+        - Statement:
+           Effect: Allow
+           Action:
+            - s3:PutObject
+           Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - Statement:
+              Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/s3-kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
+
+  GenerateDQSCSVReportLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      RetentionInDays: 30
+
+  #################################
+  #### PIPELINE MONITOR LAMBDA ####
+  #################################
+  PipelineMonitorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      CodeUri: ./src/template
+      Handler: monitor.lambda_handler
+      Events:
+        MonitorLambdas:
+          Type: Schedule
+          Properties:
+            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
+            Schedule: rate(5 minutes)
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer]
+        - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref PipelineMonitorLambdaLogGroup
+
+  PipelineMonitorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      RetentionInDays: 30

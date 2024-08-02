@@ -7,6 +7,9 @@ Repository is managed by user - PCridKPMG
 
 Sandbox
 
+## installation
+pip install aws-sam-cli-local  
+
 ## Tech Stack
 
 [//]: # "Tech Stack used in this Project. Eg: Python, Terraform, etc"

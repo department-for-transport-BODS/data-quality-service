@@ -51,7 +51,7 @@ jobs:
               new_version=$(yq e '.version' VERSION)
               echo "VERSION=${new_version}" >> "$GITHUB_OUTPUT"
 
-              rc_path="$RC_DST/releases/$current_version"
+              rc_path="$RC_DST/releases/$new_version"
               if [[ `aws s3 ls s3://$rc_path|head` ]]; then
                 echo "[INFO] Release candidate version [${new_version}] already exists. Version number must be incremented to allow for a new build. Exiting"
                 exit 1
@@ -113,7 +113,7 @@ jobs:
           aws s3 cp packaged.yaml s3://$RC_DST/$rc_path/
           aws s3 cp samconfig.yaml s3://$RC_DST/$rc_path/
 
-          echo "[INFO] Application with version ${VERSION} successfully build and uploaded to deployment artefacts storage"
+          echo "[INFO] Application with version [${VERSION}] successfully build and uploaded to deployment artefacts storage"
 
   commit-and-tag:
     if: ${{ always() && !cancelled() && !contains(needs.*.result, 'failure') && contains(github.ref, 'dev') }}
@@ -139,11 +139,6 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git config --global url.https://${{ github.token }}@github.com/.insteadOf https://github.com/
 
-
-          git add VERSION
-          git commit -m "[AUTO] GitHub actions push for version $VERSION"
-          git push --force
-
           git tag $VERSION
           git push --tags --force
 
@@ -163,5 +158,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           repository: ${{ github.repository }}
-          event-type: automated-deploy
+          event-type: automated-deploy-dev
           client-payload: '{ "environment": "dev", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
