@@ -137,3 +137,83 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
 
     return pd.read_sql_query(result.statement, report.db.session.bind)
 
+
+def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
+    """
+    Get the dataframe containing the vehicle journey and stop point
+    including operating profile, Non oprating dates, Operating dates 
+    and Serviced organisation
+    """
+    VehicleJourney = check.db.classes.transmodel_vehiclejourney
+    OperatingProfile = check.db.classes.transmodel_operatingprofile
+    OperatingDatesExceptions = check.db.classes.transmodel_operatingdatesexceptions
+    NonOperatingdatesexceptions = (
+        check.db.classes.transmodel_nonoperatingdatesexceptions
+    )
+    ServicedOrganisationVehicleJourney = (
+        check.db.classes.transmodel_servicedorganisationvehiclejourney
+    )
+
+    Service = check.db.classes.transmodel_service
+    ServicePatternService = check.db.classes.transmodel_service_service_patterns
+    ServicePatternStop = check.db.classes.transmodel_servicepatternstop
+
+    result = (
+        check.db.session.query(Service)
+        .join(ServicePatternService, Service.id == ServicePatternService.service_id)
+        .join(
+            ServicePatternStop,
+            ServicePatternService.servicepattern_id
+            == ServicePatternStop.service_pattern_id,
+        )
+        .join(
+            VehicleJourney, ServicePatternStop.vehicle_journey_id == VehicleJourney.id
+        )
+        .outerjoin(
+            OperatingProfile, VehicleJourney.id == OperatingProfile.vehicle_journey_id
+        )
+        .outerjoin(
+            OperatingDatesExceptions,
+            VehicleJourney.id == OperatingDatesExceptions.vehicle_journey_id,
+        )
+        .outerjoin(
+            NonOperatingdatesexceptions,
+            VehicleJourney.id == NonOperatingdatesexceptions.vehicle_journey_id,
+        )
+        .outerjoin(
+            ServicedOrganisationVehicleJourney,
+            VehicleJourney.id == ServicedOrganisationVehicleJourney.vehicle_journey_id,
+        )
+        .where(Service.txcfileattributes_id == check.file_id)
+        .with_entities(
+            VehicleJourney.line_ref,
+            VehicleJourney.journey_code,
+            VehicleJourney.id.label("vehicle_journey_id"),
+            VehicleJourney.direction,
+            NonOperatingdatesexceptions.non_operating_date,
+            OperatingDatesExceptions.operating_date,
+            OperatingProfile.day_of_week,
+            ServicePatternStop.id.label("service_pattern_stop_id"),
+            ServicePatternStop.auto_sequence_number,
+            ServicedOrganisationVehicleJourney.serviced_organisation_id,
+        )
+    )
+
+    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    df = df.sort_values(
+        by=["vehicle_journey_id", "auto_sequence_number"], ascending=True
+    )
+
+    return (
+        df.groupby(["vehicle_journey_id", "line_ref", "journey_code", "direction"])
+        .agg(
+            {
+                "non_operating_date": lambda x: list(x.unique()),
+                "operating_date": lambda x: list(x.unique()),
+                "day_of_week": lambda x: list(x.unique()),
+                "service_pattern_stop_id": "first",
+                "serviced_organisation_id": lambda x: list(x.unique()),
+            }
+        )
+        .reset_index()
+    )
