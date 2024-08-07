@@ -24,7 +24,7 @@ def lambda_handler(event, context):
 
         duplicates = df[
             df.duplicated(
-                subset=["line_ref", "journey_code", "direction", "hash"], keep=False
+                subset=["line_ref", "journey_code", "hash"], keep=False
             )
         ]
         logger.info(f"Found duplicate in the Dataframes: {duplicates.size}")

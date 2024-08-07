@@ -205,7 +205,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     )
 
     return (
-        df.groupby(["vehicle_journey_id", "line_ref", "journey_code", "direction"])
+        df.groupby(["vehicle_journey_id", "line_ref", "journey_code"])
         .agg(
             {
                 "non_operating_date": lambda x: list(x.unique()),
