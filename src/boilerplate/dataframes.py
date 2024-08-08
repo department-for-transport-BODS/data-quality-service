@@ -208,11 +208,11 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
         df.groupby(["vehicle_journey_id", "line_ref", "journey_code"])
         .agg(
             {
-                "non_operating_date": lambda x: list(x.unique()),
-                "operating_date": lambda x: list(x.unique()),
-                "day_of_week": lambda x: list(x.unique()),
+                "non_operating_date": lambda x: [item for item in x.unique() if item is not None],
+                "operating_date": lambda x: [item for item in x.unique() if item is not None],
+                "day_of_week": lambda x: [item for item in x.unique() if item is not None],
                 "service_pattern_stop_id": "first",
-                "serviced_organisation_id": lambda x: list(x.unique()),
+                "serviced_organisation_id": lambda x: [item for item in x.unique() if item is not None],
             }
         )
         .reset_index()
