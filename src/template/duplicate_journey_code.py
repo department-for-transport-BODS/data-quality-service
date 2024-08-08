@@ -13,18 +13,15 @@ def lambda_handler(event, context):
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
-        
+
         df = get_vj_duplicate_journey_code(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
             duplicates = df[
-                df.duplicated(
-                    subset=["line_ref", "journey_code", "hash"], keep=False
-                )
+                df.duplicated(subset=["line_ref", "journey_code", "hash"], keep=False)
             ]
-            print(duplicates)
             if not duplicates.empty:
                 logger.info(f"Found duplicate in the Dataframes: {duplicates.size}")
                 for row in duplicates.itertuples():
