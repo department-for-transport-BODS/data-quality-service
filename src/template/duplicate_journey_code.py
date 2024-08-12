@@ -26,7 +26,6 @@ def lambda_handler(event, context):
                 logger.info(f"Found duplicate in the Dataframes: {duplicates.size}")
                 for row in duplicates.itertuples():
                     details = f"The Journey Code ({row.journey_code}) is found in more than one vehicle journey."
-                    print(details)
                     observation.add_observation(
                         details=details,
                         vehicle_journey_id=row.vehicle_journey_id,

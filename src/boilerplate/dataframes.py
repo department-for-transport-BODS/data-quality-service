@@ -3,7 +3,7 @@ import pandas as pd
 import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, asc, desc
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -141,8 +141,8 @@ def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
 def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     """
     Get the dataframe containing the vehicle journey and stop point
-    including operating profile, Non oprating dates, Operating dates 
-    and Serviced organisation
+    including operating profile, non operating dates, operating dates
+    and serviced organisation
     """
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
     OperatingProfile = check.db.classes.transmodel_operatingprofile
@@ -197,12 +197,10 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
             ServicePatternStop.auto_sequence_number,
             ServicedOrganisationVehicleJourney.serviced_organisation_id,
         )
+        .order_by(asc(VehicleJourney.id), asc(ServicePatternStop.auto_sequence_number))
     )
 
     df = pd.read_sql_query(result.statement, check.db.session.bind)
-    df = df.sort_values(
-        by=["vehicle_journey_id", "auto_sequence_number"], ascending=True
-    )
 
     return (
         df.groupby(["vehicle_journey_id", "line_ref", "journey_code"])
