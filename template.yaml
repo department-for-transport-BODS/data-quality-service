@@ -136,11 +136,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -191,11 +191,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -246,11 +246,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -301,11 +301,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -356,11 +356,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -411,11 +411,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -466,11 +466,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -521,11 +521,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -576,11 +576,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -631,11 +631,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -686,11 +686,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -741,11 +741,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -796,11 +796,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -856,11 +856,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - Statement:
@@ -929,11 +929,11 @@ Resources:
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - !Ref 'AWS::NoValue'
+          - 'AmazonRDSReadOnlyAccess'
       LoggingConfig:
         LogGroup: !Ref PipelineMonitorLambdaLogGroup
 
