@@ -1,0 +1,22 @@
+is_timing_point,naptan_stop_id,auto_sequence_number,atco_code,departure_time,common_name,service_pattern_stop_id,activity,start_time,direction,vehicle_journey_id
+True,223174,0,3390BB05,05:40:00,Broad Marsh Bus Station,536302,pickUp,05:40:00,outbound,34554
+True,224132,1,3390S4,05:41:00,Nottingham Railway Station,536303,pickUpAndSetDown,05:40:00,outbound,34554
+False,223954,2,3390ME01,05:41:00,Arkwright Street,536304,pickUpAndSetDown,05:40:00,outbound,34554
+False,223955,3,3390ME02,05:42:00,Lammas Gardens,536305,pickUpAndSetDown,05:40:00,outbound,34554
+False,223956,4,3390ME03,05:42:00,Eugene Gardens,536306,pickUpAndSetDown,05:40:00,outbound,34554
+False,223957,5,3390ME04,05:43:00,Ryehill Street,536307,pickUpAndSetDown,05:40:00,outbound,34554
+False,223958,6,3390ME05,06:03:00,Victoria Embankment,536308,pickUpAndSetDown,05:40:00,outbound,34554
+True,221782,7,3300RU0003,06:04:00,County Hall,536309,pickUp,05:40:00,outbound,34554
+True,221780,8,3300RU0001,06:04:00,Balmoral Avenue,536310,pickUpAndSetDown,05:40:00,outbound,34554
+False,221868,9,3300RU0090,06:04:00,Melton Grove,536311,pickUpAndSetDown,05:40:00,outbound,34554
+False,222649,10,3300RU0890,06:05:00,Charnwood Grove,536312,pickUpAndSetDown,05:40:00,outbound,34554
+True,223174,0,3390BB05,14:55:00,Broad Marsh Bus Station,536375,pickUp,14:55:00,outbound,34615
+True,224132,1,3390S4,14:56:00,Nottingham Railway Station,536376,pickUpAndSetDown,14:55:00,outbound,34615
+False,223954,2,3390ME01,14:56:00,Arkwright Street,536377,pickUpAndSetDown,14:55:00,outbound,34615
+False,223955,3,3390ME02,14:57:00,Lammas Gardens,536378,pickUpAndSetDown,14:55:00,outbound,34615
+False,223956,4,3390ME03,14:58:00,Eugene Gardens,536379,pickUpAndSetDown,14:55:00,outbound,34615
+False,223957,5,3390ME04,14:59:00,Ryehill Street,536380,pickUpAndSetDown,14:55:00,outbound,34615
+False,223958,6,3390ME05,14:59:00,Victoria Embankment,536381,pickUpAndSetDown,14:55:00,outbound,34615
+True,221782,7,3300RU0003,15:01:00,County Hall,536382,pickUp,14:55:00,outbound,34615
+True,221780,8,3300RU0001,15:01:00,Balmoral Avenue,536383,pickUpAndSetDown,14:55:00,outbound,34615
+False,221868,9,3300RU0090,15:01:00,Melton Grove,536384,pickUpAndSetDown,14:55:00,outbound,34615
