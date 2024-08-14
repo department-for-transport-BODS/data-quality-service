@@ -69,7 +69,7 @@ def main():
     """
     Run lambda functions manually
     Command line example:
-    python run_lambda.py --file_id=40 --check_id=1 --result_id=8
+    python run_lambda.py --file_id=40
     """
 
     print("Here is the lamda list::::")

@@ -670,7 +670,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-lambda'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: duplicate_journey_code.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -817,6 +817,62 @@ Resources:
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
       RetentionInDays: 30
+
+  ###########################################
+  #### NO TIMING POINT MORE THAN 15 MINS ####
+  ###########################################
+  NoTimingPointMoreThan15MinsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+      
+  NoTimingPointMoreThan15MinsLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-lambda'
+      CodeUri: ./src/template
+      Handler: no_timing_point_more_than_15_mins.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt NoTimingPointMoreThan15MinsQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Ref 'AWS::NoValue'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt NoTimingPointMoreThan15MinsQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref NoTimingPointMoreThan15MinsLogGroup
+
+  NoTimingPointMoreThan15MinsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-lambda'
+      RetentionInDays: 30
+
 
   #######################################
   ### GENERATE DQS REPORT CSV LAMDA #####
