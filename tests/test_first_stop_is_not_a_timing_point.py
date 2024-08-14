@@ -41,7 +41,7 @@ def test_lambda_handler_valid_check(
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
-        details="The first stop (Stop A) on the 10:00 North journey is not set as a principal timing point.",
+        details="The first stop (Stop A) on the 10:00 North journey is not set as a timing point.",
         vehicle_journey_id=1,
         service_pattern_stop_id=101,
     )

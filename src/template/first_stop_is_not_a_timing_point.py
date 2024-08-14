@@ -26,7 +26,7 @@ def lambda_handler(event, context):
 
             # Add the observation for check
             for row in df.itertuples():
-                details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a principal timing point."
+                details = f"The first stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a timing point."
                 observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
