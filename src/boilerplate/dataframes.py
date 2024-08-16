@@ -51,6 +51,7 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             VehicleJourney.start_time.label("start_time"),
             VehicleJourney.direction.label("direction"),
             VehicleJourney.id.label("vehicle_journey_id"),
+            VehicleJourney.journey_code.label("vehicle_journey_code"),
         )
     )
     return pd.read_sql_query(result.statement, check.db.session.bind)
