@@ -16,14 +16,14 @@ class OrganisationTxcFileAttributes:
         self.revision_id = None
         self.dataset_id = None
         self.organisation_id = None
+        self.org_noc = None
         self._table = check.db.classes.organisation_txcfileattributes
+        self._initialize_noc()
         self._get_organisation_dataset()
         self._get_organisation_id()
 
 
-
     def _initialize_noc(self):
-        self.org_noc = None
         self._get_noc()
 
     def _initialize_licence_number(self):
