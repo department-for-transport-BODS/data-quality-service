@@ -14,7 +14,9 @@ def lambda_handler(event, context):
         observation = ObservationResult(check)
         check.validate_requested_check()
 
+        logger.info(f"Fetching the dataframe from db")
         df = get_vj_duplicate_journey_code(check)
+
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df["hash"] = df.apply(create_df_row_hash, axis=1)
@@ -54,10 +56,10 @@ def create_df_row_hash(row):
     return hashlib.md5(
         str(
             sorted(
-                row["non_operating_date"]
-                + row["operating_date"]
-                + row["day_of_week"]
-                + row["serviced_organisation_id"]
+                list(row["non_operating_date"])
+                + list(row["operating_date"])
+                + list(row["day_of_week"])
+                + list(row["serviced_organisation_id"])
             )
         ).encode("utf-8")
     ).hexdigest()
