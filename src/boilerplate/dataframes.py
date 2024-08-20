@@ -204,15 +204,15 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     logger.info("Fetched Operating profile df")
 
     logger.info("Fetching Operating date exception df...")
-    oprating_date_exp_df = get_operating_date_exception(check, vehicle_journey_ids)
+    oprating_date_exp_df = get_operating_date_exception_df(check, vehicle_journey_ids)
     logger.info("Fetched Operating date exception df")
 
     logger.info("Fetching Non operating date exception df...")
-    non_op_date_exp_df = get_non_operating_date_exception(check, vehicle_journey_ids)
+    non_op_date_exp_df = get_non_operating_date_exception_df(check, vehicle_journey_ids)
     logger.info("Fetched Non operating date exception df")
 
     logger.info("Fetching Serviced organisation VJ df...")
-    serviced_org_df = get_service_ogranisation_vehicle_journey(
+    serviced_org_df = get_service_ogranisation_vehicle_journey_df(
         check, vehicle_journey_ids
     )
     logger.info("Fetched Serviced organisations VJ df")
@@ -270,7 +270,7 @@ def get_operating_profile_df(check: Check, vehicle_journey_ids: List) -> pd.Data
     return pd.read_sql_query(result_op.statement, check.db.session.bind)
 
 
-def get_operating_date_exception(
+def get_operating_date_exception_df(
     check: Check, vehicle_journey_ids: List
 ) -> pd.DataFrame:
     """Get dataframe with the list of operating_date_exceptions for
@@ -301,7 +301,7 @@ def get_operating_date_exception(
     return pd.read_sql_query(result_op_date_exp.statement, check.db.session.bind)
 
 
-def get_non_operating_date_exception(
+def get_non_operating_date_exception_df(
     check: Check, vehicle_journey_ids: List
 ) -> pd.DataFrame:
     """Get dataframe with the list of non_operating_date_exceptions for
@@ -336,7 +336,7 @@ def get_non_operating_date_exception(
     return pd.read_sql_query(result_non_op_date_exp.statement, check.db.session.bind)
 
 
-def get_service_ogranisation_vehicle_journey(
+def get_service_ogranisation_vehicle_journey_df(
     check: Check, vehicle_journey_ids: List
 ) -> pd.DataFrame:
     """Get dataframe for serviced organisations belonging to
