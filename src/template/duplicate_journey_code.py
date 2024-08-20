@@ -14,10 +14,10 @@ def lambda_handler(event, context):
         observation = ObservationResult(check)
         check.validate_requested_check()
 
-        logger.info(f"Fetching the dataframe from db")
+        logger.debug(f"Fetching the dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
-        logger.info(f"Looking in the Dataframes: {df.size}")
+        logger.debug(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
                 df.duplicated(subset=["line_ref", "journey_code", "hash"], keep=False)
             ]
             if not duplicates.empty:
-                logger.info(f"Found duplicate in the Dataframes: {duplicates.size}")
+                logger.debug(f"Found duplicate in the Dataframes: {duplicates.size}")
                 for row in duplicates.itertuples():
                     details = f"The Journey Code ({row.journey_code}) is found in more than one vehicle journey."
                     observation.add_observation(
