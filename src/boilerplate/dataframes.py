@@ -41,8 +41,9 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
         .with_entities(
             ServicePatternStop.is_timing_point.label("is_timing_point"),
             ServicePatternStop.naptan_stop_id.label("naptan_stop_id"),
-            ServicePatternStop.sequence_number.label("sequence_number"),
+            ServicePatternStop.auto_sequence_number.label("auto_sequence_number"),
             ServicePatternStop.atco_code.label("atco_code"),
+            ServicePatternStop.departure_time.label("departure_time"),
             coalesce(
                 NaptanStopPoint.common_name, ServicePatternStop.txc_common_name
             ).label("common_name"),
@@ -51,6 +52,7 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             VehicleJourney.start_time.label("start_time"),
             VehicleJourney.direction.label("direction"),
             VehicleJourney.id.label("vehicle_journey_id"),
+            VehicleJourney.journey_code.label("vehicle_journey_code"),
         )
     )
     return pd.read_sql_query(result.statement, check.db.session.bind)

@@ -31,6 +31,7 @@ def lambda_handler(event, context):
         logger.info(f"DataFrame size from get_dqs_observation_results: {df.size}")
 
         if not df.empty:
+            df.drop_duplicates(inplace=True)
             logger.info("Generating CSV file from DataFrame")
 
             # Convert DataFrame to CSV

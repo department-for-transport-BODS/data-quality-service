@@ -13,15 +13,23 @@ class OrganisationTxcFileAttributes:
 
     def __init__(self, check: Check):
         self._check = check
-        self.org_noc = None
         self.revision_id = None
         self.dataset_id = None
         self.organisation_id = None
+        self.org_noc = None
         self._table = check.db.classes.organisation_txcfileattributes
-        self._get_noc()
+        self._initialize_noc()
         self._get_organisation_dataset()
         self._get_organisation_id()
 
+
+    def _initialize_noc(self):
+        self._get_noc()
+
+    def _initialize_licence_number(self):
+        self.licence_number = None
+        self._get_licence_number()
+        
 
     def _get_noc(self):
         """
@@ -35,6 +43,24 @@ class OrganisationTxcFileAttributes:
             )
             self.org_noc = result.national_operator_code
             self.revision_id = result.revision_id
+        except Exception as e:
+            logger.error(
+                f"Attempting to fetch details of organisation_txcfileattributes for id = {str(self._check.file_id)}",
+                e,
+            )
+            raise e
+    
+    def _get_licence_number(self):
+        """
+        Method to get the licence number
+        """
+        try:
+            result = (
+                self._check.db.session.query(self._table)
+                .where(self._table.id == self._check.file_id)
+                .first()
+            )
+            self.licence_number = result.licence_number
         except Exception as e:
             logger.error(
                 f"Attempting to fetch details of organisation_txcfileattributes for id = {str(self._check.file_id)}",
@@ -79,11 +105,12 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-
-    def validate_noc_code(self):
+        
+    def validate_noc_code(self):  
         """
         Method to validate the operator noc to the database
         """
+        self._initialize_noc()
         try:
             OperatorCode = self._check.db.classes.organisation_operatorcode
             row_operator_code = (
@@ -97,6 +124,32 @@ class OrganisationTxcFileAttributes:
         except Exception as e:
             logger.error(
                 f"Error in fetching the details from organisation_operatorcode noc = {str(self.org_noc)}",
+                e,
+            )
+            raise e
+
+    def validate_licence_number(self):
+        """
+        Method to validate the licence number matched matched to the database
+        """
+        try:
+            self._initialize_licence_number()
+            OrganisationLicence = self._check.db.classes.organisation_licence
+            row_licence = (
+                self._check.db.session.query(OrganisationLicence)
+                .filter(
+                    and_(OrganisationLicence.number == self.licence_number,
+                              OrganisationLicence.organisation_id == self.organisation_id
+                              )
+                              )
+                .first()
+            )
+            if not row_licence:
+                return False
+            return True
+        except Exception as e:
+            logger.error(
+                f"Error in fetching the details from organisation_licence number = {str(self.licence_number)}",
                 e,
             )
             raise e
