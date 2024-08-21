@@ -24,7 +24,7 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
 
             prev_row = df.iloc[i - 1]
             curr_row = df.iloc[i]
-            details = f"{prev_row.common_name}({prev_row.atco_code}) - {curr_row.common_name}({curr_row.atco_code})"
+            details = f"{prev_row.common_name} ({prev_row.atco_code}) - {curr_row.common_name} ({curr_row.atco_code})"
             observation.add_observation(
                 details=details,
                 vehicle_journey_id=int(curr_row.vehicle_journey_id),
