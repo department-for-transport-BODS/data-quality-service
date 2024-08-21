@@ -3,7 +3,6 @@ from common import Check
 from enums import DQSTaskResultStatus
 from dataframes import get_vj_duplicate_journey_code
 from observation_results import ObservationResult
-import pandas as pd
 import hashlib
 
 
@@ -14,7 +13,7 @@ def lambda_handler(event, context):
         observation = ObservationResult(check)
         check.validate_requested_check()
 
-        logger.debug(f"Fetching the dataframe from db")
+        logger.debug(f"Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
         logger.debug(f"Looking in the Dataframes: {df.size}")

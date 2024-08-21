@@ -4,7 +4,6 @@ import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
 from sqlalchemy import and_, func, String, asc
-from dqs_logger import logger
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -162,7 +161,6 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop
-    logger.debug("Getting vehicle Journeys list....")
     result = (
         check.db.session.query(Service)
         .join(ServicePatternService, Service.id == ServicePatternService.service_id)
@@ -198,26 +196,14 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
         .reset_index()
     )
 
-    logger.debug("Fetched vehicle Journeys list")
-
     vehicle_journey_ids = list(vehicle_journey_df["vehicle_journey_id"])
-    logger.debug("Fetching Operating profile df...")
     operating_profile_df = get_operating_profile_df(check, vehicle_journey_ids)
-    logger.debug("Fetched Operating profile df")
-
-    logger.debug("Fetching Operating date exception df...")
     oprating_date_exp_df = get_operating_date_exception_df(check, vehicle_journey_ids)
-    logger.debug("Fetched Operating date exception df")
-
-    logger.debug("Fetching Non operating date exception df...")
     non_op_date_exp_df = get_non_operating_date_exception_df(check, vehicle_journey_ids)
-    logger.debug("Fetched Non operating date exception df")
 
-    logger.debug("Fetching Serviced organisation VJ df...")
     serviced_org_df = get_service_ogranisation_vehicle_journey_df(
         check, vehicle_journey_ids
     )
-    logger.debug("Fetched Serviced organisations VJ df")
 
     vehicle_journey_df = (
         vehicle_journey_df.merge(
