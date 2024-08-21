@@ -14,7 +14,7 @@ def lambda_handler(event, context):
         observation = ObservationResult(check)
         check.validate_requested_check()
 
-        logger.debug(f"Fetching the dataframe from db")
+        logger.debug(f"Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
         logger.debug(f"Looking in the Dataframes: {df.size}")
