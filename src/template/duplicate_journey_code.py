@@ -3,7 +3,6 @@ from common import Check
 from enums import DQSTaskResultStatus
 from dataframes import get_vj_duplicate_journey_code
 from observation_results import ObservationResult
-import pandas as pd
 import hashlib
 
 
