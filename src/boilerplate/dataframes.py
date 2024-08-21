@@ -161,6 +161,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop
+
     result = (
         check.db.session.query(Service)
         .join(ServicePatternService, Service.id == ServicePatternService.service_id)
@@ -195,6 +196,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
         )
         .reset_index()
     )
+
 
     vehicle_journey_ids = list(vehicle_journey_df["vehicle_journey_id"])
     operating_profile_df = get_operating_profile_df(check, vehicle_journey_ids)
