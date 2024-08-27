@@ -450,7 +450,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-lambda'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: incorrect_licence_number.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
