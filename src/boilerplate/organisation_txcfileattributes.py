@@ -17,23 +17,16 @@ class OrganisationTxcFileAttributes:
         self.dataset_id = None
         self.organisation_id = None
         self.org_noc = None
+        self.service_code = None
+        self.licence_number = None
         self._table = check.db.classes.organisation_txcfileattributes
-        self._initialize_noc()
+        self._initialize_txc_fileattribute()
         self._get_organisation_dataset()
         self._get_organisation_id()
 
-
-    def _initialize_noc(self):
-        self._get_noc()
-
-    def _initialize_licence_number(self):
-        self.licence_number = None
-        self._get_licence_number()
-        
-
-    def _get_noc(self):
+    def _initialize_txc_fileattribute(self):
         """
-        Method to get the noc
+        Method to get the organisation_txcfileattributes objects on id
         """
         try:
             result = (
@@ -43,23 +36,7 @@ class OrganisationTxcFileAttributes:
             )
             self.org_noc = result.national_operator_code
             self.revision_id = result.revision_id
-        except Exception as e:
-            logger.error(
-                f"Attempting to fetch details of organisation_txcfileattributes for id = {str(self._check.file_id)}",
-                e,
-            )
-            raise e
-    
-    def _get_licence_number(self):
-        """
-        Method to get the licence number
-        """
-        try:
-            result = (
-                self._check.db.session.query(self._table)
-                .where(self._table.id == self._check.file_id)
-                .first()
-            )
+            self.service_code = result.service_code
             self.licence_number = result.licence_number
         except Exception as e:
             logger.error(
@@ -67,7 +44,7 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-    
+
     def _get_organisation_dataset(self):
         """
         Method to get the organisation dataset objects
@@ -86,7 +63,7 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-    
+
     def _get_organisation_id(self):
         """
         Method to get the organisation dataset objects
@@ -105,12 +82,11 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-        
+
     def validate_noc_code(self):  
         """
         Method to validate the operator noc to the database
         """
-        self._initialize_noc()
         try:
             OperatorCode = self._check.db.classes.organisation_operatorcode
             row_operator_code = (
@@ -133,7 +109,6 @@ class OrganisationTxcFileAttributes:
         Method to validate the licence number matched matched to the database
         """
         try:
-            self._initialize_licence_number()
             OrganisationLicence = self._check.db.classes.organisation_licence
             row_licence = (
                 self._check.db.session.query(OrganisationLicence)
