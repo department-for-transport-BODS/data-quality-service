@@ -824,7 +824,7 @@ Resources:
   NoTimingPointMoreThan15MinsQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins'
+      QueueName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-queue'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
