@@ -21,7 +21,13 @@ class OtcService:
         try:
             result = (
                 self._check.db.session.query(self._table.registration_number)
-                .where(self._table.registration_number == registration_number)
+                .where(
+                    (self._table.registration_number == registration_number)
+                    or (
+                        self._table.registration_number
+                        == registration_number.replace(":", "/")
+                    )
+                )
                 .first()
             )
 
