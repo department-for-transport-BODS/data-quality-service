@@ -26,7 +26,13 @@ class OtcInactiveService:
             result = (
                 self._check.db.session.query(self._table.registration_number)
                 .where(
-                    (self._table.registration_number == registration_number)
+                    (
+                        (self._table.registration_number == registration_number)
+                        or (
+                            self._table.registration_number
+                            == registration_number.replace(":", "/")
+                        )
+                    )
                     & (self._table.effective_date >= curr_date)
                 )
                 .first()
