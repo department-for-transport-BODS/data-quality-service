@@ -4,6 +4,8 @@ from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
 import pandas as pd
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError 
 from datetime import timedelta
 
 _ALLOWED_IS_TIMING_POINT = True
@@ -40,6 +42,7 @@ def lambda_handler(event, context):
     try:
 
         check = Check(event)
+        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 
@@ -51,11 +54,13 @@ def lambda_handler(event, context):
             df.groupby("vehicle_journey_id").apply(filter_vehicle_journey, observation)
 
             # Write the observations to database
-            if len(observation.observations) > 0:
-                observation.write_observations()
-                logger.info("Observations written in DB")
+            observation.write_observations()
+            logger.info("Observations written in DB")
 
         logger.info("Check status updated in DB")
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")

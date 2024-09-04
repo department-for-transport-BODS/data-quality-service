@@ -7,10 +7,10 @@ from src.template.duplicate_journey_code import lambda_handler
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_valid_check(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -40,10 +40,10 @@ def test_lambda_handler_valid_check(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_multiple_duplicates(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -74,10 +74,10 @@ def test_lambda_handler_multiple_duplicates(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_no_duplicates(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -101,10 +101,10 @@ def test_lambda_handler_no_duplicates(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_no_journies(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -126,10 +126,10 @@ def test_lambda_handler_no_journies(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_different_operating_profile(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value

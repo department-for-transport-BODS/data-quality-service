@@ -12,10 +12,10 @@ logger.setLevel(logging.DEBUG)
 @patch("src.template.first_stop_is_not_a_timing_point.ObservationResult")
 @patch("src.template.first_stop_is_not_a_timing_point.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey, mock_observation, mock_check
+    mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -27,7 +27,7 @@ def test_lambda_handler_valid_check(
         {
             "is_timing_point": [False, True, True],
             "vehicle_journey_id": [1, 2, 3],
-            "sequence_number": [1, 2, 3],
+            "auto_sequence_number": [1, 2, 3],
             "activity": ["setDown", "pickUp", "setDownDriverRequest"],
             "common_name": ["Stop A", "Stop B", "Stop C"],
             "start_time": ["10:00", "11:00", "12:00"],
@@ -51,9 +51,9 @@ def test_lambda_handler_valid_check(
 
 
 @patch("src.template.first_stop_is_not_a_timing_point.Check")
-def test_lambda_handler_invalid_check(mock_check):
+def test_lambda_handler_invalid_check(mock_check,mocked_context):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = False
 
