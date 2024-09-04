@@ -28,27 +28,18 @@ def lambda_handler(event, context):
         logger.info(f"Report validated successfully")
 
         df = get_df_dqs_observation_results(report)
-        logger.info(f"DataFrame size from get_dqs_observation_results: {df.size}")
+        df.drop_duplicates(inplace=True)
+        logger.info(f"DataFrame size from observation_results: {df.size}")
 
-        if not df.empty:
-            df.drop_duplicates(inplace=True)
-            logger.info("Generating CSV file from DataFrame")
+        # Convert DataFrame to CSV
+        csv_buffer = StringIO()
+        df.to_csv(csv_buffer, index=False)
+        logger.info(f"CSV Generated: {df.size}")
+        csv_content = csv_buffer.getvalue()
 
-            # Convert DataFrame to CSV
-            csv_buffer = StringIO()
-            df.to_csv(csv_buffer, index=False)
-            csv_content = csv_buffer.getvalue()
-
-            # Upload CSV to S3
-            s3_client.put_object(
-                Bucket=S3_BUCKET_NAME,
-                Key=CSV_FILE_NAME,
-                Body=csv_content
-            )
-            
-            logger.info(f"CSV file successfully uploaded to S3 bucket {S3_BUCKET_NAME}")
-
-        logger.info("Check status updated in DB")
+        # Upload CSV to S3
+        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=CSV_FILE_NAME, Body=csv_content)
+        logger.info(f"CSV file successfully uploaded to S3 bucket {S3_BUCKET_NAME}")
 
     except Exception as e:
         status = DQSReportStatus.REPORT_GENERATION_FAILED.value
@@ -56,5 +47,6 @@ def lambda_handler(event, context):
 
     finally:
         report.set_status(status, CSV_FILE_NAME)
+        logger.info("Check status updated in DB")
 
     return
