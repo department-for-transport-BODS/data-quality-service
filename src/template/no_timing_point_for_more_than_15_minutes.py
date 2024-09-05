@@ -61,9 +61,8 @@ def lambda_handler(event, context):
 
             # Write the observations to database
             observation.write_observations()
-            logger.info("Observations written in DB")
 
-        logger.info("Check status updated in DB")
+
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value
         logger.error(f"Check status timed out due to {e}")
@@ -72,5 +71,5 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
-
+        logger.info("Check status updated in DB")
     return
