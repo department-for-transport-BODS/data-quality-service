@@ -24,11 +24,17 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
 
             prev_row = df.iloc[i - 1]
             curr_row = df.iloc[i]
+            details = (
+                f"The link between the {prev_row['departure_time']} {prev_row['common_name']} ({prev_row['atco_code']}) and"
+                f" {curr_row['departure_time']} {curr_row['common_name']} ({curr_row['atco_code']}) timing point stop is"
+                " more than 15 minutes apart. The Traffic Comissioner recommends services to have timing points"
+                " no more than 15 minutes apart."
+            )
             details = f"{prev_row.common_name} ({prev_row.atco_code}) - {curr_row.common_name} ({curr_row.atco_code})"
             observation.add_observation(
                 details=details,
-                vehicle_journey_id=int(curr_row.vehicle_journey_id),
-                service_pattern_stop_id=int(curr_row.service_pattern_stop_id),
+                vehicle_journey_id=int(prev_row.vehicle_journey_id),
+                service_pattern_stop_id=int(prev_row.service_pattern_stop_id),
             )
 
             logger.info("Observation added in memory")
