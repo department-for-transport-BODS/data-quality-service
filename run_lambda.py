@@ -20,6 +20,10 @@ from json import dumps
 import argparse
 
 
+class Context:
+    def get_remaining_time_in_millis(self):
+        return 135000
+
 def run_lambda_func(file_id, check_id):
 
     print(f"FileId: {file_id}, CheckId: {check_id}")
@@ -61,7 +65,7 @@ def run_lambda_func(file_id, check_id):
                 }
             ]
         },
-        context=None,
+        context=Context(),
     )
 
 
