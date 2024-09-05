@@ -3,7 +3,8 @@ from common import Check
 from enums import DQSTaskResultStatus
 from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
-
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError 
 
 def lambda_handler(event, context):
 
@@ -11,6 +12,7 @@ def lambda_handler(event, context):
     try:
 
         check = Check(event)
+        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 
@@ -31,9 +33,12 @@ def lambda_handler(event, context):
 
             logger.info("Observations added in memory")
             # Write the observations to database
-            if len(observation.observations) > 0:
-                observation.write_observations()
-                logger.info("Observations written in DB")
+            observation.write_observations()
+            logger.info("Observations written in DB")
+    
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
 
         logger.info("Check status updated in DB")
     except Exception as e:

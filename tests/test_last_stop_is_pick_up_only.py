@@ -3,16 +3,17 @@ import pandas as pd
 from src.template.last_stop_is_pick_up_only import lambda_handler
 
 
-@patch("src.template.last_stop_is_pick_up_only.Check")
-@patch("src.template.last_stop_is_pick_up_only.ObservationResult")
 @patch("src.template.last_stop_is_pick_up_only.get_df_vehicle_journey")
+@patch("src.template.last_stop_is_pick_up_only.ObservationResult")
+@patch("src.template.last_stop_is_pick_up_only.Check")
 def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey,
-    mock_observation,
     mock_check,
+    mock_observation,
+    mock_get_df_vehicle_journey,
+    mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -29,6 +30,7 @@ def test_lambda_handler_valid_check(
             "start_time": ["10:00", "11:00", "12:00"],
             "direction": ["North", "South", "East"],
             "service_pattern_stop_id": [101, 102, 103],
+            "auto_sequence_number": [1, 2, 3],
         }
     )
     lambda_handler(event, context)
@@ -48,9 +50,9 @@ def test_lambda_handler_valid_check(
 
 
 @patch("src.template.last_stop_is_pick_up_only.Check")
-def test_lambda_handler_invalid_check(mock_check):
+def test_lambda_handler_invalid_check(mock_check, mocked_context):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = False
 

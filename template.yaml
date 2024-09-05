@@ -25,7 +25,7 @@ Globals:
     Architectures:
       - x86_64
     Runtime: python3.11
-    Timeout: 120
+    Timeout: 135 # 120s Run time and added 15 seconds for the timeout handler
     MemorySize: 512
     Tracing: Active
     VpcConfig: !If
@@ -488,60 +488,6 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-licence-number-lambda'
       RetentionInDays: 30
 
-  ##############################
-  #### MISSING JOURNEY CODE ####
-  ##############################
-  MissingJourneyCodeQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
-      VisibilityTimeout: 300
-      RedrivePolicy: 
-        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
-        maxReceiveCount: 3
-
-  MissingJourneyCodeLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-missing-journey-code-lambda'
-      CodeUri: ./src/template
-      Handler: app.lambda_handler
-      Layers: !If 
-        - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
-        - !Ref 'AWS::NoValue'
-      Policies:
-        - 'AWSLambdaBasicExecutionRole'
-        - 'AWSLambdaVPCAccessExecutionRole'
-        - 'AWSXrayWriteOnlyAccess'
-        - 'AWSLambda_ReadOnlyAccess'
-        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
-        - SQSPollerPolicy:
-            QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
-        - !If
-          - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
-        - !If
-          - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
-      Events:
-        SQSTemplateTriggerEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt MissingJourneyCodeQueue.Arn
-            BatchSize: 1
-            ScalingConfig:
-              MaximumConcurrency: 100
-      LoggingConfig:
-        LogGroup: !Ref MissingJourneyCodeLambdaLogGroup
-
-  MissingJourneyCodeLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-journey-code-lambda'
-      RetentionInDays: 30
 
   ######################
   #### MISSING STOP ####
@@ -615,7 +561,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: missing_bus_working_number.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -835,7 +781,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-lambda'
       CodeUri: ./src/template
-      Handler: no_timing_point_more_than_15_mins.lambda_handler
+      Handler: no_timing_point_for_more_than_15_minutes.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -1069,7 +1015,7 @@ Resources:
           Type: Schedule
           Properties:
             Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
-            Schedule: rate(5 minutes)
+            Schedule: rate(2 minutes)
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]

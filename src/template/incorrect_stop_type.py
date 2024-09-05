@@ -3,7 +3,8 @@ from enums import DQSTaskResultStatus
 from dqs_logger import logger
 from observation_results import ObservationResult
 from dataframes import get_df_stop_type
-
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError 
 # List of allowed stop type for first stop
 _ALLOWED_STOP_TYPES = ["BCT", "BCQ", "BCS"]
 
@@ -12,7 +13,7 @@ def lambda_handler(event, context):
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-
+        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
@@ -46,15 +47,16 @@ def lambda_handler(event, context):
 
             logger.info("Observations added in memory")
             # Write the observations to database
-            if len(observation.observations) > 0:
-                observation.write_observations()
-            logger.info("Observations written in DB")
+            observation.write_observations()
 
-        logger.info("Check status updated in DB")
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
+        logger.info("Check status updated in DB")
 
     return
