@@ -561,7 +561,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number'
       CodeUri: ./src/template
-      Handler: app.lambda_handler
+      Handler: missing_bus_working_number.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']

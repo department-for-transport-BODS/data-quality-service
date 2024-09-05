@@ -1,0 +1,14 @@
+[
+    {
+        "start_time": "09:00",
+        "direction": "inbound",
+        "vehicle_journey_id": 123,
+        "licence_number": "LICENCE1"
+    },
+    {
+        "start_time": "10:00",
+        "direction": "outbound",
+        "vehicle_journey_id": 456,
+        "licence_number": "LICENCE2"
+    }
+]
