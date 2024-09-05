@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.no_timing_point_more_than_15_mins import lambda_handler
+from src.template.no_timing_point_for_more_than_15_minutes import lambda_handler
 
 
-@patch("src.template.no_timing_point_more_than_15_mins.Check")
-@patch("src.template.no_timing_point_more_than_15_mins.ObservationResult")
-@patch("src.template.no_timing_point_more_than_15_mins.get_df_vehicle_journey")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.ObservationResult")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey, mock_observation, mock_check
 ):
@@ -19,7 +19,7 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status = MagicMock()
     mocked_observations.observations = [1, 3, 4]
     mock_get_df_vehicle_journey.return_value = pd.read_csv(
-        "tests/data/no_timing_point_more_than_15_mins/timing_point.csv"
+        "tests/data/no_timing_point_for_more_than_15_minutes/timing_point.csv"
     )
     lambda_handler(event, context)
 

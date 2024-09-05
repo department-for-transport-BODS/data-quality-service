@@ -835,7 +835,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-lambda'
       CodeUri: ./src/template
-      Handler: no_timing_point_more_than_15_mins.lambda_handler
+      Handler: no_timing_point_for_more_than_15_minutes.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']

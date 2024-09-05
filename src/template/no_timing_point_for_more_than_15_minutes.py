@@ -15,8 +15,8 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
     gap of more than or equal to 15 mins.
     """
 
-    df["departure_time"] = pd.to_datetime(df["departure_time"], format="%H:%M:%S")
-    df["time_diff"] = df["departure_time"].diff()
+    df["departure_time_new"] = pd.to_datetime(df["departure_time"], format="%H:%M:%S")
+    df["time_diff"] = df["departure_time_new"].diff()
     df = df.reset_index()
 
     for i in range(1, len(df)):
@@ -30,7 +30,6 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
                 " more than 15 minutes apart. The Traffic Comissioner recommends services to have timing points"
                 " no more than 15 minutes apart."
             )
-            details = f"{prev_row.common_name} ({prev_row.atco_code}) - {curr_row.common_name} ({curr_row.atco_code})"
             observation.add_observation(
                 details=details,
                 vehicle_journey_id=int(prev_row.vehicle_journey_id),
