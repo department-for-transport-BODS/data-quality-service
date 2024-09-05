@@ -19,6 +19,7 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
 
     df["departure_time_new"] = pd.to_datetime(df["departure_time"], format="%H:%M:%S")
     df["time_diff"] = df["departure_time_new"].diff()
+    df["departure_time"] = df["departure_time"].apply(lambda x: x.strftime("%H:%M"))
     df = df.reset_index()
 
     for i in range(1, len(df)):
