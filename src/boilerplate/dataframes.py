@@ -66,12 +66,12 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
-    ServicePattern = check.db.classes.transmodel_servicepattern
+    ServicePatternStop = check.db.classes.transmodel_servicepatternstop
 
     result = (
         check.db.session.query(Service)
         .join(ServicePatternService, Service.id == ServicePatternService.service_id)
-        .join(ServicePattern, ServicePatternService.servicepattern_id == ServicePattern.id)
+        .join(ServicePatternStop, ServicePatternService.servicepattern_id == ServicePatternStop.service_pattern_id)
         .join(VehicleJourney, ServicePatternService.servicepattern_id == VehicleJourney.service_pattern_id)
         .where(Service.txcfileattributes_id == check.file_id)
         .where(VehicleJourney.block_number == None)
@@ -80,6 +80,7 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
             VehicleJourney.start_time.label("start_time"),
             VehicleJourney.block_number.label("block_number"),
             VehicleJourney.direction.label("direction"),
+            ServicePatternStop.id.label("service_pattern_stop_id"),
         )
     )
     return pd.read_sql_query(result.statement, check.db.session.bind)

@@ -3,12 +3,14 @@
         "start_time": "09:00",
         "direction": "inbound",
         "vehicle_journey_id": 123,
-        "licence_number": "LICENCE1"
+        "licence_number": "LICENCE1",
+        "service_pattern_stop_id": "23344"
     },
     {
         "start_time": "10:00",
         "direction": "outbound",
         "vehicle_journey_id": 456,
-        "licence_number": "LICENCE2"
+        "licence_number": "LICENCE2",
+        "service_pattern_stop_id": "55665"
     }
 ]
