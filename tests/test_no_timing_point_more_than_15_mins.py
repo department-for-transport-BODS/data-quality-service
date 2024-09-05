@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.no_timing_point_more_than_15_mins import lambda_handler
+from src.template.no_timing_point_for_more_than_15_minutes import lambda_handler
 
 
-@patch("src.template.no_timing_point_more_than_15_mins.Check")
-@patch("src.template.no_timing_point_more_than_15_mins.ObservationResult")
-@patch("src.template.no_timing_point_more_than_15_mins.get_df_vehicle_journey")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.ObservationResult")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
 ):
@@ -18,18 +18,22 @@ def test_lambda_handler_valid_check(
     mocked_observations.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
     mocked_observations.observations = [1, 3, 4]
-    mock_get_df_vehicle_journey.return_value = pd.read_csv(
-        "tests/data/no_timing_point_more_than_15_mins/timing_point.csv"
+    df = pd.read_csv(
+        "tests/data/no_timing_point_for_more_than_15_minutes/timing_point.csv"
     )
+    df["departure_time"] = pd.to_datetime(
+        df["departure_time"], format="%H:%M:%S"
+    ).dt.time
+    mock_get_df_vehicle_journey.return_value = df
     lambda_handler(event, context)
 
     assert mocked_check.validate_requested_check.called
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
-        details="Nottingham Railway Station (3390S4) - County Hall (3300RU0003)",
+        details="The link between the 05:41 Nottingham Railway Station (3390S4) and 06:04 County Hall (3300RU0003) timing point stop is more than 15 minutes apart. The Traffic Comissioner recommends services to have timing points no more than 15 minutes apart.",
         vehicle_journey_id=34554,
-        service_pattern_stop_id=536309,
+        service_pattern_stop_id=536303,
     )
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
