@@ -5,6 +5,8 @@ import numpy as np
 from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError 
 
 
 def lambda_handler(event, context):
@@ -14,6 +16,7 @@ def lambda_handler(event, context):
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         check = Check(event)
+        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 
@@ -25,6 +28,7 @@ def lambda_handler(event, context):
                 df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
 
                 logger.info("Iterating over rows to add observations")
+                print(df)
                 for row in df.itertuples():
                     details = f"The ({row.start_time}) {row.direction} journey is missing a journey code."
                     observation.add_observation(
@@ -35,15 +39,16 @@ def lambda_handler(event, context):
 
                     logger.info("Observation added in memory")
 
-                if len(observation.observations) > 0:
-                    observation.write_observations()
-                    logger.info("Observations written in DB")
+                observation.write_observations()
 
-        logger.info("Check status updated in DB")
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
+        logger.info("Check status updated in DB")
 
     return

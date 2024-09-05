@@ -24,8 +24,10 @@ def test_lambda_handler_valid_pass_check(
     mock_check,
     mock_otc_service,
     mock_otc_inactive_service,
+    mocked_context
 ):
-    mocked_check = mock_check.return_value
+    context = mocked_context
+    mocked_check = mock_check.return_value = MagicMock()
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
     mocked_observations.add_observation = MagicMock()
@@ -41,7 +43,7 @@ def test_lambda_handler_valid_pass_check(
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
 
-    # Scenario - service code present in active -- PF0007157:1 -- PASS
+    # # Scenario - service code present in active -- PF0007157:1 -- PASS
     mocked_txc_attributes.service_code = "PF0007157:1"
     mocked_otc_service = mock_otc_service.return_value
     mocked_otc_service.is_service_exists.return_value = True
@@ -81,6 +83,7 @@ def test_lambda_handler_valid_fail_check(
     mock_check,
     mock_otc_service,
     mock_otc_inactive_service,
+    mocked_context
 ):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
@@ -96,7 +99,7 @@ def test_lambda_handler_valid_fail_check(
     mocked_otc_service.is_service_exists.return_value = False
     mocked_otc_inactive_service = mock_otc_inactive_service.return_value
     mocked_otc_inactive_service.is_service_exists.return_value = False
-    lambda_handler(event, context)
+    lambda_handler(event, mocked_context)
     assert mocked_check.validate_requested_check.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(

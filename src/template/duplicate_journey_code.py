@@ -4,11 +4,13 @@ from enums import DQSTaskResultStatus
 from dataframes import get_vj_duplicate_journey_code
 from observation_results import ObservationResult
 import hashlib
-
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError 
 
 def lambda_handler(event, context):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
+        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
@@ -35,18 +37,17 @@ def lambda_handler(event, context):
 
                     logger.info("Observation added in memory")
                 # Write the observations to database
+                observation.write_observations()
 
-                if len(observation.observations) > 0:
-                    observation.write_observations()
-                    logger.info("Observations written in DB")
-
-                logger.info("Check status updated in DB")
-
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
+        logger.info("Check status updated in DB")
 
     return
 
