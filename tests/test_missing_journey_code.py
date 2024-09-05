@@ -23,7 +23,6 @@ class TestMissingJourneyCode:
         context = mocked_context
         mocked_check = mock_check.return_value = MagicMock()
         mocked_check.validate_requested_check = MagicMock()
-        # mocked_check.validate_requested_check.return_value = True
         mocked_observation = mock_observation.return_value
         mocked_observation.add_observation = MagicMock()
         mocked_observation.write_observations = MagicMock()
