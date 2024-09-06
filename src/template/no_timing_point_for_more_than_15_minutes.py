@@ -57,11 +57,11 @@ def lambda_handler(event, context):
         if not df.empty:
             # Filter the timing point stops
             df = df[df["is_timing_point"] == _ALLOWED_IS_TIMING_POINT]
+            df = df.sort_values(by="auto_sequence_number")
             df.groupby("vehicle_journey_id").apply(filter_vehicle_journey, observation)
 
             # Write the observations to database
             observation.write_observations()
-
 
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value
