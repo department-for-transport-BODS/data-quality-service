@@ -24,6 +24,7 @@ def lambda_handler(event, context):
                 observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
+                    service_pattern_stop_id=row.service_pattern_stop_id,
                 )
 
                 logger.info("Observation added in memory")

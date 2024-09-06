@@ -28,10 +28,12 @@ def test_lambda_handler_valid_check(
     mocked_observation.add_observation.assert_any_call(
         details="The (09:00) inbound journey has not been assigned a bus working number (i.e. block number).",
         vehicle_journey_id=123,
+        service_pattern_stop_id=23344,
     )
     mocked_observation.add_observation.assert_any_call(
         details="The (10:00) outbound journey has not been assigned a bus working number (i.e. block number).",
         vehicle_journey_id=456,
+        service_pattern_stop_id=55665,
     )
     mocked_observation.write_observations.assert_called()
     assert mocked_check.set_status.called
