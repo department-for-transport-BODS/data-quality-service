@@ -24,6 +24,7 @@ def test_lambda_handler_valid_check(
     df["departure_time"] = pd.to_datetime(
         df["departure_time"], format="%H:%M:%S"
     ).dt.time
+    df["start_time"] = pd.to_datetime(df["start_time"], format="%H:%M:%S").dt.time
     mock_get_df_vehicle_journey.return_value = df
     lambda_handler(event, context)
 
@@ -31,7 +32,7 @@ def test_lambda_handler_valid_check(
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
-        details="The link between the 05:41 Nottingham Railway Station (3390S4) and 06:04 County Hall (3300RU0003) timing point stop is more than 15 minutes apart. The Traffic Comissioner recommends services to have timing points no more than 15 minutes apart.",
+        details="The link between the 05:41 Nottingham Railway Station (3390S4) and 06:04 County Hall (3300RU0003) timing point stops on the 05:40 outbound journey is more than 15 minutes apart. The Traffic Commissioner recommends services to have timing points no more than 15 minutes apart.",
         vehicle_journey_id=34554,
         service_pattern_stop_id=536303,
     )
