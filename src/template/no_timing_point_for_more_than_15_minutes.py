@@ -20,6 +20,7 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
     df["departure_time_new"] = pd.to_datetime(df["departure_time"], format="%H:%M:%S")
     df["time_diff"] = df["departure_time_new"].diff()
     df["departure_time"] = df["departure_time"].apply(lambda x: x.strftime("%H:%M"))
+    df["start_time"] = df["start_time"].apply(lambda x: x.strftime("%H:%M"))
     df = df.reset_index()
 
     for i in range(1, len(df)):
@@ -29,9 +30,9 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
             curr_row = df.iloc[i]
             details = (
                 f"The link between the {prev_row['departure_time']} {prev_row['common_name']} ({prev_row['atco_code']}) and"
-                f" {curr_row['departure_time']} {curr_row['common_name']} ({curr_row['atco_code']}) timing point stop is"
-                " more than 15 minutes apart. The Traffic Comissioner recommends services to have timing points"
-                " no more than 15 minutes apart."
+                f" {curr_row['departure_time']} {curr_row['common_name']} ({curr_row['atco_code']}) timing point stops"
+                f" on the {prev_row['start_time']} {prev_row['direction']} journey is more than 15 minutes apart."
+                " The Traffic Commissioner recommends services to have timing points no more than 15 minutes apart."
             )
             observation.add_observation(
                 details=details,
