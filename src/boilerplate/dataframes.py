@@ -71,16 +71,27 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
     result = (
         check.db.session.query(Service)
         .join(ServicePatternService, Service.id == ServicePatternService.service_id)
-        .join(ServicePatternStop, ServicePatternService.servicepattern_id == ServicePatternStop.service_pattern_id)
-        .join(VehicleJourney, ServicePatternService.servicepattern_id == VehicleJourney.service_pattern_id)
+        .join(
+            ServicePatternStop,
+            ServicePatternService.servicepattern_id
+            == ServicePatternStop.service_pattern_id,
+        )
+        .join(
+            VehicleJourney,
+            ServicePatternService.servicepattern_id
+            == VehicleJourney.service_pattern_id,
+        )
         .where(Service.txcfileattributes_id == check.file_id)
         .where(VehicleJourney.block_number == None)
+        .group_by(
+            VehicleJourney.id,
+        )
         .with_entities(
             VehicleJourney.id.label("vehicle_journey_id"),
             VehicleJourney.start_time.label("start_time"),
             VehicleJourney.block_number.label("block_number"),
             VehicleJourney.direction.label("direction"),
-            ServicePatternStop.id.label("service_pattern_stop_id"),
+            func.min(ServicePatternStop.id).label("service_pattern_stop_id"), # Get the first stop for Each Vehicle Journey
         )
     )
     return pd.read_sql_query(result.statement, check.db.session.bind)
