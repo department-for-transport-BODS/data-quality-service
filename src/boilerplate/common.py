@@ -351,6 +351,7 @@ class DQSReport:
         self._report_id = None
         self._db = None
         self._report = None
+        self._revision_id = None
 
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
@@ -373,7 +374,6 @@ class DQSReport:
             self._extract_report_details_from_event()
         return self._report_id
 
-
     @property
     def report(self):
         """
@@ -391,6 +391,19 @@ class DQSReport:
                 logger.error(f"No report record found for report_id {str(self.report_id)}")
                 raise e
         return self._report
+    
+    @property
+    def revision_id(self):
+        """
+        Property to set the revision_id from the event payload
+        """
+        try:
+            if self._report:
+                self._revision_id = self._report.revision_id
+                return self._revision_id
+            return self.report.revision_id
+        except Exception as e:
+            logger.info(f"Failed to set revision id {e}")
 
     def set_status(self, status, file_name):
         """
