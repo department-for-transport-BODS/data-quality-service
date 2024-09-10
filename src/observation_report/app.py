@@ -35,6 +35,7 @@ def lambda_handler(event, context):
         csv_content = csv_buffer.getvalue()
 
         # Upload CSV to S3
+        CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{unique_id}_{report._revision_id}.csv"
         s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=CSV_FILE_NAME, Body=csv_content)
         logger.info(f"CSV file successfully uploaded to S3 bucket {S3_BUCKET_NAME}")
 
