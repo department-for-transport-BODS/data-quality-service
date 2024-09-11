@@ -44,7 +44,6 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-
     def _get_organisation_dataset(self):
         """
         Method to get the organisation dataset objects
@@ -63,7 +62,6 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
-
     def _get_organisation_id(self):
         """
         Method to get the organisation dataset objects

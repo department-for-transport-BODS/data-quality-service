@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-
 @patch("src.template.first_stop_is_set_down_only.Check")
 @patch("src.template.first_stop_is_set_down_only.ObservationResult")
 @patch("src.template.first_stop_is_set_down_only.get_df_vehicle_journey")
