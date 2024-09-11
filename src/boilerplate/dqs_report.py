@@ -19,7 +19,7 @@ class DQReport:
                 df = pd.read_sql_query(query.statement, self._db.session.bind)
 
         except Exception as e:
-            logger.error(f"Failed to add obervation for check = pipeline_monitor: {e}")
+            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             raise e
 
         return df
@@ -36,6 +36,6 @@ class DQReport:
                 )
                 self._db.session.commit()
         except Exception as e:
-            logger.error(f"Failed to add obervation for check = pipeline_monitor: {e}")
+            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             self._db.session.rollback()
             raise e

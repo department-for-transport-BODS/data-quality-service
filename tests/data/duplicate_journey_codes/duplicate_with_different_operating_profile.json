@@ -1,0 +1,72 @@
+[
+    {
+        "vehicle_journey_id": 1940,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1025",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713041,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1941,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1025",
+        "non_operating_date": [],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713060,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1942,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1425",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713079,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1943,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "0935",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713187,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1944,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1050",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713098,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1945,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1250",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713135,
+        "serviced_organisation_id": []
+    },
+    {
+        "vehicle_journey_id": 1946,
+        "line_ref": "NOCT:PB2003801:50:20",
+        "journey_code": "1450",
+        "non_operating_date": ["2022-06-03"],
+        "operating_date": [],
+        "day_of_week": ["Friday", "Tuesday"],
+        "service_pattern_stop_id": 18713172,
+        "serviced_organisation_id": []
+    }
+]

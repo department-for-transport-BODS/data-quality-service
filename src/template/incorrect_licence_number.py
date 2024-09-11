@@ -6,7 +6,7 @@ from dqs_logger import logger
 from time_out_handler import TimeOutHandler
 from dqs_exception import LambdaTimeOutError 
 
-def lambda_handler(event, context) -> None:
+def lambda_handler(event,context) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
@@ -16,9 +16,9 @@ def lambda_handler(event, context) -> None:
         check.validate_requested_check()
 
         org_txc_attributes = OrganisationTxcFileAttributes(check)
-        logger.info(f"Checking NOC - {org_txc_attributes.org_noc}")
-        if not org_txc_attributes.validate_noc_code():
-            details = f"The National Operator Code {org_txc_attributes.org_noc} does not match the NOC(s) registered to your BODS organisation profile."
+        logger.info(f"Checking Licence Number - {org_txc_attributes.licence_number}")
+        if not org_txc_attributes.validate_licence_number():
+            details = f"The Licence Number {org_txc_attributes.licence_number} does not match the Licence Number(s) registered to your BODS organisation profile."
             observation.add_observation(details=details)
             observation.write_observations()
     except LambdaTimeOutError as e:
@@ -30,4 +30,5 @@ def lambda_handler(event, context) -> None:
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
+
     return

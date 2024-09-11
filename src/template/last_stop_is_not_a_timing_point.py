@@ -3,17 +3,17 @@ from common import Check
 from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
-
+from time_out_handler import TimeOutHandler
+from dqs_exception import LambdaTimeOutError
 
 # Allowed is_timing_points
 _ALLOWED_IS_TIMING_POINTS = True
 
 
 def lambda_handler(event, context):
-
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-
+        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
@@ -27,7 +27,7 @@ def lambda_handler(event, context):
 
             # Add the observation for check
             for row in df.itertuples():
-                details = f"The last stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a principal timing point."
+                details = f"The last stop ({row.common_name}) on the {row.start_time} {row.direction} journey is not set as a timing point."
                 observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
@@ -36,15 +36,15 @@ def lambda_handler(event, context):
 
             logger.info("Observations added in memory")
             # Write the observations to database
-            if len(observation.observations) > 0:
-                observation.write_observations()
-                logger.info("Observations written in DB")
-
-        logger.info("Check status updated in DB")
+            observation.write_observations()
+    except LambdaTimeOutError as e:
+        status = DQSTaskResultStatus.TIMEOUT.value
+        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
     finally:
         check.set_status(status)
+        logger.info("Check status updated in DB")
 
     return

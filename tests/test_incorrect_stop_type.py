@@ -10,9 +10,10 @@ def test_lambda_handler_valid_check(
     mock_get_df_stop_type,
     mock_observation,
     mock_check,
+    mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -61,9 +62,9 @@ def test_lambda_handler_valid_check(
 
 
 @patch("src.template.incorrect_stop_type.Check")
-def test_lambda_handler_invalid_check(mock_check):
+def test_lambda_handler_invalid_check(mock_check,mocked_context):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = False
 

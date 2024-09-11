@@ -3,14 +3,14 @@ import pandas as pd
 from src.template.last_stop_is_not_a_timing_point import lambda_handler
 
 
-@patch("src.template.last_stop_is_timing_point.Check")
-@patch("src.template.last_stop_is_timing_point.ObservationResult")
-@patch("src.template.last_stop_is_timing_point.get_df_vehicle_journey")
+@patch("src.template.last_stop_is_not_a_timing_point.Check")
+@patch("src.template.last_stop_is_not_a_timing_point.ObservationResult")
+@patch("src.template.last_stop_is_not_a_timing_point.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey, mock_observation, mock_check
+    mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -22,7 +22,7 @@ def test_lambda_handler_valid_check(
         {
             "is_timing_point": [True, False, True],
             "vehicle_journey_id": [1, 2, 3],
-            "sequence_number": [1, 2, 3],
+            "auto_sequence_number": [1, 2, 3],
             "activity": ["setDown", "pickUp", "setDownDriverRequest"],
             "common_name": ["Stop A", "Stop B", "Stop C"],
             "start_time": ["10:00", "11:00", "12:00"],
@@ -36,7 +36,7 @@ def test_lambda_handler_valid_check(
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
-        details="The last stop (Stop B) on the 11:00 South journey is not set as a principal timing point.",
+        details="The last stop (Stop B) on the 11:00 South journey is not set as a timing point.",
         vehicle_journey_id=2,
         service_pattern_stop_id=102,
     )
@@ -45,10 +45,10 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status.assert_called_with("SUCCESS")
 
 
-@patch("src.template.last_stop_is_timing_point.Check")
-def test_lambda_handler_invalid_check(mock_check):
+@patch("src.template.last_stop_is_not_a_timing_point.Check")
+def test_lambda_handler_invalid_check(mock_check, mocked_context):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = {}
+    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = False
 

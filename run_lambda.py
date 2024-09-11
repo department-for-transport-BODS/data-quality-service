@@ -20,6 +20,10 @@ from json import dumps
 import argparse
 
 
+class Context:
+    def get_remaining_time_in_millis(self):
+        return 135000
+
 def run_lambda_func(file_id, check_id):
 
     print(f"FileId: {file_id}, CheckId: {check_id}")
@@ -61,7 +65,7 @@ def run_lambda_func(file_id, check_id):
                 }
             ]
         },
-        context=None,
+        context=Context(),
     )
 
 
@@ -69,7 +73,7 @@ def main():
     """
     Run lambda functions manually
     Command line example:
-    python run_lambda.py --file_id=40 --check_id=1 --result_id=8
+    python run_lambda.py --file_id=40
     """
 
     print("Here is the lamda list::::")

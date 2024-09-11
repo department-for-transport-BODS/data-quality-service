@@ -36,7 +36,7 @@ class ObservationResult:
         try:
             self._check.validate_requested_check()
             logger.debug(
-                f"Attempting to add obervation for check_id = {str(self._check.check_id)}"
+                f"Attempting to add observation for check_id = {str(self._check.check_id)}"
             )
             observation = self._table(
                 details=details,
@@ -48,7 +48,7 @@ class ObservationResult:
             self.observations.append(observation)
         except Exception as e:
             logger.error(
-                f"Failed to add obervation for check_id = {str(self._check.check_id)}",
+                f"Failed to add observation for check_id = {str(self._check.check_id)}",
                 e,
             )
             raise e
@@ -60,17 +60,18 @@ class ObservationResult:
         try:
             if len(self.observations) < 1:
                 logger.info(
-                    f"No obervations to write for check_id = {str(self._check.check_id)}"
+                    f"No observations to write for check_id = {str(self._check.check_id)}"
                 )
                 return
             logger.debug(
-                f"Attempting to add {str(len(self.observations))} obervation(s) for check_id = {str(self._check.check_id)}"
+                f"Attempting to add {str(len(self.observations))} observation(s) for check_id = {str(self._check.check_id)}"
             )
             self._check.db.session.flush()
             self._check.db.session.commit()
+            logger.info("Observations written in DB")
         except Exception as e:
             logger.error(
-                f"Attempting to add obervation for check_id = {str(self._check.check_id)}",
+                f"Attempting to add observation for check_id = {str(self._check.check_id)}",
                 e,
             )
             raise e
