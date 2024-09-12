@@ -433,17 +433,17 @@ class DQSReport:
         """
         Method to get the organisation dataset
         """
-        OrganisationDatasetRevision = self._check.db.classes.organisation_datasetrevision
+        OrganisationDatasetRevision = self.db.classes.organisation_datasetrevision
         try:
             result = (
-                self._check.db.session.query(OrganisationDatasetRevision)
+                self.db.session.query(OrganisationDatasetRevision)
                 .where(OrganisationDatasetRevision.id == self.revision_id)
                 .first()
             )
             self._dataset_id = result.dataset_id
         except Exception as e:
             logger.error(
-                f"Attempting to fetch details of organisation_dataset for id = {str(self._check.file_id)}",
+                f"Attempting to fetch details of organisation_dataset for id = {str(self._report_id)}",
                 e,
             )
             raise e
