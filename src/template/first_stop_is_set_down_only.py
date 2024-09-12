@@ -6,7 +6,6 @@ from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
 from dqs_logger import logger
 
-
 # List of allowed activities for first stop
 _ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest", "pickUpAndSetDown"]
 
