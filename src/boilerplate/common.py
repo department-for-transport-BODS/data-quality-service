@@ -351,6 +351,8 @@ class DQSReport:
         self._report_id = None
         self._db = None
         self._report = None
+        self._revision_id = None
+        self._dataset_id = None
 
     def __str__(self) -> str:
         return f"ReportId: {self._report_id}"
@@ -373,7 +375,6 @@ class DQSReport:
             self._extract_report_details_from_event()
         return self._report_id
 
-
     @property
     def report(self):
         """
@@ -391,6 +392,61 @@ class DQSReport:
                 logger.error(f"No report record found for report_id {str(self.report_id)}")
                 raise e
         return self._report
+    
+    @property
+    def revision_id(self):
+        """
+        Property to access the revision_id of the report
+        """
+
+        if self._revision_id is None:
+            self._get_revision()
+        return self._revision_id
+    
+    @property
+    def dataset_id(self):
+        """
+        Property to acess the dataset_id of the report revision_id
+        """
+
+        if self._dataset_id is None:
+            self._get_organisation_dataset()
+        return self._dataset_id
+    
+    
+    def _get_revision(self):
+        """
+        Property to access the revision_id from the report.
+        If report is not available, it fetches the report first.
+        """
+        try:
+            if self.report is not None:
+                self._revision_id = self.report.revision_id
+            else:
+                raise ValueError("Report is not available to fetch the revision_id.")
+        except Exception as e:
+            logger.error(f"Failed to retrieve revision_id: {e}")
+            raise e
+    
+
+    def _get_organisation_dataset(self):
+        """
+        Method to get the organisation dataset
+        """
+        OrganisationDatasetRevision = self.db.classes.organisation_datasetrevision
+        try:
+            result = (
+                self.db.session.query(OrganisationDatasetRevision)
+                .where(OrganisationDatasetRevision.id == self.revision_id)
+                .first()
+            )
+            self._dataset_id = result.dataset_id
+        except Exception as e:
+            logger.error(
+                f"Attempting to fetch details of organisation_dataset for id = {str(self._report_id)}",
+                e,
+            )
+            raise e
 
     def set_status(self, status, file_name):
         """

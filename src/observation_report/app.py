@@ -8,18 +8,14 @@ from enums import DQSReportStatus
 from dataframes import get_df_dqs_observation_results
 from io import StringIO
 
-
-today_date = datetime.now().strftime('%Y%m%d')
-unique_id = uuid.uuid4()
-
 # Initialize S3 client
 s3_client = boto3.client('s3')
 
 # Define S3 bucket name and file name
 S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports")
-CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{unique_id}.csv"
 
 def lambda_handler(event, context):
+    today_date = datetime.now().strftime('%Y%m%d')
     status = DQSReportStatus.REPORT_GENERATED.value
 
     try:
@@ -38,6 +34,7 @@ def lambda_handler(event, context):
         csv_content = csv_buffer.getvalue()
 
         # Upload CSV to S3
+        CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{report.dataset_id}_{report.revision_id}_{report.report_id}.csv"
         s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=CSV_FILE_NAME, Body=csv_content)
         logger.info(f"CSV file successfully uploaded to S3 bucket {S3_BUCKET_NAME}")
 
