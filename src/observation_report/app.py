@@ -16,7 +16,6 @@ S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports"
 
 def lambda_handler(event, context):
     today_date = datetime.now().strftime('%Y%m%d')
-    unique_id = uuid.uuid4()
     status = DQSReportStatus.REPORT_GENERATED.value
 
     try:
@@ -35,7 +34,7 @@ def lambda_handler(event, context):
         csv_content = csv_buffer.getvalue()
 
         # Upload CSV to S3
-        CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{unique_id}_{report._revision_id}.csv"
+        CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{report.dataset_id}_{report.revision_id}_{report.report_id}.csv"
         s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=CSV_FILE_NAME, Body=csv_content)
         logger.info(f"CSV file successfully uploaded to S3 bucket {S3_BUCKET_NAME}")
 
@@ -44,7 +43,6 @@ def lambda_handler(event, context):
         logger.error(f"Report generation failed due to {e}")
 
     finally:
-        CSV_FILE_NAME = f"BODS_DataQualityReport_{today_date}_{unique_id}_{report._revision_id}.csv"
         report.set_status(status, CSV_FILE_NAME)
         logger.info("Check status updated in DB")
 
