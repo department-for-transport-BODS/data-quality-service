@@ -15,7 +15,6 @@ def lambda_handler(event, context):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         check = Check(event)
-        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 

@@ -10,7 +10,6 @@ from dqs_exception import LambdaTimeOutError
 def lambda_handler(event, context):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()

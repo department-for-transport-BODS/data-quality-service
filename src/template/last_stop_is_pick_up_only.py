@@ -14,7 +14,6 @@ _ALLOWED_ACTIVITY_LAST_STOP = ["setDown", "setDownDriverRequest", "pickUpAndSetD
 def lambda_handler(event, context):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
