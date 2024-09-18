@@ -47,9 +47,7 @@ def lambda_handler(event, context):
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-
         check = Check(event)
-        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 
@@ -63,7 +61,6 @@ def lambda_handler(event, context):
 
             # Write the observations to database
             observation.write_observations()
-
 
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value

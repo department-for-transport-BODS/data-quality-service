@@ -13,7 +13,6 @@ def lambda_handler(event, context):
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        TimeOutHandler(context)
         check = Check(event)
         observation = ObservationResult(check)
         check.validate_requested_check()
@@ -46,6 +45,5 @@ def lambda_handler(event, context):
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
-
 
     return

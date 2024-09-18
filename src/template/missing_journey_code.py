@@ -13,10 +13,7 @@ def lambda_handler(event, context):
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        pd.set_option('display.max_rows', None)
-        pd.set_option('display.max_columns', None)
         check = Check(event)
-        TimeOutHandler(context)
         observation = ObservationResult(check)
         check.validate_requested_check()
 
@@ -24,22 +21,22 @@ def lambda_handler(event, context):
         df['vehicle_journey_code'] = df['vehicle_journey_code'].replace("", np.nan)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-                null_journey_codes = df[df['vehicle_journey_code'].isnull()]['vehicle_journey_id'].unique()
-                df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
+            null_journey_codes = df[df['vehicle_journey_code'].isnull()]['vehicle_journey_id'].unique()
+            df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
 
-                logger.info("Iterating over rows to add observations")
-                print(df)
-                for row in df.itertuples():
-                    details = f"The ({row.start_time}) {row.direction} journey is missing a journey code."
-                    observation.add_observation(
+            logger.info("Iterating over rows to add observations")
+            print(df)
+            for row in df.itertuples():
+                details = f"The ({row.start_time}) {row.direction} journey is missing a journey code."
+                observation.add_observation(
                         details=details,
                         vehicle_journey_id=row.vehicle_journey_id,
                         service_pattern_stop_id=row.service_pattern_stop_id,
                     )
 
-                    logger.info("Observation added in memory")
+                logger.info("Observation added in memory")
 
-                observation.write_observations()
+            observation.write_observations()
 
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value
