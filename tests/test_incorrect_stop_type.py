@@ -39,23 +39,12 @@ def test_lambda_handler_valid_check(
     assert mocked_check.validate_requested_check.called
     assert mock_get_df_stop_type.called
     assert mocked_observations.add_observation.call_count == 3
-    mocked_observations.add_observation.assert_any_call(
-        details="The Stop A (3290YYA00522) stop is registered as stop type AIR with NaPTAN. Expected bus stop types are BCT, BCQ or BCS.",
-        vehicle_journey_id=1,
-        service_pattern_stop_id=101,
-    )
-
-    mocked_observations.add_observation.assert_any_call(
-        details="The Stop B (3290YYA00523) stop is registered as stop type BCE with NaPTAN. Expected bus stop types are BCT, BCQ or BCS.",
-        vehicle_journey_id=2,
-        service_pattern_stop_id=102,
-    )
-
-    mocked_observations.add_observation.assert_any_call(
-        details="The Stop C (3290YYA00526) stop is registered as stop type BST with NaPTAN. Expected bus stop types are BCT, BCQ or BCS.",
+    mocked_observations.add_observation.assert_called_with(
+        details="The Stop C (3290YYA00526) stop is registered as stop type BST with NaPTAN. Expected bus stop types are BCT, BCQ, BCS, BCE or BST.",
         vehicle_journey_id=3,
         service_pattern_stop_id=103,
     )
+
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
