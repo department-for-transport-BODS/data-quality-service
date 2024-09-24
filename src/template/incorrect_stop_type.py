@@ -6,7 +6,7 @@ from dataframes import get_df_stop_type
 from time_out_handler import TimeOutHandler
 from dqs_exception import LambdaTimeOutError 
 # List of allowed stop type for first stop
-_ALLOWED_STOP_TYPES = ["BCT", "BCQ", "BCS"]
+_ALLOWED_STOP_TYPES = ["BCT", "BCQ", "BCS", "BCE", "BST"]
 
 
 def lambda_handler(event, context):
