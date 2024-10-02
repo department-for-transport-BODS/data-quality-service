@@ -8,6 +8,7 @@ class DQSTaskResultStatus(str, Enum):
     SUCCESS = "SUCCESS"
     DUMMY_SUCCESS = "DUMMY_SUCCESS"
     PROCESSING = "PROCESSING"
+    SENT_TO_DLQ = "SENT_TO_DLQ"
 
 class DQSReportStatus(str, Enum):
     PIPELINE_PENDING = "PIPELINE_PENDING"

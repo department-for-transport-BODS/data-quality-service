@@ -48,7 +48,13 @@ def map_pipeline_status(df: pd.DataFrame) -> pd.DataFrame:
     if DQSTaskResultStatus.PENDING.value in status:
         return pd.DataFrame()
          
-    if ((DQSTaskResultStatus.SUCCESS.value in status) and (DQSTaskResultStatus.FAILED.value in status or DQSTaskResultStatus.TIMEOUT.value in status)):
+    if (DQSTaskResultStatus.SUCCESS.value in status) and any(
+        error_status in status for error_status in {
+            DQSTaskResultStatus.FAILED.value, 
+            DQSTaskResultStatus.TIMEOUT.value, 
+            DQSTaskResultStatus.SENT_TO_DLQ.value
+            }
+        ):
         df['status'] = DQSReportStatus.PIPELINE_SUCCEEDED_WITH_ERRORS.value
         return df
     
