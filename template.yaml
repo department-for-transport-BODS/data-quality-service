@@ -4,6 +4,10 @@ Description: >
   This SAM template deploys resources associated with the DQS (Data Quality Service) for BODS
 
 Parameters:
+  DomainName:
+    Type: String
+    Description: The domain with which the service is associated, for use with SES
+    Default: 'bus-data.dft.gov.uk'
   Environment:
     Type: String
     Description: The environment into which the stack is being deployed
@@ -906,11 +910,20 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt GenerateDQSCSVReportQueue.QueueName
-        - Statement:
-           Effect: Allow
-           Action:
-            - s3:PutObject
-           Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
+            - Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/s3-kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
@@ -919,15 +932,6 @@ Resources:
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
-        - !If
-          - IsNotLocal
-          - Statement:
-              Effect: Allow
-              Action:
-                - kms:GenerateDataKey
-                - kms:Decrypt
-              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/s3-kms-key-arn}}'
-          - !Ref 'AWS::NoValue'
       Events:
         SQSTemplateTriggerEvent:
           Type: SQS
@@ -1055,4 +1059,58 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      RetentionInDays: 30
+
+
+  #####################################
+  ####   DEAD LETTER QUEUE LAMBDA  ####
+  #####################################
+  DeadLetterQueueLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-dead-letter-queue-lambda'
+      CodeUri: ./src/dead_letter_queue_lambda
+      Handler: app.lambda_handler
+      Environment:  
+        Variables:
+          SOURCE_EMAIL: !Sub '${ProjectName}-monitoring.${Environment}@${DomainName}'
+          RECIPIENT_EMAIL: 'UK-DLInfrastructureIGH@KPMG.co.uk'
+          SQS_QUEUE_URL: !GetAtt DQSDeadLetterQueue.QueueUrl
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SESCrudPolicy:
+            IdentityName: !Ref DomainName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt DQSDeadLetterQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt DQSDeadLetterQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref DeadLetterQueueLambdaLogGroup
+
+  DeadLetterQueueLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-dead-letter-queue-lambda'
       RetentionInDays: 30
