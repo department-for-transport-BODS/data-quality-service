@@ -17,8 +17,9 @@ def lambda_handler(event, context):
         logger.debug(f"Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
-        logger.debug(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
+            df = df[df["journey_code"].notna() & (df["journey_code"] != "")]
+            logger.debug(f"Looking in the Dataframes: {df.size}")
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
             duplicates = df[
