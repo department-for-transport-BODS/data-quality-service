@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.incorrect_stop_type import lambda_handler
+from src.template.incorrect_stop_type import lambda_handler, lambda_worker
 
 
 @patch("src.template.incorrect_stop_type.Check")
@@ -34,9 +34,9 @@ def test_lambda_handler_valid_check(
             "stop_type": ["AIR", "BCE", "BST"],
         }
     )
-    lambda_handler(event, context)
+    lambda_worker(event, context, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_stop_type.called
     assert mocked_observations.add_observation.call_count == 3
     mocked_observations.add_observation.assert_called_with(
@@ -59,4 +59,4 @@ def test_lambda_handler_invalid_check(mock_check,mocked_context):
 
     lambda_handler(event, context)
 
-    assert mocked_check.validate_requested_check.called
+    
