@@ -1,19 +1,37 @@
 from dqs_logger import logger
 from dqs_exception import LambdaTimeOutError
-import signal
+import multiprocessing
 
+def get_timeout(context):
+    """Return timeout reduced 15 sec."""
+    return int(context.get_remaining_time_in_millis() / 1000) - 15
 
 class TimeOutHandler:
-    def __init__(self, context):
-        self.context = context
-        self.set_time_out()
+    def __init__(self,event,check,timeout):
+        self._event = event
+        self._check = check
+        self._timeout = timeout
 
-    def handle_lambda_timeout(self, _signal, _frame):
-        raise LambdaTimeOutError("Exiting due to timed out")
-
-    def set_time_out(self):
-        signal.signal(signal.SIGALRM, self.handle_lambda_timeout)
-        time_limit = int(self.context.get_remaining_time_in_millis() / 1000) - 15
-        signal.alarm(time_limit)
-        if time_limit < 0:
-            logger.warning(f"Time limit is {time_limit}, which is less than 0, alarm can not be set")
+    def run(self,target_function,*args):
+        """
+        Take function as argument and running in separated process
+        """
+        try:
+            # Set start method if is already set then silent the error.
+            try:
+                multiprocessing.set_start_method('fork')
+            except Exception:
+                pass
+            process = multiprocessing.Process(target=target_function, args=(self._event, self._check),)
+            # Start the process 
+            process.start()
+            # Get process output
+            process.join(timeout=self._timeout)
+            # If the process is still alive after the timeout, terminate it
+            if process.is_alive():
+                logger.warning("Terminating execution, time exceeded timeout limit.")
+                process.terminate()
+                raise LambdaTimeOutError("Exiting due to timed out")
+        except Exception as e:
+            logger.error(f"Error: {e}") 
+            raise e

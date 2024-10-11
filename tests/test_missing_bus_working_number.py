@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.missing_bus_working_number import lambda_handler
+from src.template.missing_bus_working_number import lambda_worker
 
 @patch("src.template.missing_bus_working_number.Check")
 @patch("src.template.missing_bus_working_number.ObservationResult")
@@ -20,9 +20,9 @@ def test_lambda_handler_valid_check(
         "tests/data/missing_bus_working_number/missing_bus_working_numbers.json",
         convert_dates=False, # This is to prevent pandas from converting the time to a timestamp
     )
-    lambda_handler(event, context)
+    lambda_worker(event, context, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_missing_bus_block_number.called
     assert mocked_observation.add_observation.call_count == 2
     mocked_observation.add_observation.assert_any_call(
