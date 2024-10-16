@@ -19,7 +19,7 @@ def lambda_worker(event, check):
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
             duplicates = df[
-                df.duplicated(subset=["line_ref", "journey_code", "hash"], keep=False)
+                df.duplicated(subset=["line_ref", "journey_code", "hash","operating_on_working_days"], keep=False)
             ]
             if not duplicates.empty:
                 logger.debug(f"Found duplicate in the Dataframes: {duplicates.size}")
