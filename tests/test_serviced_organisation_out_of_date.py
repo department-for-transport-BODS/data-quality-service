@@ -113,15 +113,3 @@ def test_lambda_handler_valid_check_pass(
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
-
-
-# @patch("src.template.first_stop_is_not_a_timing_point.Check")
-# def test_lambda_handler_invalid_check(mock_check, mocked_context):
-#     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-#     context = mocked_context
-#     mocked_check = mock_check.return_value
-#     mocked_check.validate_requested_check.return_value = False
-
-#     lambda_handler(event, context)
-
-#     assert mocked_check.validate_requested_check.called

@@ -1,4 +1,4 @@
-,vehicle_journey_id,serviced_organisation_id,serviced_organisation_name,serviced_organisation_code,serviced_organisation_start_date,serviced_organisation_end_date
+index,vehicle_journey_id,serviced_organisation_id,serviced_organisation_name,serviced_organisation_code,serviced_organisation_start_date,serviced_organisation_end_date
 0,65175,67,Worcester Sixth Form College,WSFC,2021-11-01,2021-12-17
 1,65175,67,Worcester Sixth Form College,WSFC,2022-01-04,2022-02-18
 2,65175,67,Worcester Sixth Form College,WSFC,2022-02-28,2022-04-08

@@ -411,7 +411,7 @@ def get_service_ogranisation_vehicle_journey_df(
 
 def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
     """
-    Get the dataframe containing the vehicle journey and the stop type
+    Get the dataframe containing the serviced organisation
 
     """
 
@@ -426,14 +426,7 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
     )
     ServicedOrganisation = check.db.classes.transmodel_servicedorganisations
 
-    columns = [
-        "vehicle_journey_id",
-        "serviced_organisation_id",
-        "serviced_organisation_name",
-        "serviced_organisation_code",
-        "serviced_organisation_start_date",
-        "serviced_organisation_end_date",
-    ]
+    columns = []
 
     result = (
         check.db.session.query(Service)
@@ -464,14 +457,17 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
             )
         )
         .with_entities(
-            VehicleJourney.id,
-            ServicedOrganisation.id,
-            ServicedOrganisation.name,
-            ServicedOrganisation.organisation_code,
-            ServiceOrganisationWorkingDays.start_date,
-            ServiceOrganisationWorkingDays.end_date,
+            VehicleJourney.id.label("vehicle_journey_id"),
+            ServicedOrganisation.id.label("serviced_organisation_id"),
+            ServicedOrganisation.name.label("serviced_organisation_name"),
+            ServicedOrganisation.organisation_code.label("serviced_organisation_code"),
+            ServiceOrganisationWorkingDays.start_date.label(
+                "serviced_organisation_start_date"
+            ),
+            ServiceOrganisationWorkingDays.end_date.label(
+                "serviced_organisation_end_date"
+            ),
         )
     )
 
-    result = result.all()
-    return pd.DataFrame.from_records(result, columns=columns)
+    return pd.read_sql_query(result.statement, check.db.session.bind)
