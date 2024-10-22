@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.last_stop_is_not_a_timing_point import lambda_handler
+from src.template.last_stop_is_not_a_timing_point import lambda_handler, lambda_worker
 
 
 @patch("src.template.last_stop_is_not_a_timing_point.Check")
@@ -30,9 +30,9 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_handler(event, context)
+    lambda_worker(event, context, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(

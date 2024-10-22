@@ -4,25 +4,22 @@ from enums import DQSTaskResultStatus
 from dataframes import get_vj_duplicate_journey_code
 from observation_results import ObservationResult
 import hashlib
-from time_out_handler import TimeOutHandler
 from dqs_exception import LambdaTimeOutError 
-
-def lambda_handler(event, context):
+from time_out_handler import TimeOutHandler, get_timeout
+def lambda_worker(event, check):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        check = Check(event)
         observation = ObservationResult(check)
-        check.validate_requested_check()
-
         logger.debug(f"Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
-        logger.debug(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
+            df = df[df["journey_code"].notna() & (df["journey_code"] != "")]
+            logger.debug(f"Looking in the Dataframes: {df.size}")
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
             duplicates = df[
-                df.duplicated(subset=["line_ref", "journey_code", "hash"], keep=False)
+                df.duplicated(subset=["line_ref", "journey_code", "hash","operating_on_working_days"], keep=False)
             ]
             if not duplicates.empty:
                 logger.debug(f"Found duplicate in the Dataframes: {duplicates.size}")
@@ -38,9 +35,6 @@ def lambda_handler(event, context):
                 # Write the observations to database
                 observation.write_observations()
 
-    except LambdaTimeOutError as e:
-        status = DQSTaskResultStatus.TIMEOUT.value
-        logger.error(f"Check status timed out due to {e}")
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
@@ -62,3 +56,21 @@ def create_df_row_hash(row):
             )
         ).encode("utf-8")
     ).hexdigest()
+
+
+def lambda_handler(event, context):
+    try:
+        # Get timeout from context reduced by 15 sec
+        timeout = get_timeout(context)
+        check = Check(event)
+        check.validate_requested_check()
+        timeout_handler = TimeOutHandler(event, check, timeout)
+        timeout_handler.run(lambda_worker)
+    except LambdaTimeOutError:
+        status = DQSTaskResultStatus.TIMEOUT.value 
+        logger.info(f"Set status to {status}")
+        check.set_status(status)
+    except Exception as e:
+        status = DQSTaskResultStatus.FAILED.value
+        logger.error(f"Check status failed due to {e}")
+        check.set_status(status)
