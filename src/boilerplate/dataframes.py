@@ -410,3 +410,67 @@ def get_service_ogranisation_vehicle_journey_df(
     return pd.read_sql_query(
         result_serviced_organisation.statement, check.db.session.bind
     )
+
+
+def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
+    """
+    Get the dataframe containing the serviced organisation
+
+    """
+
+    Service = check.db.classes.transmodel_service
+    ServicePatternService = check.db.classes.transmodel_service_service_patterns
+    VehicleJourney = check.db.classes.transmodel_vehiclejourney
+    ServiceOrganisationVehicleJourney = (
+        check.db.classes.transmodel_servicedorganisationvehiclejourney
+    )
+    ServiceOrganisationWorkingDays = (
+        check.db.classes.transmodel_servicedorganisationworkingdays
+    )
+    ServicedOrganisation = check.db.classes.transmodel_servicedorganisations
+
+    columns = []
+
+    result = (
+        check.db.session.query(Service)
+        .join(ServicePatternService, Service.id == ServicePatternService.service_id)
+        .join(
+            VehicleJourney,
+            ServicePatternService.servicepattern_id
+            == VehicleJourney.service_pattern_id,
+        )
+        .join(
+            ServiceOrganisationVehicleJourney,
+            ServiceOrganisationVehicleJourney.vehicle_journey_id == VehicleJourney.id,
+        )
+        .join(
+            ServicedOrganisation,
+            ServiceOrganisationVehicleJourney.serviced_organisation_id
+            == ServicedOrganisation.id,
+        )
+        .join(
+            ServiceOrganisationWorkingDays,
+            ServiceOrganisationWorkingDays.serviced_organisation_vehicle_journey_id
+            == ServiceOrganisationVehicleJourney.id,
+        )
+        .where(
+            and_(
+                Service.txcfileattributes_id == check.file_id,
+                ServiceOrganisationVehicleJourney.operating_on_working_days == True,
+            )
+        )
+        .with_entities(
+            VehicleJourney.id.label("vehicle_journey_id"),
+            ServicedOrganisation.id.label("serviced_organisation_id"),
+            ServicedOrganisation.name.label("serviced_organisation_name"),
+            ServicedOrganisation.organisation_code.label("serviced_organisation_code"),
+            ServiceOrganisationWorkingDays.start_date.label(
+                "serviced_organisation_start_date"
+            ),
+            ServiceOrganisationWorkingDays.end_date.label(
+                "serviced_organisation_end_date"
+            ),
+        )
+    )
+
+    return pd.read_sql_query(result.statement, check.db.session.bind)
