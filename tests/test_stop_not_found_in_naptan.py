@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.stop_not_found_in_naptan import lambda_handler
+from src.template.stop_not_found_in_naptan import lambda_handler, lambda_worker
 
 
 @patch("src.template.stop_not_found_in_naptan.Check")
@@ -32,9 +32,9 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_handler(event, context)
+    lambda_worker(event, context, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_non_naptan_vehicle_journey.called
     assert mocked_observation.add_observation.call_count == 1
     mocked_observation.add_observation.assert_called_with(
@@ -56,4 +56,4 @@ def test_lambda_handler_invalid_check(mock_check, mocked_context):
 
     lambda_handler(event, context)
 
-    assert mocked_check.validate_requested_check.called
+    

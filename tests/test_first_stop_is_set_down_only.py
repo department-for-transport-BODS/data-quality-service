@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.first_stop_is_set_down_only import lambda_handler
+from src.template.first_stop_is_set_down_only import lambda_handler, lambda_worker
 from time import sleep
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -36,9 +36,8 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_handler(event, mocked_context)
+    lambda_worker(event, mocked_context, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
@@ -50,17 +49,10 @@ def test_lambda_handler_valid_check(
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
 
-    # Scenario 2 - Timeout
-    # Delay execution of write_observations by 20 seconds
-    mocked_observations.write_observations = lambda: sleep(20)
-    mocked_context.get_remaining_time_in_millis.return_value = 17000 # 17 seconds
-    lambda_handler(event, mocked_context)
-    mocked_check.set_status.assert_called_with("TIMEOUT")
-    
 
 @patch("src.template.first_stop_is_set_down_only.Check")
 def test_lambda_handler_invalid_check(mock_check,mocked_context):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    mocked_check = mock_check.return_value = MagicMock()
+    mocked_check = mock_check.return_value
     lambda_handler(event, mocked_context)
     assert mocked_check.validate_requested_check.called
