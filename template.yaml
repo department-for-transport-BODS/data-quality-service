@@ -1004,6 +1004,60 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-cancelled-service-appearing-active-lambda'
       RetentionInDays: 30
 
+  ################################################################
+  #### SERVICED ORGANISATION OUT OF DATE ####
+  ################################################################
+  ServicedOrganisationOutOfDateQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date'
+      VisibilityTimeout: 300
+      RedrivePolicy: 
+        deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
+        maxReceiveCount: 3
+      
+  ServicedOrganisationOutOfDateLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date-lambda'
+      CodeUri: ./src/template
+      Handler: serviced_organisation_out_of_date.lambda_handler
+      Layers: !If 
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ServicedOrganisationOutOfDateQueue.QueueName
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      Events:
+        SQSTemplateTriggerEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ServicedOrganisationOutOfDateQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 100
+      LoggingConfig:
+        LogGroup: !Ref ServicedOrganisationOutOfDateLambdaLogGroup
+
+  ServicedOrganisationOutOfDateLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-serviced-organisation-out-of-date-lambda'
+      RetentionInDays: 30
 
   #################################
   #### PIPELINE MONITOR LAMBDA ####

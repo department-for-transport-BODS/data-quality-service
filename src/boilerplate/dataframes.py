@@ -429,8 +429,6 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
     )
     ServicedOrganisation = check.db.classes.transmodel_servicedorganisations
 
-    columns = []
-
     result = (
         check.db.session.query(Service)
         .join(ServicePatternService, Service.id == ServicePatternService.service_id)
