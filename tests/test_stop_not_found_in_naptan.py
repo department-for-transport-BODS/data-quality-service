@@ -32,7 +32,7 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
 
     
     assert mock_get_df_non_naptan_vehicle_journey.called

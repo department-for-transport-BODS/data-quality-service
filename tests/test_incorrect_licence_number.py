@@ -23,16 +23,7 @@ def test_lambda_handler_valid_check(
     # Scenario - Where the licence number is valid
     mocked_txc_attributes.validate_licence_number.return_value = True
     mocked_txc_attributes.licence_number = "VALIDLICENCE"
-    lambda_worker(event, mocked_check)
-    
-    assert mocked_observations.add_observation.call_count == 0
-    # assert mocked_observations.write_observations.called
-    assert mocked_check.set_status.called
-    mocked_check.set_status.assert_called_with("SUCCESS")
-
-    mocked_txc_attributes.validate_licence_number.return_value = True
-    mocked_txc_attributes.licence_number = "INVALIDLICENCE"
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
     
     assert mocked_observations.add_observation.call_count == 0
     # assert mocked_observations.write_observations.called
@@ -41,8 +32,13 @@ def test_lambda_handler_valid_check(
 
     # Scenario - Where the licence number is invalid
     mocked_txc_attributes.validate_licence_number.return_value = False
-    mocked_txc_attributes.licence_number = "UZLICENCE"
-    lambda_worker(event, mocked_check)
+    mocked_txc_attributes.licence_number = "INVALIDLICENCE"
+    lambda_worker(event, context, mocked_check)
     
+    assert mocked_observations.add_observation.call_count == 1
+    mocked_observations.add_observation.assert_called_with(
+        details="The Licence Number INVALIDLICENCE does not match the Licence Number(s) registered to your BODS organisation profile.",
+    )
+    assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")

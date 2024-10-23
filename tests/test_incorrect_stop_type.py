@@ -34,7 +34,7 @@ def test_lambda_handler_valid_check(
             "stop_type": ["AIR", "BCE", "BST"],
         }
     )
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
 
     
     assert mock_get_df_stop_type.called

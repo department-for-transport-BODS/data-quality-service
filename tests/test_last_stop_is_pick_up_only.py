@@ -33,7 +33,7 @@ def test_lambda_handler_valid_check(
             "auto_sequence_number": [1, 2, 3],
         }
     )
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
 
     
     assert mock_get_df_vehicle_journey.called

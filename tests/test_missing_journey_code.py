@@ -44,7 +44,7 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = mock_df
 
-        lambda_worker(event, mocked_check)
+        lambda_worker(event, context, mocked_check)
         
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_called_once_with(
@@ -93,7 +93,7 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = mock_df
 
-        lambda_worker(event, mocked_check)
+        lambda_worker(event, context, mocked_check)
 
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_not_called()
@@ -118,7 +118,7 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = pd.DataFrame()
 
-        lambda_worker(event, mocked_check)
+        lambda_worker(event, context, mocked_check)
 
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_not_called()
@@ -137,7 +137,7 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.side_effect = Exception("Test Exception")
 
-        lambda_worker(event, mocked_check)
+        lambda_worker(event, context, mocked_check)
 
         mocked_check.set_status.assert_called_once_with(DQSTaskResultStatus.FAILED.value)
         mock_logger.error.assert_called_once_with("Check status failed due to Test Exception")

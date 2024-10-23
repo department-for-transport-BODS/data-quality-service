@@ -26,7 +26,7 @@ def test_lambda_handler_valid_check(
     # Scenario - Where the noc code is valid
     mocked_txc_attributes.validate_noc_code.return_value = True
     mocked_txc_attributes.org_noc = "VALIDNOC"
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
     
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_check.set_status.called
@@ -35,7 +35,7 @@ def test_lambda_handler_valid_check(
     # Scenario - Where the noc code is in-valid
     mocked_txc_attributes.validate_noc_code.return_value = False
     mocked_txc_attributes.org_noc = "INVALIDNOC"
-    lambda_worker(event, mocked_check)
+    lambda_worker(event, context, mocked_check)
     
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
