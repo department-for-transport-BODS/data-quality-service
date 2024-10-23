@@ -3,6 +3,7 @@ from enums import DQSTaskResultStatus
 from organisation_txcfileattributes import OrganisationTxcFileAttributes
 from observation_results import ObservationResult
 from dqs_logger import logger
+from enums import IgnoredLicenceFormat
 from dqs_exception import LambdaTimeOutError 
 from time_out_handler import TimeOutHandler, get_timeout
 
@@ -13,10 +14,11 @@ def lambda_worker(event, check) -> None:
         observation = ObservationResult(check)
         org_txc_attributes = OrganisationTxcFileAttributes(check)
         logger.info(f"Checking Licence Number - {org_txc_attributes.licence_number}")
-        if not org_txc_attributes.validate_licence_number():
-            details = f"The Licence Number {org_txc_attributes.licence_number} does not match the Licence Number(s) registered to your BODS organisation profile."
-            observation.add_observation(details=details)
-            observation.write_observations()
+        if not org_txc_attributes.licence_number.startswith(IgnoredLicenceFormat.UNREGISTERED.value): 
+            if not org_txc_attributes.validate_licence_number():
+                details = f"The Licence Number {org_txc_attributes.licence_number} does not match the Licence Number(s) registered to your BODS organisation profile."
+                observation.add_observation(details=details)
+                observation.write_observations()
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")

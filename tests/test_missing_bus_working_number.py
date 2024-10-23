@@ -20,7 +20,7 @@ def test_lambda_handler_valid_check(
         "tests/data/missing_bus_working_number/missing_bus_working_numbers.json",
         convert_dates=False, # This is to prevent pandas from converting the time to a timestamp
     )
-    lambda_worker(event, context, mocked_check)
+    lambda_worker(event, mocked_check)
 
     
     assert mock_get_df_missing_bus_block_number.called
