@@ -26,7 +26,7 @@ def test_lambda_handler_valid_check(
     ).dt.time
     df["start_time"] = pd.to_datetime(df["start_time"], format="%H:%M:%S").dt.time
     mock_get_df_vehicle_journey.return_value = df
-    lambda_worker(event, context, mocked_check)
+    lambda_worker(event, mocked_check)
 
     
     assert mock_get_df_vehicle_journey.called
