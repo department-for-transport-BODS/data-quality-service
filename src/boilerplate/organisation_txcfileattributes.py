@@ -104,7 +104,7 @@ class OrganisationTxcFileAttributes:
 
     def validate_licence_number(self):
         """
-        Method to validate the licence number matched matched to the database
+        Method to validate the licence number matched to the database
         """
         try:
             OrganisationLicence = self._check.db.classes.organisation_licence

@@ -45,3 +45,7 @@ class CheckBasis(Enum):
     timing_patterns = "timing_patterns"
     vehicle_journeys = "vehicle_journeys"
     data_set = "data_set"
+
+class IgnoredLicenceFormat(Enum):
+    UNREGISTERED = "UZ"
+
