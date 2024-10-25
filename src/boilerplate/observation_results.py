@@ -27,7 +27,7 @@ class ObservationResult:
         details=None,
         vehicle_journey_id=None,
         service_pattern_stop_id=None,
-        serviced_organisation_id=None,
+        serviced_organisation_vehicle_journey_id=None,
     ):
         """
         Method to add an observation to the check
@@ -48,7 +48,7 @@ class ObservationResult:
                 taskresults_id=self._check.result_id,
                 vehicle_journey_id=vehicle_journey_id,
                 service_pattern_stop_id=service_pattern_stop_id,
-                serviced_organisation_id_id=serviced_organisation_id,
+                serviced_organisation_vehicle_journey_id=serviced_organisation_vehicle_journey_id,
             )
             self._check.db.session.add(observation)
             self.observations.append(observation)

@@ -45,7 +45,7 @@ def lambda_worker(event, check):
                 observation.add_observation(
                     details=details,
                     vehicle_journey_id=row.vehicle_journey_id,
-                    serviced_organisation_id=row.serviced_organisation_id,
+                    serviced_organisation_vehicle_journey_id=row.serviced_organisation_vehicle_journey_id,
                 )
                 logger.info("Observation added in memory")
 
