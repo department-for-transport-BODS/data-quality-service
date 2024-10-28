@@ -468,6 +468,9 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
             ServiceOrganisationWorkingDays.end_date.label(
                 "serviced_organisation_end_date"
             ),
+            ServiceOrganisationVehicleJourney.id.label(
+                "serviced_organisation_vehicle_journey_id"
+            ),
         )
     )
 
