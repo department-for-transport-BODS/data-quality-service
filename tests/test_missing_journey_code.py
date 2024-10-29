@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from src.template.missing_journey_code import lambda_handler
+from src.template.missing_journey_code import lambda_worker
 import pandas as pd
 from enums import DQSTaskResultStatus
 
@@ -44,9 +44,8 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = mock_df
 
-        lambda_handler(event, context)
-        assert mocked_check.validate_requested_check.called
-        mocked_check.validate_requested_check.assert_called_once()
+        lambda_worker(event, mocked_check)
+        
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_called_once_with(
             details="The (10:00) North journey is missing a journey code.",
@@ -94,9 +93,8 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = mock_df
 
-        lambda_handler(event, context)
+        lambda_worker(event, mocked_check)
 
-        mocked_check.validate_requested_check.assert_called_once()
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_not_called()
         mocked_observation.write_observations.assert_called_once()
@@ -120,9 +118,8 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.return_value = pd.DataFrame()
 
-        lambda_handler(event, context)
+        lambda_worker(event, mocked_check)
 
-        mocked_check.validate_requested_check.assert_called_once()
         mock_get_df_vehicle_journey.assert_called_once()
         mocked_observation.add_observation.assert_not_called()
         mocked_observation.write_observations.assert_not_called()
@@ -140,8 +137,7 @@ class TestMissingJourneyCode:
 
         mock_get_df_vehicle_journey.side_effect = Exception("Test Exception")
 
-        lambda_handler(event, context)
+        lambda_worker(event, mocked_check)
 
-        mocked_check.validate_requested_check.assert_called_once()
         mocked_check.set_status.assert_called_once_with(DQSTaskResultStatus.FAILED.value)
         mock_logger.error.assert_called_once_with("Check status failed due to Test Exception")

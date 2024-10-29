@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.duplicate_journey_code import lambda_handler
+from src.template.duplicate_journey_code import lambda_worker
 
 
 @patch("src.template.duplicate_journey_code.Check")
@@ -21,9 +21,8 @@ def test_lambda_handler_valid_check(
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
         "tests/data/duplicate_journey_codes/one_jc_duplicate.json"
     )
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 2
     mocked_observations.add_observation.assert_called_with(
@@ -55,9 +54,8 @@ def test_lambda_handler_multiple_duplicates(
         "tests/data/duplicate_journey_codes/multiple_vjc_duplicates.json"
     )
     mock_get_vj_duplicate_journey_code.return_value = dataframe
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 4
     mocked_observations.add_observation.assert_called_with(
@@ -87,9 +85,9 @@ def test_lambda_handler_no_duplicates(
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
         "tests/data/duplicate_journey_codes/vjc_no_duplicates.json"
     )
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called
@@ -112,9 +110,9 @@ def test_lambda_handler_no_journies(
     mocked_observations.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
     mock_get_vj_duplicate_journey_code.return_value = pd.DataFrame()
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called
@@ -139,9 +137,9 @@ def test_lambda_handler_different_operating_profile(
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
         "tests/data/duplicate_journey_codes/duplicate_with_different_operating_profile.json"
     )
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called

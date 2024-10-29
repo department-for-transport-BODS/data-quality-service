@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 from src.template.cancelled_service_incorrectly_appearing_as_active import (
-    lambda_handler,
+    lambda_worker ,
 )
 
 event = {"Records": [{"body": '{"file_id": 363, "check_id": 1, "result_id": 5}'}]}
@@ -37,8 +37,7 @@ def test_lambda_handler_valid_pass_check(
     # Scenario - service code starts with UZ -- UZ000COMM:B1777 -- PASS
     mocked_txc_attributes = mock_txc_attributes.return_value
     mocked_txc_attributes.service_code = "UZ000COMM:B1777"
-    lambda_handler(event, context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_check)
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
@@ -47,8 +46,7 @@ def test_lambda_handler_valid_pass_check(
     mocked_txc_attributes.service_code = "PF0007157:1"
     mocked_otc_service = mock_otc_service.return_value
     mocked_otc_service.is_service_exists.return_value = True
-    lambda_handler(event, context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_check)
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
@@ -59,8 +57,7 @@ def test_lambda_handler_valid_pass_check(
     mocked_otc_service.is_service_exists.return_value = False
     mocked_otc_inactive_service = mock_otc_inactive_service.return_value
     mocked_otc_inactive_service.is_service_exists.return_value = True
-    lambda_handler(event, context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_check)
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
@@ -99,8 +96,7 @@ def test_lambda_handler_valid_fail_check(
     mocked_otc_service.is_service_exists.return_value = False
     mocked_otc_inactive_service = mock_otc_inactive_service.return_value
     mocked_otc_inactive_service.is_service_exists.return_value = False
-    lambda_handler(event, mocked_context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_context,mocked_check)
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
         details="The registration number (i.e. service code) PD1073423:4234 is not registered with a local bus registrations authority.",

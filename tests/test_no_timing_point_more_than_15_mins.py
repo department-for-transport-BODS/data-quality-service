@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.no_timing_point_for_more_than_15_minutes import lambda_handler
+from src.template.no_timing_point_for_more_than_15_minutes import lambda_worker
 
 
 @patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
@@ -26,9 +26,9 @@ def test_lambda_handler_valid_check(
     ).dt.time
     df["start_time"] = pd.to_datetime(df["start_time"], format="%H:%M:%S").dt.time
     mock_get_df_vehicle_journey.return_value = df
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(

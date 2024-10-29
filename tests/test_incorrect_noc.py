@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.incorrect_noc import lambda_handler
+from src.template.incorrect_noc import lambda_worker
 
 
 @patch("src.template.incorrect_noc.Check")
@@ -26,8 +26,8 @@ def test_lambda_handler_valid_check(
     # Scenario - Where the noc code is valid
     mocked_txc_attributes.validate_noc_code.return_value = True
     mocked_txc_attributes.org_noc = "VALIDNOC"
-    lambda_handler(event, context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_check)
+    
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
@@ -35,8 +35,8 @@ def test_lambda_handler_valid_check(
     # Scenario - Where the noc code is in-valid
     mocked_txc_attributes.validate_noc_code.return_value = False
     mocked_txc_attributes.org_noc = "INVALIDNOC"
-    lambda_handler(event, context)
-    assert mocked_check.validate_requested_check.called
+    lambda_worker(event, mocked_check)
+    
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
         details="The National Operator Code INVALIDNOC does not match the NOC(s) registered to your BODS organisation profile.",

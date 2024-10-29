@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.first_stop_is_not_a_timing_point import lambda_handler
+from src.template.first_stop_is_not_a_timing_point import lambda_handler, lambda_worker
 
 
 logger = logging.getLogger(__name__)
@@ -10,7 +10,6 @@ logger.setLevel(logging.DEBUG)
 
 @patch("src.template.first_stop_is_not_a_timing_point.Check")
 @patch("src.template.first_stop_is_not_a_timing_point.ObservationResult")
-@patch("src.template.first_stop_is_not_a_timing_point.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
 ):
@@ -18,10 +17,10 @@ def test_lambda_handler_valid_check(
     context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
+    mocked_check.set_status = MagicMock()
     mocked_observations = mock_observation.return_value
     mocked_observations.add_observation = MagicMock()
     mocked_observations.write_observations = MagicMock()
-    mocked_check.set_status = MagicMock()
     mocked_observations.observations = [1, 3, 4]
     mock_get_df_vehicle_journey.return_value = pd.DataFrame(
         {
@@ -35,9 +34,9 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
