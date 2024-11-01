@@ -1287,9 +1287,10 @@ Resources:
             Statement:
             - Effect: Allow
               Action:
-                - kms:GenerateDataKey
                 - kms:Encrypt
+                - kms:GenerateDataKey
               Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
