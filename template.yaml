@@ -32,6 +32,7 @@ Globals:
     Timeout: 135 # 120s Run time and added 15 seconds for the timeout handler
     MemorySize: 512
     Tracing: Active
+    KmsKeyArn: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
     VpcConfig: !If
       - IsNotLocal
       -
@@ -72,6 +73,7 @@ Resources:
       GroupName: !Sub '${ProjectName}-${Environment}-dqs-common-lambda'
       SecurityGroupEgress: 
         - IpProtocol: '-1'
+          Description: 'Allow outbound connectivity to any'
           CidrIp: '0.0.0.0/0'
       VpcId: !Sub '{{resolve:ssm:/bodds/${Environment}/vpc-id}}'
       Tags:
@@ -83,6 +85,7 @@ Resources:
     Condition: IsNotLocal
     Properties:
       GroupId: !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-sg-id}}'
+      Description: !Sub 'Allow inbound connectivity from ${ProjectName}-${Environment}-dqs-common-lambda'
       IpProtocol: tcp
       FromPort: 5432
       ToPort: 5432
@@ -98,13 +101,14 @@ Resources:
     Metadata:
       BuildMethod: python3.11
 
-  #####################################
-  ####    DQS DEAD LETTER QUEUE    ####
-  #####################################
+  ###############################
+  #### DQS DEAD LETTER QUEUE ####
+  ###############################
   DQSDeadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-dead-letter-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
 
   #####################################
@@ -114,6 +118,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-set-down-only-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -139,11 +144,20 @@ Resources:
             QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -160,6 +174,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-set-down-only-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ###################################
@@ -169,6 +184,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-pickup-only-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -194,11 +210,20 @@ Resources:
             QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -215,6 +240,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-pickup-only-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ##########################################
@@ -224,6 +250,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -249,11 +276,20 @@ Resources:
             QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -270,6 +306,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-first-stop-is-not-a-timing-point-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   #########################################
@@ -279,6 +316,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -304,11 +342,20 @@ Resources:
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -325,6 +372,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-last-stop-is-not-a-timing-point-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   #######################
@@ -334,6 +382,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-noc-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -359,11 +408,20 @@ Resources:
             QueueName: !GetAtt IncorrectNocQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -380,6 +438,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-noc-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   #############################
@@ -389,6 +448,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-stop-type-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -414,11 +474,20 @@ Resources:
             QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -435,6 +504,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-stop-type-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ##################################
@@ -444,6 +514,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-incorrect-licence-number-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -469,11 +540,20 @@ Resources:
             QueueName: !GetAtt IncorrectLicenceNumberQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -490,6 +570,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-incorrect-licence-number-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
 
@@ -500,6 +581,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-stop-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -525,11 +607,20 @@ Resources:
             QueueName: !GetAtt MissingStopQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -546,6 +637,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-stop-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ####################################
@@ -555,6 +647,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-bus-working-number-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -580,11 +673,20 @@ Resources:
             QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -601,6 +703,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-bus-working-number-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ################################
@@ -610,6 +713,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-duplicate-journey-code-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -635,11 +739,20 @@ Resources:
             QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -656,6 +769,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-duplicate-journey-code-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ##################################
@@ -665,6 +779,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-stop-not-found-in-naptan-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -690,11 +805,20 @@ Resources:
             QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -711,6 +835,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-stop-not-found-in-naptan-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ########################################
@@ -720,6 +845,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-same-stop-found-multiple-times-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -745,11 +871,20 @@ Resources:
             QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -766,6 +901,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-same-stop-found-multiple-times-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   ###########################################
@@ -775,6 +911,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -800,11 +937,20 @@ Resources:
             QueueName: !GetAtt NoTimingPointMoreThan15MinsQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -821,6 +967,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-no-timing-point-more-than-15-mins-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
 
@@ -831,6 +978,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-missing-journey-code-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -856,11 +1004,20 @@ Resources:
             QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -877,6 +1034,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-missing-journey-code-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
 
@@ -887,6 +1045,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-generate-csv-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
 
   GenerateDQSCSVReportQueueLambda:
@@ -920,17 +1079,18 @@ Resources:
               Resource: !Sub 'arn:aws:s3:::bodds-${Environment}-dqs-reports/*'
             - Effect: Allow
               Action:
-                - kms:GenerateDataKey
                 - kms:Decrypt
-              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/s3-kms-key-arn}}'
+                - kms:Encrypt
+                - kms:GenerateDataKey
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
           - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -947,15 +1107,17 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-generate-dqs-csv-report-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
-  ################################################################
+  ###########################################################
   #### CANCELLED SERVICE INCORRECTLY APPEARING AS ACTIVE ####
-  ################################################################
+  ###########################################################
   CancelledServiceAppearingActiveQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-cancelled-service-appearing-active-queue'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -981,11 +1143,20 @@ Resources:
             QueueName: !GetAtt CancelledServiceAppearingActiveQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -1002,15 +1173,17 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-cancelled-service-appearing-active-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
-  ################################################################
+  ###########################################
   #### SERVICED ORGANISATION OUT OF DATE ####
-  ################################################################
+  ###########################################
   ServicedOrganisationOutOfDateQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date'
+      KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
@@ -1036,11 +1209,20 @@ Resources:
             QueueName: !GetAtt ServicedOrganisationOutOfDateQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -1057,6 +1239,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-serviced-organisation-out-of-date-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
   #################################
@@ -1100,11 +1283,20 @@ Resources:
             Resource: '*'
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Encrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       LoggingConfig:
         LogGroup: !Ref PipelineMonitorLambdaLogGroup
@@ -1113,6 +1305,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-pipeline-monitor-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
 
@@ -1146,11 +1339,20 @@ Resources:
             QueueName: !GetAtt DQSDeadLetterQueue.QueueName
         - !If
           - IsNotLocal
-          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
-          - 'AmazonRDSReadOnlyAccess'
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       Events:
         SQSTemplateTriggerEvent:
@@ -1167,4 +1369,5 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-dead-letter-queue-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
