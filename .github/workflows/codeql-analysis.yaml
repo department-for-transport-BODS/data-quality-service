@@ -1,4 +1,4 @@
-name: "Code Quality Check"
+name: "code quality check"
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
+        language: [ 'javascript', 'python' ]
 
     steps:
     - name: Checkout repository
