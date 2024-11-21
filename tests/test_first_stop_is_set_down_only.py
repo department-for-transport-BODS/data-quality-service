@@ -17,7 +17,6 @@ def test_lambda_handler_valid_check(
     mocked_context
 ):
 
-
     # Scenario 1 - Valid Check
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
     mocked_check = mock_check.return_value = MagicMock()
@@ -36,7 +35,7 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_worker(event, mocked_context, mocked_check)
+    lambda_worker(event, mocked_check)
 
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1

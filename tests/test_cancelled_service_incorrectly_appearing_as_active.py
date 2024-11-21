@@ -96,7 +96,7 @@ def test_lambda_handler_valid_fail_check(
     mocked_otc_service.is_service_exists.return_value = False
     mocked_otc_inactive_service = mock_otc_inactive_service.return_value
     mocked_otc_inactive_service.is_service_exists.return_value = False
-    lambda_worker(event, mocked_context,mocked_check)
+    lambda_worker(event, mocked_check)
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
         details="The registration number (i.e. service code) PD1073423:4234 is not registered with a local bus registrations authority.",
