@@ -11,7 +11,7 @@ on:
 
 jobs:
   pytest:
-    runs-on: pcoe-runner-linux-small-prod
+    runs-on: ubuntu-latest
 
     steps:
     - name: checkout
