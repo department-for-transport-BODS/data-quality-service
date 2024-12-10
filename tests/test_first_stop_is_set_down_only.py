@@ -3,6 +3,9 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.first_stop_is_set_down_only import lambda_handler, lambda_worker
 from time import sleep
+
+from tests.test_templates import lambda_invalid_check
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -18,7 +21,6 @@ def test_lambda_handler_valid_check(
 ):
 
     # Scenario 1 - Valid Check
-    event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
     mocked_check = mock_check.return_value = MagicMock()
     mocked_observations = mock_observation.return_value = MagicMock()
     mocked_observations.add_observation = MagicMock()
@@ -35,7 +37,7 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
-    lambda_worker(event, mocked_check)
+    lambda_worker(None, mocked_check)
 
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
@@ -51,7 +53,4 @@ def test_lambda_handler_valid_check(
 
 @patch("src.template.first_stop_is_set_down_only.Check")
 def test_lambda_handler_invalid_check(mock_check,mocked_context):
-    event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    mocked_check = mock_check.return_value
-    lambda_handler(event, mocked_context)
-    assert mocked_check.validate_requested_check.called
+    lambda_invalid_check(lambda_handler, mock_check, mocked_context)

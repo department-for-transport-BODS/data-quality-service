@@ -1,9 +1,8 @@
 import boto3
-import pandas as pd
 import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, func
 from os import environ
 from json import loads
 from pydantic import BaseModel
@@ -52,7 +51,8 @@ class Check:
     validate_requested_check: Validate the check
     """
 
-    def __init__(self, lambda_event):
+    def __init__(self, lambda_event, function_name):
+        self._lambda_function = function_name
         self._lambda_event = lambda_event
         self._file_id = None
         self._check_id = None
@@ -136,7 +136,7 @@ class Check:
         try:
             self.validate_requested_check()
             logger.debug(
-                f"Attempting to set status from {self.result.status} to {status}"
+                f"Attempting to set {self.result.id} status from {self.result.status} to {status}"
             )
             self.result.status = status
             self.db.session.commit()
@@ -168,21 +168,57 @@ class Check:
         else:
             return True
 
+    def get_check_id(self):
+        logger.debug(f"Retrieving check ID for {self._lambda_function}")
+        check = self.db.session.scalar(
+            select(self.db.classes.dqs_checks).where(
+                func.replace(func.lower(self.db.classes.dqs_checks.observation), " ", "_") == self._lambda_function
+            )
+        )
+        return check.id if check else 0
+
+    def get_result_id(self, file_id, check_id):
+        result = self.db.session.scalar(
+            select(self.db.classes.dqs_taskresults).where(
+                (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
+                & (self.db.classes.dqs_taskresults.checks_id == check_id)
+            )
+        )
+        return result.id if result else 0
+
     def _extract_test_details_from_event(self):
         """
         Method to extract the file_id, check_id, and result_id from the event payload
         """
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
-        try:
-            event_payload = loads(self._lambda_event["Records"][0]["body"])
-            logger.debug("Extracted Payload from event:")
-            logger.debug(event_payload)
-            logger.debug("Checking payload has required fields")
-            check_details = EventPayload(**event_payload)
-        except Exception as e:
-            logger.error("Failed to extract a valid payload from the event")
-            raise e
+        if "Records" not in self._lambda_event.keys():
+            logger.debug("Processing Non-Record Event, assuming from state machine")
+            try:
+                check_id = self.get_check_id()
+                result_id = self.get_result_id(self._lambda_event.get('file_id'), check_id)
+                check_details = EventPayload(
+                    check_id=check_id,
+                    result_id=result_id,
+                    file_id=self._lambda_event.get('file_id'),
+                    previous_result=self._lambda_event.get('previous_result', None)
+                )
+            except Exception as e:
+                logger.error("Failed to create EventPayload from event")
+                logger.exception(e)
+                raise e
+        else:
+            logger.debug("Processing Event with Records, assuming from SQS")
+            try:
+                event_payload = loads(self._lambda_event["Records"][0]["body"])
+                logger.debug("Extracted Payload from event:")
+                logger.debug(event_payload)
+                logger.debug("Checking payload has required fields")
+                check_details = EventPayload(**event_payload)
+            except Exception as e:
+                logger.error("Failed to extract a valid payload from the event")
+                logger.exception(e)
+                raise e
         logger.debug(
             f"Check_details found. TXC file ID={str(check_details.file_id)}, check ID={str(check_details.check_id)}"
         )
