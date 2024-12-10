@@ -1,20 +1,26 @@
+from multiprocessing.queues import Queue
+
 from dqs_logger import logger
 from common import Check
 from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
+from pandas import DataFrame
 from time_out_handler import TimeOutHandler, get_timeout
 from dqs_exception import LambdaTimeOutError 
 
 _ALLOWED_IS_TIMING_POINT = True
 
 
-def lambda_worker(event, check):
+def lambda_worker(event, check, queue: Queue) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
+        # Make sure the DF and event pass downstream
+        queue.put(dict(**event,previous_result=df.to_dict()))
+
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmin()]
@@ -36,21 +42,19 @@ def lambda_worker(event, check):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
-
-    return
-
 
 def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event)
+        check = Check(event, context)
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
-        timeout_handler.run(lambda_worker)
+        return timeout_handler.run(lambda_worker)
     except LambdaTimeOutError:
         status = DQSTaskResultStatus.TIMEOUT.value 
         logger.info(f"Set status to {status}")

@@ -1,9 +1,10 @@
+from typing import Optional
+
 import boto3
-import pandas as pd
 import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, func
 from os import environ
 from json import loads
 from pydantic import BaseModel
@@ -18,11 +19,13 @@ class EventPayload(BaseModel):
     file_id: int
     check_id: int
     result_id: int
+    previous_result: Optional[dict] = None
     """
 
     file_id: int
     check_id: int
     result_id: int
+    previous_result: Optional[dict] = None
 
 class ReportEventPayload(BaseModel):
     """
@@ -52,12 +55,14 @@ class Check:
     validate_requested_check: Validate the check
     """
 
-    def __init__(self, lambda_event):
+    def __init__(self, lambda_event, context):
+        self._lambda_function = context.function_name
         self._lambda_event = lambda_event
         self._file_id = None
         self._check_id = None
         self._db = None
         self._result_id = None
+        self._previous_result = None
         self._result = None
 
     def __str__(self) -> str:
@@ -126,6 +131,16 @@ class Check:
             self._task_results_table = self.db.classes.dqs_taskresults
         return self._task_results_table
 
+    @property
+    def previous_result(self):
+        """
+        Property to access the previous_result from the event payload
+        """
+        if self._previous_result is None:
+            self._extract_test_details_from_event()
+        return self._previous_result
+
+
     def set_status(self, status):
         """
         Method to set the status of the check
@@ -136,7 +151,7 @@ class Check:
         try:
             self.validate_requested_check()
             logger.debug(
-                f"Attempting to set status from {self.result.status} to {status}"
+                f"Attempting to set {self.result.id} status from {self.result.status} to {status}"
             )
             self.result.status = status
             self.db.session.commit()
@@ -168,27 +183,61 @@ class Check:
         else:
             return True
 
+    def get_check_id(self):
+        return self.db.session.scalar(
+            select(self.db.classes.dqs_checks).where(
+                func.replace(func.lower(self.db.classes.dqs_checks.observation), " ", "_") == self._lambda_function
+            )
+        ).id
+
+    def get_result_id(self, file_id, check_id):
+        return self.db.session.scalar(
+        select(self.db.classes.dqs_taskresults).where(
+            (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
+            & (self.db.classes.dqs_taskresults.checks_id == check_id)
+        )
+        ).id
+
     def _extract_test_details_from_event(self):
         """
         Method to extract the file_id, check_id, and result_id from the event payload
         """
         logger.debug("Event received:")
         logger.debug(self._lambda_event)
-        try:
-            event_payload = loads(self._lambda_event["Records"][0]["body"])
-            logger.debug("Extracted Payload from event:")
-            logger.debug(event_payload)
-            logger.debug("Checking payload has required fields")
-            check_details = EventPayload(**event_payload)
-        except Exception as e:
-            logger.error("Failed to extract a valid payload from the event")
-            raise e
+        if "Records" not in self._lambda_event.keys():
+            logger.debug("Processing Non-Record Event, assuming from state machine")
+            try:
+                check_id = self.get_check_id()
+                result_id = self.get_result_id(self._lambda_event.get('file_id'), check_id)
+                check_details = EventPayload(
+                    check_id=check_id,
+                    result_id=result_id,
+                    file_id=self._lambda_event.get('file_id'),
+                    previous_result=self._lambda_event.get('previous_result', None)
+                )
+            except Exception as e:
+                logger.error("Failed to create EventPayload from event")
+                logger.exception(e)
+                raise e
+        else:
+            logger.debug("Processing Event with Records, assuming from SQS")
+            try:
+                event_payload = loads(self._lambda_event["Records"][0]["body"])
+                logger.debug("Extracted Payload from event:")
+                logger.debug(event_payload)
+                logger.debug("Checking payload has required fields")
+                check_details = EventPayload(**event_payload)
+            except Exception as e:
+                logger.error("Failed to extract a valid payload from the event")
+                logger.exception(e)
+                raise e
         logger.debug(
             f"Check_details found. TXC file ID={str(check_details.file_id)}, check ID={str(check_details.check_id)}"
         )
         self._file_id = check_details.file_id
         self._check_id = check_details.check_id
         self._result_id = check_details.result_id
+        self._previous_result = check_details.previous_result
 
 
 class BodsDB:
@@ -261,7 +310,7 @@ class BodsDB:
                     connection_details["port"],
                     connection_details["user"]
                 )
-                logger.debug("Got DB token")
+                logger.debug(f"Got DB token: {len(connection_details['password'])}")
                 connection_details["sslmode"] = "require"
             else:
                 logger.debug("No password ARN found in environment variables, getting DB password direct")

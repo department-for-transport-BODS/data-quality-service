@@ -1,11 +1,12 @@
+from pandas import DataFrame
+
 from common import Check, DQSReport
 import pandas as pd
 import numpy as np
-import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
 from sqlalchemy import and_, func, String, asc
-
+from dqs_logger import logger
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
     """
@@ -13,6 +14,11 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
 
     """
 
+    if check.previous_result is not None:
+        logger.info(f"Returning passed vehicle journey DF for {check.file_id}/{check.check_id}")
+        return pd.DataFrame.from_dict(check.previous_result)
+
+    logger.info(f"Retrieving vehichle Journey DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop
@@ -55,7 +61,8 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             VehicleJourney.journey_code.label("vehicle_journey_code"),
         )
     )
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    return df
 
 
 def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
@@ -64,6 +71,7 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
 
     """
 
+    logger.info(f"Retrieving missing bus no DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
@@ -95,7 +103,8 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
             func.min(ServicePatternStop.id).label("service_pattern_stop_id"), # Get the first stop for Each Vehicle Journey
         )
     )
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    return df
 
 
 def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
@@ -104,6 +113,7 @@ def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
 
     """
 
+    logger.info(f"Retrieving stop type DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop
@@ -147,7 +157,8 @@ def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
 
     result = result.all()
 
-    return pd.DataFrame.from_records(result, columns=columns)
+    df = pd.DataFrame.from_records(result, columns=columns)
+    return df
 
 
 def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
@@ -199,6 +210,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     """
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
 
+    logger.info(f"Retrieving duplicate Journey Code DF {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop

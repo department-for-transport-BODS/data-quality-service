@@ -22,7 +22,8 @@ class TimeOutHandler:
                 multiprocessing.set_start_method('fork')
             except Exception:
                 pass
-            process = multiprocessing.Process(target=target_function, args=(self._event, self._check),)
+            queue = multiprocessing.Queue()
+            process = multiprocessing.Process(target=target_function, args=(self._event, self._check, queue),)
             # Start the process 
             process.start()
             # Get process output
@@ -32,6 +33,12 @@ class TimeOutHandler:
                 logger.warning("Terminating execution, time exceeded timeout limit.")
                 process.terminate()
                 raise LambdaTimeOutError("Exiting due to timed out")
+            if queue.empty():
+                logger.info(f"Returning null from {target_function.__name__}")
+                return
+            else:
+                logger.info(f"Returning value from {target_function.__name__}")
+                return queue.get()
         except Exception as e:
             logger.error(f"Error: {e}") 
             raise e

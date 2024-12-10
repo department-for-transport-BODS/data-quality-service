@@ -1,3 +1,5 @@
+from multiprocessing import Queue
+
 from dqs_logger import logger
 from common import Check
 from enums import DQSTaskResultStatus
@@ -6,7 +8,8 @@ from observation_results import ObservationResult
 import hashlib
 from dqs_exception import LambdaTimeOutError 
 from time_out_handler import TimeOutHandler, get_timeout
-def lambda_worker(event, check):
+
+def lambda_worker(event, check, queue: Queue) -> None:
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
@@ -38,6 +41,7 @@ def lambda_worker(event, check):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
@@ -62,10 +66,10 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event)
+        check = Check(event, context)
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
-        timeout_handler.run(lambda_worker)
+        return timeout_handler.run(lambda_worker)
     except LambdaTimeOutError:
         status = DQSTaskResultStatus.TIMEOUT.value 
         logger.info(f"Set status to {status}")
