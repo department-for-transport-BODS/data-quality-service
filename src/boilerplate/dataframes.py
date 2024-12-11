@@ -1,4 +1,5 @@
-from pandas import DataFrame
+import base64
+import pickle
 
 from common import Check, DQSReport
 import pandas as pd
@@ -11,12 +12,11 @@ from dqs_logger import logger
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
     """
     Get the dataframe containing the vehicle journey and the stop activity
-
     """
 
     if check.previous_result is not None:
         logger.info(f"Returning passed vehicle journey DF for {check.file_id}/{check.check_id}")
-        return pd.DataFrame.from_dict(check.previous_result)
+        return pd.DataFrame.from_dict(pickle.loads(base64.b64decode(check.previous_result)))
 
     logger.info(f"Retrieving vehichle Journey DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service

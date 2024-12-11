@@ -1,4 +1,4 @@
-from multiprocessing import Queue
+from multiprocessing.connection import Connection
 
 from common import Check
 from enums import DQSTaskResultStatus
@@ -8,7 +8,7 @@ from dqs_logger import logger
 from time_out_handler import TimeOutHandler, get_timeout
 from dqs_exception import LambdaTimeOutError 
 
-def lambda_worker(event, check, queue: Queue) -> None:
+def lambda_worker(event, check, pipe: Connection) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, context)
+        check = Check(event, __name__.split('.')[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         return timeout_handler.run(lambda_worker)
@@ -44,4 +44,5 @@ def lambda_handler(event, context):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
         check.set_status(status)

@@ -5,11 +5,10 @@ import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, func
-from os import environ
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
-
+from os import environ
 
 class EventPayload(BaseModel):
     """
@@ -25,7 +24,7 @@ class EventPayload(BaseModel):
     file_id: int
     check_id: int
     result_id: int
-    previous_result: Optional[dict] = None
+    previous_result: Optional[str] = None
 
 class ReportEventPayload(BaseModel):
     """
@@ -55,8 +54,8 @@ class Check:
     validate_requested_check: Validate the check
     """
 
-    def __init__(self, lambda_event, context):
-        self._lambda_function = context.function_name
+    def __init__(self, lambda_event, function_name):
+        self._lambda_function = function_name
         self._lambda_event = lambda_event
         self._file_id = None
         self._check_id = None
@@ -184,6 +183,7 @@ class Check:
             return True
 
     def get_check_id(self):
+        logger.debug(f"Retrieving check ID for {self._lambda_function}")
         return self.db.session.scalar(
             select(self.db.classes.dqs_checks).where(
                 func.replace(func.lower(self.db.classes.dqs_checks.observation), " ", "_") == self._lambda_function
@@ -192,10 +192,10 @@ class Check:
 
     def get_result_id(self, file_id, check_id):
         return self.db.session.scalar(
-        select(self.db.classes.dqs_taskresults).where(
-            (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
-            & (self.db.classes.dqs_taskresults.checks_id == check_id)
-        )
+            select(self.db.classes.dqs_taskresults).where(
+                (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
+                & (self.db.classes.dqs_taskresults.checks_id == check_id)
+            )
         ).id
 
     def _extract_test_details_from_event(self):

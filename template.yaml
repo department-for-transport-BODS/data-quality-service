@@ -1194,7 +1194,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date-lambda'
       CodeUri: ./src/template
-      Handler: serviced_organisation_out_of_date.lambda_handler
+      Handler: serviced_organisation_data_is_out_of_date.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']

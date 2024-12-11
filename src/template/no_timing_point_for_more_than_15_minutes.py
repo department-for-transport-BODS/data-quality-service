@@ -1,4 +1,4 @@
-from multiprocessing.queues import Queue
+from multiprocessing.connection import Connection
 
 from dqs_logger import logger
 from common import Check
@@ -45,7 +45,7 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
             logger.info("Observation added in memory")
 
 
-def lambda_worker(event, check, queue: Queue) -> None:
+def lambda_worker(event, check, pipe: Connection) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
@@ -60,7 +60,6 @@ def lambda_worker(event, check, queue: Queue) -> None:
 
             # Write the observations to database
             observation.write_observations()
-        queue.put(df)
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
@@ -74,7 +73,7 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, context)
+        check = Check(event, __name__.split('.')[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         return timeout_handler.run(lambda_worker)
@@ -85,4 +84,5 @@ def lambda_handler(event, context):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
         check.set_status(status)
