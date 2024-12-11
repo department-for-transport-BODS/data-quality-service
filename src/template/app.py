@@ -1,12 +1,10 @@
-from multiprocessing.connection import Connection
-
 from common import Check
 from enums import DQSTaskResultStatus
 from dqs_logger import logger
 from time_out_handler import TimeOutHandler, get_timeout
 from dqs_exception import LambdaTimeOutError
 
-def lambda_worker(event, check, pipe: Connection) -> None:
+def lambda_worker(event, check) -> None:
 
     status = DQSTaskResultStatus.DUMMY_SUCCESS.value
     try:

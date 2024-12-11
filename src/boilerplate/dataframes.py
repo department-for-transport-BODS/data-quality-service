@@ -1,5 +1,6 @@
 import base64
 import pickle
+from json import dump
 
 from common import Check, DQSReport
 import pandas as pd
@@ -62,6 +63,17 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
         )
     )
     df = pd.read_sql_query(result.statement, check.db.session.bind)
+
+    # Make sure the DF and event pass downstream
+    # TODO: Would it be better to push to S3?
+
+    to_send = base64.b64encode(pickle.dumps(df.to_dict())).decode('utf-8')
+    to_pass = dict(file_id=check.file_id,previous_result=to_send)
+    out_file = f"/tmp/df-output-{check.file_id}"
+    logger.debug(f"Writing DF to {out_file}")
+    with open(out_file, "w") as f:
+        dump(to_pass, f)
+
     return df
 
 

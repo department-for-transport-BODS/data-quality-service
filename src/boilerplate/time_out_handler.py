@@ -25,26 +25,27 @@ class TimeOutHandler:
                 multiprocessing.set_start_method('fork')
             except Exception:
                 pass
-            parent_conn, child_conn = multiprocessing.Pipe()
-            process = multiprocessing.Process(target=target_function, args=(self._event, self._check, child_conn),)
+            process = multiprocessing.Process(target=target_function, args=(self._event, self._check),)
             # Start the process 
             process.start()
             # Get process output
-            process.join(timeout=self._timeout - 30)
+            process.join(timeout=self._timeout)
             # If the process is still alive after the timeout, terminate it
             if process.is_alive():
                 logger.warning("Terminating execution, time exceeded timeout limit.")
                 process.terminate()
                 raise LambdaTimeOutError("Exiting due to timed out")
 
-            out_file = f"/tmp/df-output-{self._check.file_id}"
-            if exists(out_file):
-                with open(out_file, "r") as f:
-                    result = load(f)
-                logger.info(f"Returning value from {target_function.__name__}")
-                return result
-            else:
-                logger.info(f"Returning null from {target_function.__name__}")
         except Exception as e:
             logger.error(f"Error: {e}") 
             raise e
+
+    def get_result(self):
+        out_file = f"/tmp/df-output-{self._check.file_id}"
+        if exists(out_file):
+            with open(out_file, "r") as f:
+                result = load(f)
+            logger.info(f"Returning value for {self._check.file_id}/{self._check.check_id}")
+            return result
+        else:
+            logger.info(f"Returning null from {self._check.file_id}/{self._check.check_id}")

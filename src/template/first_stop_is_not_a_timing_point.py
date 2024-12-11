@@ -1,8 +1,3 @@
-import base64
-import pickle
-from json import dump
-from multiprocessing.connection import Connection
-
 from dqs_logger import logger
 from common import Check
 from enums import DQSTaskResultStatus
@@ -14,19 +9,12 @@ from dqs_exception import LambdaTimeOutError
 _ALLOWED_IS_TIMING_POINT = True
 
 
-def lambda_worker(event, check, pipe: Connection) -> None:
+def lambda_worker(event, check) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
-        to_send = base64.b64encode(pickle.dumps(df.to_dict())).decode('utf-8')
-        # Make sure the DF and event pass downstream
-        to_pass = dict(**event,previous_result=to_send)
-        out_file = f"/tmp/df-output-{check.file_id}"
-        logger.debug(f"Writing DF to {out_file}")
-        with open(out_file, "w") as f:
-            dump(to_pass, f)
 
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
@@ -55,13 +43,14 @@ def lambda_worker(event, check, pipe: Connection) -> None:
         logger.info("Check status updated in DB")
 
 def lambda_handler(event, context):
+    timeout_handler = None
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
         check = Check(event, __name__.split('.')[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
-        return timeout_handler.run(lambda_worker)
+        timeout_handler.run(lambda_worker)
     except LambdaTimeOutError:
         status = DQSTaskResultStatus.TIMEOUT.value 
         logger.info(f"Set status to {status}")
@@ -71,3 +60,4 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
         logger.exception(e)
         check.set_status(status)
+    return timeout_handler.get_result() if timeout_handler is not None else None

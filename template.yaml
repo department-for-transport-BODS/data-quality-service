@@ -1372,3 +1372,60 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-dead-letter-queue-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
+
+  DQSStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: ./state-machine.json
+      DefinitionSubstitutions:
+        FirstStopIsSetDownOnlyLambdaArn: !GetAtt FirstStopIsSetDownOnlyLambda.Arn
+        LastStopIsPickUpOnlyLambdaArn: !GetAtt LastStopIsPickUpOnlyLambda.Arn
+        FirstStopIsNotATimingPointLambdaArn: !GetAtt FirstStopIsNotATimingPointLambda.Arn
+        LastStopIsNotATimingPointLambdaArn: !GetAtt LastStopIsNotATimingPointLambda.Arn
+        IncorrectNocLambdaArn: !GetAtt IncorrectNocLambda.Arn
+        IncorrectStopTypeLambdaArn: !GetAtt IncorrectStopTypeLambda.Arn
+        IncorrectLicenceNumberLambdaArn: !GetAtt IncorrectLicenceNumberLambda.Arn
+        MissingStopLambdaArn: !GetAtt MissingStopLambda.Arn
+        MissingBusWorkingNumberLambdaArn: !GetAtt MissingBusWorkingNumberLambda.Arn
+        DuplicateJourneyCodeLambdaArn: !GetAtt DuplicateJourneyCodeLambda.Arn
+        StopNotFoundInNaptanLambdaArn: !GetAtt StopNotFoundInNaptanLambda.Arn
+        SameStopFoundMultipleTimesLambdaArn: !GetAtt SameStopFoundMultipleTimesLambda.Arn
+        NoTimingPointMoreThan15MinsLambdaArn: !GetAtt NoTimingPointMoreThan15MinsLambda.Arn
+        MissingJourneyCodeLambdaArn: !GetAtt MissingJourneyCodeLambda.Arn
+        CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
+        ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
+      Name: !Sub '${ProjectName}-${Environment}-DQSStateMachine'
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FirstStopIsSetDownOnlyLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref LastStopIsPickUpOnlyLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FirstStopIsNotATimingPointLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref LastStopIsNotATimingPointLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectNocLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectStopTypeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectLicenceNumberLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingStopLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingBusWorkingNumberLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DuplicateJourneyCodeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StopNotFoundInNaptanLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SameStopFoundMultipleTimesLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref NoTimingPointMoreThan15MinsLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingJourneyCodeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CancelledServiceAppearingActiveLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ServicedOrganisationOutOfDateLambda
+
