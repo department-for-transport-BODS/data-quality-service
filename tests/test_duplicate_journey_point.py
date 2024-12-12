@@ -1,3 +1,4 @@
+from os.path import dirname
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.duplicate_journey_code import lambda_worker
@@ -7,10 +8,9 @@ from src.template.duplicate_journey_code import lambda_worker
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_valid_check(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -19,7 +19,7 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status = MagicMock()
     mocked_observations.observations = [1, 2, 3]
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
-        "tests/data/duplicate_journey_codes/one_jc_duplicate.json"
+        f"{dirname(__file__)}/data/duplicate_journey_codes/one_jc_duplicate.json"
     )
     lambda_worker(event, mocked_check)
 
@@ -39,10 +39,9 @@ def test_lambda_handler_valid_check(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_multiple_duplicates(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -51,7 +50,7 @@ def test_lambda_handler_multiple_duplicates(
     mocked_check.set_status = MagicMock()
     mocked_observations.observations = [1, 3, 4]
     dataframe = pd.read_json(
-        "tests/data/duplicate_journey_codes/multiple_vjc_duplicates.json"
+        f"{dirname(__file__)}/data/duplicate_journey_codes/multiple_vjc_duplicates.json"
     )
     mock_get_vj_duplicate_journey_code.return_value = dataframe
     lambda_worker(event, mocked_check)
@@ -72,10 +71,9 @@ def test_lambda_handler_multiple_duplicates(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_no_duplicates(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -83,7 +81,7 @@ def test_lambda_handler_no_duplicates(
     mocked_observations.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
-        "tests/data/duplicate_journey_codes/vjc_no_duplicates.json"
+        f"{dirname(__file__)}/data/duplicate_journey_codes/vjc_no_duplicates.json"
     )
     lambda_worker(event, mocked_check)
 
@@ -99,10 +97,9 @@ def test_lambda_handler_no_duplicates(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_no_journies(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -124,10 +121,9 @@ def test_lambda_handler_no_journies(
 @patch("src.template.duplicate_journey_code.ObservationResult")
 @patch("src.template.duplicate_journey_code.get_vj_duplicate_journey_code")
 def test_lambda_handler_different_operating_profile(
-    mock_get_vj_duplicate_journey_code, mock_observation, mock_check, mocked_context
+    mock_get_vj_duplicate_journey_code, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -135,11 +131,10 @@ def test_lambda_handler_different_operating_profile(
     mocked_observations.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
     mock_get_vj_duplicate_journey_code.return_value = pd.read_json(
-        "tests/data/duplicate_journey_codes/duplicate_with_different_operating_profile.json"
+        f"{dirname(__file__)}/data/duplicate_journey_codes/duplicate_with_different_operating_profile.json"
     )
     lambda_worker(event, mocked_check)
 
-    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called

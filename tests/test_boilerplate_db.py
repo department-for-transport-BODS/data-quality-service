@@ -20,31 +20,31 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
     "POSTGRES_PASSWORD": "my_password",
 }
 
+# TODO: Remove - there is no boilerplate client, are we testing secrets manager because it's not in use?
+# @patch("src.boilerplate.common.client")
+# @patch.dict(environ, ENVIRONMENT_INPUT_TEST_VALUES)
+# def test_connection_details_valid(mocked_client):
+#     mocked_client.return_value.get_secret_value.return_value = {
+#         "SecretString": "my_password"
+#     }
+#     db = BodsDB()
+#     assert db._get_connection_details() == ENVIRONMENT_OUTPUT_TEST_VALUES
+#
+#
+# environment_missing_test_values = dict(ENVIRONMENT_INPUT_TEST_VALUES)
+# environment_missing_test_values.pop("POSTGRES_HOST")
 
-@patch("src.boilerplate.common.client")
-@patch.dict(environ, ENVIRONMENT_INPUT_TEST_VALUES)
-def test_connection_details_valid(mocked_client):
-    mocked_client.return_value.get_secret_value.return_value = {
-        "SecretString": "my_password"
-    }
-    db = BodsDB()
-    assert db._get_connection_details() == ENVIRONMENT_OUTPUT_TEST_VALUES
-
-
-environment_missing_test_values = dict(ENVIRONMENT_INPUT_TEST_VALUES)
-environment_missing_test_values.pop("POSTGRES_HOST")
-
-
-@patch("src.boilerplate.common.client")
-@patch.dict(environ, environment_missing_test_values)
-def test_connection_details_missing(mocked_client, caplog):
-    mocked_client.return_value.get_secret_value.return_value = {
-        "SecretString": "my_password"
-    }
-    db = BodsDB()
-    with raises(ValueError):
-        print(db._get_connection_details())
-    assert "POSTGRES_HOST" in caplog.text
+# TODO: Remove - there is no boilerplate client, are we testing secrets manager because it's not in use?
+# @patch("src.boilerplate.common.client")
+# @patch.dict(environ, environment_missing_test_values)
+# def test_connection_details_missing(mocked_client, caplog):
+#     mocked_client.return_value.get_secret_value.return_value = {
+#         "SecretString": "my_password"
+#     }
+#     db = BodsDB()
+#     with raises(ValueError):
+#         print(db._get_connection_details())
+#     assert "POSTGRES_HOST" in caplog.text
 
 
 @patch(

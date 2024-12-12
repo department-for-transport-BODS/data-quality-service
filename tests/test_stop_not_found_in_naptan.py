@@ -7,10 +7,9 @@ from src.template.stop_not_found_in_naptan import lambda_handler, lambda_worker
 @patch("src.template.stop_not_found_in_naptan.ObservationResult")
 @patch("src.template.stop_not_found_in_naptan.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
-    mock_get_df_non_naptan_vehicle_journey, mock_observation, mock_check, mocked_context
+    mock_get_df_non_naptan_vehicle_journey, mock_observation, mock_check
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observation = mock_observation.return_value

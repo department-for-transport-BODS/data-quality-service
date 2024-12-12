@@ -24,9 +24,6 @@ import argparse
 
 class Context:
 
-    def __init__(self, function_name):
-        self.function_name = function_name
-
     def get_remaining_time_in_millis(self):
         return 135000
 
@@ -98,7 +95,7 @@ def run_lambda_func(file_id, check_id, mode, data_flow):
     try:
          data_flow[module_name] =  lambda_handler(
             event=payload,
-            context=Context(module_name),
+            context=Context(),
         )
     except Exception as e:
         print(f"Error running lambda: {e}, continuing")

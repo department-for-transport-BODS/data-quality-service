@@ -1,3 +1,4 @@
+from os.path import dirname
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.missing_bus_working_number import lambda_worker
@@ -17,7 +18,7 @@ def test_lambda_handler_valid_check(
     mocked_observation.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
     mock_get_df_missing_bus_block_number.return_value = pd.read_json(
-        "tests/data/missing_bus_working_number/missing_bus_working_numbers.json",
+        f"{dirname(__file__)}/data/missing_bus_working_number/missing_bus_working_numbers.json",
         convert_dates=False, # This is to prevent pandas from converting the time to a timestamp
     )
     lambda_worker(event, mocked_check)

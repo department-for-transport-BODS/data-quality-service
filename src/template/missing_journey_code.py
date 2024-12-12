@@ -21,6 +21,7 @@ def lambda_worker(event, check) -> None:
             df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
             logger.info("Iterating over rows to add observations")
             # Sort the dataframe with vehicle journey id and auto sequence number
+            print(df)
             df = df.sort_values(
                 ["vehicle_journey_id", "auto_sequence_number"], ascending=True
             )
