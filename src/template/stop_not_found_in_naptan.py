@@ -38,6 +38,8 @@ def lambda_worker(event, check) -> None:
     finally:
         check.set_status(status)
 
+    return
+
 
 def lambda_handler(event, context):
     try:

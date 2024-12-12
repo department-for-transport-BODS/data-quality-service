@@ -41,6 +41,9 @@ def lambda_worker(event, check) -> None:
         check.set_status(status)
         logger.info("Check status updated in DB")
 
+    return
+
+
 def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec

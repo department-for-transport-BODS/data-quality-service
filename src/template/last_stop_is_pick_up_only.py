@@ -36,7 +36,7 @@ def lambda_worker(event, check) -> None:
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value
         logger.error(f"Check status timed out due to {e}")
-        logger.exception(e)
+
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")

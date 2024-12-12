@@ -1,14 +1,13 @@
-from typing import Optional
-
 import boto3
 import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, func
+from os import environ
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
-from os import environ
+
 
 class EventPayload(BaseModel):
     """
@@ -18,13 +17,11 @@ class EventPayload(BaseModel):
     file_id: int
     check_id: int
     result_id: int
-    previous_result: Optional[dict] = None
     """
 
     file_id: int
     check_id: int
     result_id: int
-    previous_result: Optional[str] = None
 
 class ReportEventPayload(BaseModel):
     """
@@ -61,7 +58,6 @@ class Check:
         self._check_id = None
         self._db = None
         self._result_id = None
-        self._previous_result = None
         self._result = None
 
     def __str__(self) -> str:
@@ -129,16 +125,6 @@ class Check:
         if self._task_results_table is None:
             self._task_results_table = self.db.classes.dqs_taskresults
         return self._task_results_table
-
-    @property
-    def previous_result(self):
-        """
-        Property to access the previous_result from the event payload
-        """
-        if self._previous_result is None:
-            self._extract_test_details_from_event()
-        return self._previous_result
-
 
     def set_status(self, status):
         """
@@ -239,7 +225,6 @@ class Check:
         self._file_id = check_details.file_id
         self._check_id = check_details.check_id
         self._result_id = check_details.result_id
-        self._previous_result = check_details.previous_result
 
 
 class BodsDB:
@@ -312,7 +297,7 @@ class BodsDB:
                     connection_details["port"],
                     connection_details["user"]
                 )
-                logger.debug(f"Got DB token: {len(connection_details['password'])}")
+                logger.debug("Got DB token")
                 connection_details["sslmode"] = "require"
             else:
                 logger.debug("No password ARN found in environment variables, getting DB password direct")

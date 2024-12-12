@@ -1,6 +1,3 @@
-from json import load
-from os.path import exists
-
 from dqs_logger import logger
 from dqs_exception import LambdaTimeOutError
 import multiprocessing
@@ -35,7 +32,6 @@ class TimeOutHandler:
                 logger.warning("Terminating execution, time exceeded timeout limit.")
                 process.terminate()
                 raise LambdaTimeOutError("Exiting due to timed out")
-
         except Exception as e:
             logger.error(f"Error: {e}") 
             raise e

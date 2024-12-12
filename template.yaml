@@ -1534,3 +1534,11 @@ Resources:
               SSEAlgorithm: 'AES256'
       VersioningConfiguration:
         Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: Delete in 7 days after expiry
+            Status: Enabled
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 7
+            ExpiredObjectDeleteMarker: true

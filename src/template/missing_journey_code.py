@@ -14,7 +14,6 @@ def lambda_worker(event, check) -> None:
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
-
         df['vehicle_journey_code'] = df['vehicle_journey_code'].replace("", np.nan)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:

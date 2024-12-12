@@ -15,7 +15,7 @@ def lambda_worker(event, check) -> None:
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
-        logger.info(f"Looking in the Dataframes: {df.size}, \n{df.groupby('vehicle_journey_id').auto_sequence_number.idxmin()}")
+        logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmin()]
             df = df[~df["activity"].isin(_ALLOWED_ACTIVITY_FIRST_STOP)]

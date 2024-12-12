@@ -11,6 +11,7 @@ from data_persistance import PersistedData, PersistenceKey
 def get_df_vehicle_journey(check: Check, refresh=False) -> pd.DataFrame:
     """
     Get the dataframe containing the vehicle journey and the stop activity
+
     """
 
     persistence = PersistedData()
@@ -62,7 +63,7 @@ def get_df_vehicle_journey(check: Check, refresh=False) -> pd.DataFrame:
         )
     )
     df = pd.read_sql_query(result.statement, check.db.session.bind)
-    logger.info(f"Persisting Vehichle data DF for {check.file_id}")
+    logger.info(f"Persisting Vehicle data DF for {check.file_id}")
     persistence.save(PersistenceKey.VEHICLE_JOURNEY.to_check_value(check), df)
     return df
 
@@ -73,7 +74,6 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
 
     """
 
-    logger.info(f"Retrieving missing bus no DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
@@ -105,8 +105,7 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
             func.min(ServicePatternStop.id).label("service_pattern_stop_id"), # Get the first stop for Each Vehicle Journey
         )
     )
-    df = pd.read_sql_query(result.statement, check.db.session.bind)
-    return df
+    return pd.read_sql_query(result.statement, check.db.session.bind)
 
 
 def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
@@ -115,7 +114,6 @@ def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
 
     """
 
-    logger.info(f"Retrieving stop type DF for {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop

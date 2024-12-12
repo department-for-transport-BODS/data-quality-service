@@ -1,8 +1,8 @@
 from dqs_logger import logger
 from common import Check
 from enums import DQSTaskResultStatus
-from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
+from observation_results import ObservationResult
 import pandas as pd
 from time_out_handler import TimeOutHandler, get_timeout
 from dqs_exception import LambdaTimeOutError 
@@ -58,6 +58,7 @@ def lambda_worker(event, check) -> None:
 
             # Write the observations to database
             observation.write_observations()
+
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
@@ -65,6 +66,7 @@ def lambda_worker(event, check) -> None:
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
+    return
 
 
 def lambda_handler(event, context):
