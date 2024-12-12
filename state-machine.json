@@ -123,13 +123,13 @@
           }
         },
         {
-          "StartAt": "First Stop is Not a Timing Point",
+          "StartAt": "Data Prefetch",
           "States": {
-            "First Stop is Not a Timing Point": {
+            "Data Prefetch": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "Arguments": {
-                "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
+                "FunctionName": "${DataPrefetchLambdaArn}",
                 "Payload": "{% $states.input %}"
               },
               "Retry": [
@@ -152,6 +152,34 @@
             "Reuse of ServicePatternStop Query": {
               "Type": "Parallel",
               "Branches": [
+                {
+                  "StartAt": "First Stop is Not a Timing Point",
+                  "States": {
+                    "First Stop is Not a Timing Point": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:states:::lambda:invoke",
+                      "Arguments": {
+                        "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
+                        "Payload": "{% $states.input %}"
+                      },
+                      "Retry": [
+                        {
+                          "ErrorEquals": [
+                            "Lambda.ServiceException",
+                            "Lambda.AWSLambdaException",
+                            "Lambda.SdkClientException",
+                            "Lambda.TooManyRequestsException"
+                          ],
+                          "IntervalSeconds": 1,
+                          "MaxAttempts": 3,
+                          "BackoffRate": 2,
+                          "JitterStrategy": "FULL"
+                        }
+                      ],
+                      "End": true
+                    }
+                  }
+                },
                 {
                   "StartAt": "Last Stop is Not a Timing Point",
                   "States": {

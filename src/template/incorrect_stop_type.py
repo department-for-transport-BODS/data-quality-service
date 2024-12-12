@@ -56,7 +56,6 @@ def lambda_worker(event, check) -> None:
     return
 
 def lambda_handler(event, context):
-    timeout_handler = None
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
@@ -73,4 +72,3 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
         logger.exception(e)
         check.set_status(status)
-    return timeout_handler.get_result() if timeout_handler is not None else None

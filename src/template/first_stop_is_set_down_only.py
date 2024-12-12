@@ -2,9 +2,8 @@ from common import Check
 from enums import DQSTaskResultStatus
 from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey
-from dqs_logger import logger 
+from dqs_logger import logger
 from dqs_exception import LambdaTimeOutError
-from pandas import DataFrame
 from time_out_handler import TimeOutHandler, get_timeout
 # List of allowed activities for first stop
 _ALLOWED_ACTIVITY_FIRST_STOP = ["pickUp", "pickUpDriverRequest", "pickUpAndSetDown"]
@@ -15,7 +14,7 @@ def lambda_worker(event, check) -> None:
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
-        df: DataFrame = get_df_vehicle_journey(check)
+        df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}, \n{df.groupby('vehicle_journey_id').auto_sequence_number.idxmin()}")
         if not df.empty:
             df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmin()]
@@ -46,7 +45,6 @@ def lambda_worker(event, check) -> None:
 
 
 def lambda_handler(event, context):
-    timeout_handler = None
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
@@ -63,4 +61,3 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
         logger.exception(e)
         check.set_status(status)
-    return timeout_handler.get_result() if timeout_handler is not None else None

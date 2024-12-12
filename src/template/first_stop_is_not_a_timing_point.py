@@ -4,7 +4,7 @@ from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
 from time_out_handler import TimeOutHandler, get_timeout
-from dqs_exception import LambdaTimeOutError 
+from dqs_exception import LambdaTimeOutError
 
 _ALLOWED_IS_TIMING_POINT = True
 
@@ -15,7 +15,6 @@ def lambda_worker(event, check) -> None:
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
-
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
             df = df.loc[df.groupby("vehicle_journey_id").auto_sequence_number.idxmin()]
@@ -43,7 +42,6 @@ def lambda_worker(event, check) -> None:
         logger.info("Check status updated in DB")
 
 def lambda_handler(event, context):
-    timeout_handler = None
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
@@ -60,4 +58,3 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
         logger.exception(e)
         check.set_status(status)
-    return timeout_handler.get_result() if timeout_handler is not None else None

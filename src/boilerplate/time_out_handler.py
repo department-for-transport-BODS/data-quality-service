@@ -39,13 +39,3 @@ class TimeOutHandler:
         except Exception as e:
             logger.error(f"Error: {e}") 
             raise e
-
-    def get_result(self):
-        out_file = f"/tmp/df-output-{self._check.file_id}"
-        if exists(out_file):
-            with open(out_file, "r") as f:
-                result = load(f)
-            logger.info(f"Returning value for {self._check.file_id}/{self._check.check_id}")
-            return result
-        else:
-            logger.info(f"Returning null from {self._check.file_id}/{self._check.check_id}")

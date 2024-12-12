@@ -5,7 +5,7 @@ from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
 from observation_results import ObservationResult
 from time_out_handler import TimeOutHandler, get_timeout
-from dqs_exception import LambdaTimeOutError 
+from dqs_exception import LambdaTimeOutError
 
 
 def lambda_worker(event, check) -> None:
@@ -14,6 +14,7 @@ def lambda_worker(event, check) -> None:
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
+
         df['vehicle_journey_code'] = df['vehicle_journey_code'].replace("", np.nan)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
@@ -21,7 +22,6 @@ def lambda_worker(event, check) -> None:
             df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
             logger.info("Iterating over rows to add observations")
             # Sort the dataframe with vehicle journey id and auto sequence number
-            print(df)
             df = df.sort_values(
                 ["vehicle_journey_id", "auto_sequence_number"], ascending=True
             )
@@ -49,7 +49,6 @@ def lambda_worker(event, check) -> None:
     return
 
 def lambda_handler(event, context):
-    timeout_handler = None
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
@@ -66,4 +65,3 @@ def lambda_handler(event, context):
         logger.error(f"Check status failed due to {e}")
         logger.exception(e)
         check.set_status(status)
-    return timeout_handler.get_result() if timeout_handler is not None else None

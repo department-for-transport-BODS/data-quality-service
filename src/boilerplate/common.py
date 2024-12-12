@@ -184,19 +184,21 @@ class Check:
 
     def get_check_id(self):
         logger.debug(f"Retrieving check ID for {self._lambda_function}")
-        return self.db.session.scalar(
+        check = self.db.session.scalar(
             select(self.db.classes.dqs_checks).where(
                 func.replace(func.lower(self.db.classes.dqs_checks.observation), " ", "_") == self._lambda_function
             )
-        ).id
+        )
+        return check.id if check else 0
 
     def get_result_id(self, file_id, check_id):
-        return self.db.session.scalar(
+        result = self.db.session.scalar(
             select(self.db.classes.dqs_taskresults).where(
                 (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
                 & (self.db.classes.dqs_taskresults.checks_id == check_id)
             )
-        ).id
+        )
+        return result.id if result else 0
 
     def _extract_test_details_from_event(self):
         """
