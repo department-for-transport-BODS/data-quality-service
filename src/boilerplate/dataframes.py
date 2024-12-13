@@ -5,7 +5,7 @@ from sqlalchemy.sql.functions import coalesce
 from typing import List
 from sqlalchemy import and_, func, String, asc
 from dqs_logger import logger
-from data_persistance import PersistedData, PersistenceKey
+from data_persistence import PersistedData, PersistenceKey
 
 
 def get_df_vehicle_journey(check: Check, refresh=False) -> pd.DataFrame:

@@ -1541,4 +1541,3 @@ Resources:
             ExpirationInDays: 7
             NoncurrentVersionExpiration:
               NoncurrentDays: 7
-            ExpiredObjectDeleteMarker: true

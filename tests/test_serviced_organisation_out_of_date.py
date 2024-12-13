@@ -3,6 +3,7 @@ import os.path
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.serviced_organisation_data_is_out_of_date import lambda_handler, lambda_worker
+from tests.test_templates import lambda_invalid_check
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -14,8 +15,6 @@ logger.setLevel(logging.DEBUG)
 def test_lambda_handler_valid_check(
     mock_get_df_serviced_organisation, mock_observation, mock_check, mocked_context
 ):
-    event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -31,9 +30,8 @@ def test_lambda_handler_valid_check(
     ).dt.date
     mock_get_df_serviced_organisation.return_value = df
 
-    lambda_worker(event, context)
+    lambda_worker(None, mocked_check)
 
-    # assert mocked_check.validate_requested_check.called
     assert mock_get_df_serviced_organisation.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
@@ -42,8 +40,8 @@ def test_lambda_handler_valid_check(
         serviced_organisation_vehicle_journey_id=65271
     )
     assert mocked_observations.write_observations.called
-    # assert mocked_check.set_status.called
-    # mocked_check.set_status.assert_called_with("SUCCESS")
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
 
 
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
@@ -79,9 +77,8 @@ def test_lambda_handler_valid_check_fails(
         serviced_organisation_vehicle_journey_id=65164
     )
     assert mocked_observations.write_observations.called
-    # assert mocked_check.set_status.called
-    # mocked_check.set_status.assert_called_with("SUCCESS")
-
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
 
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
@@ -109,9 +106,13 @@ def test_lambda_handler_valid_check_pass(
 
     lambda_worker(event, mocked_check)
 
-    # assert mocked_check.validate_requested_check.called
     assert mock_get_df_serviced_organisation.called
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_observations.write_observations.called
-    # assert mocked_check.set_status.called
-    # mocked_check.set_status.assert_called_with("SUCCESS")
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
+
+@patch("src.template.serviced_organisation_data_is_out_of_date.Check")
+def test_lambda_handler_invalid_check(mock_check, mocked_context):
+    lambda_invalid_check(lambda_handler, mock_check, mocked_context)
+

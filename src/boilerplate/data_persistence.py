@@ -46,6 +46,7 @@ class S3Backend(object):
         self._bucket = environ.get("CACHE_BUCKET")
         if self._bucket is None:
             raise ValueError("CACHE_BUCKET is not set in environment for S3 Backend Persistence")
+        logger.debug(f"Initialised S3 backend using {self._bucket}")
 
     def save(self, key, data):
         self._s3.put_object(bucket=self._bucket, key=key, data=dumps(data))

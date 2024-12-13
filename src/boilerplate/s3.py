@@ -1,10 +1,11 @@
-import boto3
+from boto3 import client
+from botocore.exceptions import ClientError
 from dqs_logger import logger
 
 class S3Client:
 
     def __init__(self):
-        self._s3_client = boto3.client(
+        self._s3_client = client(
             "s3"
         )
 
@@ -12,12 +13,16 @@ class S3Client:
         try:
             self._s3_client.head_object(Bucket=bucket, Key=key)
             return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                return False
+            logger.error(f"Error checking if object exists: {e}")
+            raise
         except self._s3_client.exceptions.NoSuchKey as e:
             if e.response['Error']['Code'] == '404':
                 return False
-            else:
-                logger.error(f"Error checking if object exists: {e}")
-                raise
+            logger.error(f"Error checking if object exists: {e}")
+            raise
 
     def put_object(self, bucket, key, data):
         try:
