@@ -61,7 +61,7 @@ Globals:
             - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
             - postgres
         CACHE_BUCKET: !Ref DQSCacheBucket
-        CACHE_BACKEND: S3
+        CACHE_BACKEND: None
 
 Resources:
   #########################################
