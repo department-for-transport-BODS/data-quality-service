@@ -4,7 +4,7 @@ import numpy as np
 import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
-from sqlalchemy import and_, func, String, asc
+from sqlalchemy import and_, func, String, asc, case
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -489,5 +489,26 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
             ),
         )
     )
+
+    return pd.read_sql_query(result.statement, check.db.session.bind)
+
+
+def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFrame:
+    """
+    Get the naptan atco code availability and returned the dataframe containing the extra
+    column atco_code_exists returns the boolean value which is True if the atco code is available
+    otherwise False
+    """
+
+    NaptanStopPoint = check.db.classes.naptan_stoppoint
+
+    result = check.db.session.query(
+        NaptanStopPoint,
+        case(
+            (func.lower(NaptanStopPoint.atco_code).in_(atco_codes), True), else_=False
+        ).label(
+            "atco_code_exists"
+        ),  # Label the new column as "atco_code_exists"
+    ).where(func.lower(NaptanStopPoint.atco_code).in_(atco_codes))
 
     return pd.read_sql_query(result.statement, check.db.session.bind)
