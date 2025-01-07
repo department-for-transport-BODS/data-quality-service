@@ -20,6 +20,7 @@ def lambda_worker(event, check):
             # List of atco codes from naptan stop point
             atco_codes_df = get_naptan_availablilty(check, atco_codes)
             atco_codes_df["atco_code_lower"] = atco_codes_df.atco_code.str.lower()
+            atco_codes_df = atco_codes_df.drop("atco_code", axis=1)
 
             df["atco_code_lower"] = df.atco_code.str.lower()
             df = pd.merge(df, atco_codes_df, on="atco_code_lower", how="left")
