@@ -1,5 +1,5 @@
 boto3
-SQLAlchemy == 2.0.29
+SQLAlchemy == 2.0.37
 psycopg2-binary == 2.9.9
 GeoAlchemy2 == 0.14.7
 pydantic == 2.7.0
