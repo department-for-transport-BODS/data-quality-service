@@ -11,12 +11,22 @@ def lambda_worker(event, check) -> None:
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        observation = ObservationResult(check)
         org_txc_attributes = OrganisationTxcFileAttributes(check)
-        logger.info(f"Checking Licence Number - {org_txc_attributes.licence_number}")
-        if not org_txc_attributes.licence_number.startswith(IgnoredLicenceFormat.UNREGISTERED.value): 
+        licence_number = org_txc_attributes.licence_number
+        mode = (
+            org_txc_attributes.service_mode.lower()
+            if org_txc_attributes.service_mode
+            and org_txc_attributes.service_mode.strip() != ""
+            else "bus"
+        )
+        if mode == "coach":
+            logger.info(f"Ignoring check, ServiceMode: {mode}")
+        elif licence_number.startswith(IgnoredLicenceFormat.UNREGISTERED.value):
+            logger.info(f"Ignoring check, LicenseNumber: {licence_number}")
+        else:
+            observation = ObservationResult(check)
             if not org_txc_attributes.validate_licence_number():
-                details = f"The Licence Number {org_txc_attributes.licence_number} does not match the Licence Number(s) registered to your BODS organisation profile."
+                details = f"The Licence Number {licence_number} does not match the Licence Number(s) registered to your BODS organisation profile."
                 observation.add_observation(details=details)
                 observation.write_observations()
     except Exception as e:
@@ -27,7 +37,6 @@ def lambda_worker(event, check) -> None:
         logger.info("Check status updated in DB")
 
     return
-
 
 
 def lambda_handler(event, context):
