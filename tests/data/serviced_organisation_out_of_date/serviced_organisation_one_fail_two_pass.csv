@@ -1,11 +1,11 @@
-index,vehicle_journey_id,serviced_organisation_id,serviced_organisation_name,serviced_organisation_code,serviced_organisation_start_date,serviced_organisation_end_date
-0,65271,67,Worcester Sixth Form College,WSFC,2021-11-01,2021-12-17
-1,65271,67,Worcester Sixth Form College,WSFC,2022-01-04,2022-02-18
-2,65271,67,Worcester Sixth Form College,WSFC,2022-02-28,2022-04-08
-3,65271,67,Worcester Sixth Form College,WSFC,2022-04-25,2022-05-27
-4,65271,67,Worcester Sixth Form College,WSFC,2022-10-31,2022-12-16
-5,65271,67,Worcester Sixth Form College,WSFC,2022-06-06,2022-07-20
-6,65271,67,Worcester Sixth Form College,WSFC,2022-08-30,2022-10-21
+index,vehicle_journey_id,serviced_organisation_id,serviced_organisation_name,serviced_organisation_code,serviced_organisation_start_date,serviced_organisation_end_date,serviced_organisation_vehicle_journey_id
+0,65271,67,Worcester Sixth Form College,WSFC,2021-11-01,2021-12-17,"123123"
+1,65271,67,Worcester Sixth Form College,WSFC,2022-01-04,2022-02-18,"123123"
+2,65271,67,Worcester Sixth Form College,WSFC,2022-02-28,2022-04-08,"123123"
+3,65271,67,Worcester Sixth Form College,WSFC,2022-04-25,2022-05-27,"123123"
+4,65271,67,Worcester Sixth Form College,WSFC,2022-10-31,2022-12-16,"123123"
+5,65271,67,Worcester Sixth Form College,WSFC,2022-06-06,2022-07-20,"123123"
+6,65271,67,Worcester Sixth Form College,WSFC,2022-08-30,2022-10-21,"123123"
 7,65272,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
 8,65272,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
 9,65272,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
