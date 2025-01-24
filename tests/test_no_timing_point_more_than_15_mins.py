@@ -5,15 +5,24 @@ from src.template.no_timing_point_for_more_than_15_minutes import lambda_worker
 
 @patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
 @patch("src.template.no_timing_point_for_more_than_15_minutes.ObservationResult")
+@patch(
+    "src.template.no_timing_point_for_more_than_15_minutes.OrganisationTxcFileAttributes"
+)
 @patch("src.template.no_timing_point_for_more_than_15_minutes.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
+    mock_get_df_vehicle_journey,
+    mock_txc_file_attributes,
+    mock_observation,
+    mock_check,
+    mocked_context,
 ):
     event = {"Records": [{"body": '{"file_id": 40, "check_id": 14, "result_id": 8}'}]}
     context = mocked_context
     mocked_check = mock_check.return_value
+    mocked_txc_file_attributes = mock_txc_file_attributes.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
+    mocked_txc_file_attributes.service_mode = "bus"
     mocked_observations.add_observation = MagicMock()
     mocked_observations.write_observations = MagicMock()
     mocked_check.set_status = MagicMock()
@@ -28,7 +37,6 @@ def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey.return_value = df
     lambda_worker(event, mocked_check)
 
-    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
@@ -37,5 +45,38 @@ def test_lambda_handler_valid_check(
         service_pattern_stop_id=536303,
     )
     assert mocked_observations.write_observations.called
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
+
+
+@patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
+@patch("src.template.no_timing_point_for_more_than_15_minutes.ObservationResult")
+@patch(
+    "src.template.no_timing_point_for_more_than_15_minutes.OrganisationTxcFileAttributes"
+)
+@patch("src.template.no_timing_point_for_more_than_15_minutes.get_df_vehicle_journey")
+def test_lambda_handler_valid_check_coach(
+    mock_get_df_vehicle_journey,
+    mock_txc_file_attributes,
+    mock_observation,
+    mock_check,
+    mocked_context,
+):
+    event = {"Records": [{"body": '{"file_id": 40, "check_id": 14, "result_id": 8}'}]}
+    context = mocked_context
+    mocked_check = mock_check.return_value
+    mocked_check.validate_requested_check.return_value = True
+    mocked_observations = mock_observation.return_value
+    mocked_txc_file_attributes = mock_txc_file_attributes.return_value
+    mocked_txc_file_attributes.service_mode = "coach"
+    mocked_observations.add_observation = MagicMock()
+    mocked_observations.write_observations = MagicMock()
+    mocked_check.set_status = MagicMock()
+    mocked_observations.observations = [1, 3, 4]
+    lambda_worker(event, mocked_check)
+
+    assert mock_get_df_vehicle_journey.not_called
+    assert mocked_observations.add_observation.call_count == 0
+
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")

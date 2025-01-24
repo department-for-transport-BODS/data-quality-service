@@ -24,7 +24,7 @@ def test_lambda_handler_valid_check(
     mocked_txc_attributes.validate_licence_number.return_value = True
     mocked_txc_attributes.licence_number = "VALIDLICENCE"
     lambda_worker(event, mocked_check)
-    
+
     assert mocked_observations.add_observation.call_count == 0
     # assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
@@ -33,7 +33,7 @@ def test_lambda_handler_valid_check(
     mocked_txc_attributes.validate_licence_number.return_value = True
     mocked_txc_attributes.licence_number = "INVALIDLICENCE"
     lambda_worker(event, mocked_check)
-    
+
     assert mocked_observations.add_observation.call_count == 0
     # assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
@@ -43,6 +43,26 @@ def test_lambda_handler_valid_check(
     mocked_txc_attributes.validate_licence_number.return_value = False
     mocked_txc_attributes.licence_number = "UZLICENCE"
     lambda_worker(event, mocked_check)
-    
+
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
+
+    # Scenario of bypassing when the service mode is coach
+    mocked_txc_attributes.validate_licence_number.return_value = False
+    mocked_txc_attributes.licence_number = "VALIDLICENCE"
+    mocked_txc_attributes.service_mode = "coach"
+    lambda_worker(event, mocked_check)
+
+    assert mocked_observations.add_observation.call_count == 0
+    assert mocked_check.set_status.called
+    mocked_check.set_status.assert_called_with("SUCCESS")
+
+    # Scenario of working when the service mode is bus
+    mocked_txc_attributes.validate_licence_number.return_value = False
+    mocked_txc_attributes.licence_number = "VALIDLICENCE"
+    mocked_txc_attributes.service_mode = "bus"
+    lambda_worker(event, mocked_check)
+
+    assert mocked_observations.add_observation.call_count == 1
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
