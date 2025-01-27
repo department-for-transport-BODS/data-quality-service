@@ -11,7 +11,7 @@ from tests.test_templates import lambda_invalid_check
 @patch("src.template.missing_bus_working_number.OrganisationTxcFileAttributes")
 @patch("src.template.missing_bus_working_number.get_df_missing_bus_working_number")
 def test_lambda_handler_valid_check(
-    mock_get_df_missing_bus_block_number, mock_observation, mock_check
+    mock_get_df_missing_bus_block_number,mock_txc_file_attributes, mock_observation, mock_check
 ):
     mocked_check = mock_check.return_value
     mocked_txc_file_attributes = mock_txc_file_attributes.return_value
