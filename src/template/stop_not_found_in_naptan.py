@@ -69,9 +69,5 @@ def lambda_handler(event, context):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
-<<<<<<< HEAD
         logger.exception(e)
         check.set_status(status)
-=======
-        check.set_status(status)
->>>>>>> dev

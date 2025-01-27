@@ -92,7 +92,7 @@ def test_lambda_handler_valid_pass_check_coach(
     mocked_otc_service.is_service_exists.return_value = False
     mocked_otc_inactive_service = mock_otc_inactive_service.return_value
     mocked_otc_inactive_service.is_service_exists.return_value = False
-    lambda_worker(event, mocked_check)
+    lambda_worker(None, mocked_check)
     assert mocked_observations.add_observation.call_count == 0
 
     assert mocked_check.set_status.called
