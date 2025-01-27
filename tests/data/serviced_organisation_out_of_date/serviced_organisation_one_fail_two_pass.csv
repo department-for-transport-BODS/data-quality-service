@@ -1,0 +1,87 @@
+index,vehicle_journey_id,serviced_organisation_id,serviced_organisation_name,serviced_organisation_code,serviced_organisation_start_date,serviced_organisation_end_date,serviced_organisation_vehicle_journey_id
+0,65271,67,Worcester Sixth Form College,WSFC,2021-11-01,2021-12-17,"123123"
+1,65271,67,Worcester Sixth Form College,WSFC,2022-01-04,2022-02-18,"123123"
+2,65271,67,Worcester Sixth Form College,WSFC,2022-02-28,2022-04-08,"123123"
+3,65271,67,Worcester Sixth Form College,WSFC,2022-04-25,2022-05-27,"123123"
+4,65271,67,Worcester Sixth Form College,WSFC,2022-10-31,2022-12-16,"123123"
+5,65271,67,Worcester Sixth Form College,WSFC,2022-06-06,2022-07-20,"123123"
+6,65271,67,Worcester Sixth Form College,WSFC,2022-08-30,2022-10-21,"123123"
+7,65272,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
+8,65272,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
+9,65272,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
+10,65272,68,Worcestershire Schools,WORCS,2021-04-20,2021-05-28
+11,65272,68,Worcestershire Schools,WORCS,2021-06-07,2021-07-22
+12,65272,68,Worcestershire Schools,WORCS,2021-09-03,2021-10-22
+13,65272,68,Worcestershire Schools,WORCS,2021-11-01,2021-12-17
+14,65272,68,Worcestershire Schools,WORCS,2022-01-04,2022-02-18
+15,65272,68,Worcestershire Schools,WORCS,2022-02-28,2022-04-08
+16,65272,68,Worcestershire Schools,WORCS,2022-04-25,2022-05-27
+17,65272,68,Worcestershire Schools,WORCS,2022-06-06,2022-07-21
+18,65272,68,Worcestershire Schools,WORCS,2022-09-05,2022-10-21
+19,65272,68,Worcestershire Schools,WORCS,2022-10-31,2026-12-16
+20,65273,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
+21,65273,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
+22,65273,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
+23,65273,68,Worcestershire Schools,WORCS,2021-04-20,2021-05-28
+24,65273,68,Worcestershire Schools,WORCS,2021-06-07,2021-07-22
+25,65273,68,Worcestershire Schools,WORCS,2021-09-03,2021-10-22
+26,65273,68,Worcestershire Schools,WORCS,2021-11-01,2021-12-17
+27,65273,68,Worcestershire Schools,WORCS,2022-01-04,2022-02-18
+28,65273,68,Worcestershire Schools,WORCS,2022-02-28,2022-04-08
+29,65273,68,Worcestershire Schools,WORCS,2022-04-25,2022-05-27
+30,65273,68,Worcestershire Schools,WORCS,2022-06-06,2022-07-21
+31,65273,68,Worcestershire Schools,WORCS,2022-09-05,2022-10-21
+32,65273,68,Worcestershire Schools,WORCS,2022-10-31,2026-12-16
+33,65274,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
+34,65274,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
+35,65274,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
+36,65274,68,Worcestershire Schools,WORCS,2021-04-20,2021-05-28
+37,65274,68,Worcestershire Schools,WORCS,2021-06-07,2021-07-22
+38,65274,68,Worcestershire Schools,WORCS,2021-09-03,2021-10-22
+39,65274,68,Worcestershire Schools,WORCS,2021-11-01,2021-12-17
+40,65274,68,Worcestershire Schools,WORCS,2022-01-04,2022-02-18
+41,65274,68,Worcestershire Schools,WORCS,2022-02-28,2022-04-08
+42,65274,68,Worcestershire Schools,WORCS,2022-04-25,2022-05-27
+43,65274,68,Worcestershire Schools,WORCS,2022-06-06,2022-07-21
+44,65274,68,Worcestershire Schools,WORCS,2022-09-05,2022-10-21
+45,65274,68,Worcestershire Schools,WORCS,2022-10-31,2026-12-16
+46,65259,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
+47,65259,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
+48,65259,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
+49,65259,68,Worcestershire Schools,WORCS,2021-04-20,2021-05-28
+50,65259,68,Worcestershire Schools,WORCS,2021-06-07,2021-07-22
+51,65259,68,Worcestershire Schools,WORCS,2021-09-03,2021-10-22
+52,65259,68,Worcestershire Schools,WORCS,2021-11-01,2021-12-17
+53,65259,68,Worcestershire Schools,WORCS,2022-01-04,2022-02-18
+54,65259,68,Worcestershire Schools,WORCS,2022-02-28,2022-04-08
+55,65259,68,Worcestershire Schools,WORCS,2022-04-25,2022-05-27
+56,65259,68,Worcestershire Schools,WORCS,2022-06-06,2022-07-21
+57,65259,68,Worcestershire Schools,WORCS,2022-09-05,2022-10-21
+58,65259,68,Worcestershire Schools,WORCS,2022-10-31,2026-12-16
+59,65260,69,Tenbury High Ormiston Academy,THOA,2021-11-01,2021-12-17
+60,65260,69,Tenbury High Ormiston Academy,THOA,2022-01-05,2022-02-18
+61,65260,69,Tenbury High Ormiston Academy,THOA,2022-02-28,2022-04-08
+62,65260,69,Tenbury High Ormiston Academy,THOA,2022-04-25,2022-05-27
+63,65260,69,Tenbury High Ormiston Academy,THOA,2022-06-06,2022-07-21
+64,65260,69,Tenbury High Ormiston Academy,THOA,2022-09-05,2022-10-21
+65,65260,69,Tenbury High Ormiston Academy,THOA,2022-10-31,2026-12-16
+66,65261,68,Worcestershire Schools,WORCS,2020-11-02,2020-12-18
+67,65261,68,Worcestershire Schools,WORCS,2021-01-05,2021-03-12
+68,65261,68,Worcestershire Schools,WORCS,2021-02-22,2021-04-01
+69,65261,68,Worcestershire Schools,WORCS,2021-04-20,2021-05-28
+70,65261,68,Worcestershire Schools,WORCS,2021-06-07,2021-07-22
+71,65261,68,Worcestershire Schools,WORCS,2021-09-03,2021-10-22
+72,65261,68,Worcestershire Schools,WORCS,2021-11-01,2021-12-17
+73,65261,68,Worcestershire Schools,WORCS,2022-01-04,2022-02-18
+74,65261,68,Worcestershire Schools,WORCS,2022-02-28,2022-04-08
+75,65261,68,Worcestershire Schools,WORCS,2022-04-25,2022-05-27
+76,65261,68,Worcestershire Schools,WORCS,2022-06-06,2022-07-21
+77,65261,68,Worcestershire Schools,WORCS,2022-09-05,2022-10-21
+78,65261,68,Worcestershire Schools,WORCS,2022-10-31,2026-12-16
+79,65262,67,Worcester Sixth Form College,WSFC,2021-11-01,2021-12-17
+80,65262,67,Worcester Sixth Form College,WSFC,2022-01-04,2022-02-18
+81,65262,67,Worcester Sixth Form College,WSFC,2022-02-28,2022-04-08
+82,65262,67,Worcester Sixth Form College,WSFC,2022-04-25,2022-05-27
+83,65262,67,Worcester Sixth Form College,WSFC,2022-10-31,2022-12-16
+84,65262,67,Worcester Sixth Form College,WSFC,2022-06-06,2022-07-20
+85,65262,67,Worcester Sixth Form College,WSFC,2022-08-30,2022-10-21

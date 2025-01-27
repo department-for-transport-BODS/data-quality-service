@@ -15,10 +15,18 @@ def lambda_worker(event, check) -> None:
         org_txc_attributes = OrganisationTxcFileAttributes(check)
         logger.info(f"Checking ServiceCode: {org_txc_attributes.service_code}")
         service_code = org_txc_attributes.service_code
+        mode = (
+            org_txc_attributes.service_mode.lower()
+            if org_txc_attributes.service_mode
+            and org_txc_attributes.service_mode.strip() != ""
+            else "bus"
+        )
 
         # If the service code starts with UZ, ignore the check
         if service_code.startswith("UZ"):
             logger.info(f"Ignoring check, ServiceCode: {service_code} starts with UZ")
+        elif mode == "coach":
+            logger.info(f"Ignoring check, ServiceMode: {mode}")
         else:
             # Check for the service in otc_service table
             otc_service = OtcService(check)

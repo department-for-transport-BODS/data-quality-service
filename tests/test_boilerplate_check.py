@@ -25,6 +25,9 @@ def test_check_details_extraction():
     assert check2.check_id == 1
     assert check2.file_id == 50
 
+# TODO: As of now, no error is raised
+# def test_check_details_failed_extraction(caplog):
+#     check = Check(MALFORMED_SQS_EVENT)
 
 def test_check_details_failed_extraction(caplog):
     check = Check(MALFORMED_SQS_EVENT, "")
@@ -32,6 +35,18 @@ def test_check_details_failed_extraction(caplog):
         assert check.check_id is None
     assert "Failed to extract a valid payload" in caplog.text
 
+# TODO: Need to change the code with DB
+# def test_invalid_result_record():
+#     mock_db = MockedDB()
+#     test_task_result = mock_db.classes.dqs_taskresults(
+#         id=2, checks_id=1, status="PENDING", transmodel_txcfileattributes_id=50
+#     )
+#     mock_db.session.add(test_task_result)
+#     mock_db.session.flush()
+#     check = Check(SAMPLE_SQS_EVENT)
+#     with patch.object(check, "_db", new=mock_db):
+#         with raises(ValueError):
+#             check.validate_requested_check()
 
 def test_invalid_result_record():
     mock_db = MockedDB()
@@ -45,6 +60,18 @@ def test_invalid_result_record():
         with raises(ValueError):
             check.validate_requested_check()
 
+# TODO: Need to change the code with DB
+# def test_null_result_status():
+#     mock_db = MockedDB()
+#     test_task_result = mock_db.classes.data_quality_taskresults(
+#         id=1, checks_id=1, status=None, transmodel_txcfileattributes_id=50
+#     )
+#     mock_db.session.add(test_task_result)
+#     mock_db.session.flush()
+#     check = Check(SAMPLE_SQS_EVENT)
+#     with patch.object(check, "_db", new=mock_db):
+#         with raises(ValueError):
+#             check.validate_requested_check()
 
 def test_invalid_result_status():
     mock_db = MockedDB()
@@ -58,6 +85,27 @@ def test_invalid_result_status():
         with raises(ValueError):
             check.validate_requested_check()
 
+# TODO: Need to change the code with DB
+# def test_set_status():
+#     mock_db = MockedDB()
+#     test_task_result = mock_db.classes.data_quality_taskresults(
+#         id=1, checks_id=1, status="PENDING", transmodel_txcfileattributes_id=50
+#     )
+#     mock_db.session.add(test_task_result)
+#     mock_db.session.flush()
+#     check = Check(SAMPLE_SQS_EVENT)
+#     with patch.object(check, "_db", new=mock_db):
+#         check.set_status("SUCCESS")
+#     assert (
+#         mock_db.session.scalars(
+#             select(mock_db.classes.data_quality_taskresults).where(
+#                 mock_db.classes.data_quality_taskresults.id == 1
+#             )
+#         )
+#         .one()
+#         .status
+#         == "SUCCESS"
+#     )
 
 def test_null_result_status():
     mock_db = MockedDB()
