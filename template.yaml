@@ -1479,7 +1479,7 @@ Resources:
         CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
-      Name: !Sub '${ProjectName}-${Environment}-DQSStateMachine'
+      Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref FirstStopIsSetDownOnlyLambda
