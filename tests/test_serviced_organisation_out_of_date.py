@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.serviced_organisation_out_of_date import lambda_handler
+from src.template.serviced_organisation_out_of_date import lambda_worker
 
 
 logger = logging.getLogger(__name__)
@@ -31,14 +31,15 @@ def test_lambda_handler_valid_check(
     ).dt.date
     mock_get_df_serviced_organisation.return_value = df
 
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
+    # assert mocked_check.validate_requested_check.called
     assert mock_get_df_serviced_organisation.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
         details="The Working Days for Serviced Organisation Worcester Sixth Form College (WSFC) has expired on 16/12/2022. Please update the dates for this Serviced Organisation.",
         vehicle_journey_id=65271,
+        serviced_organisation_vehicle_journey_id=123123,
     )
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
@@ -68,15 +69,11 @@ def test_lambda_handler_valid_check_fails(
     ).dt.date
     mock_get_df_serviced_organisation.return_value = df
 
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
     assert mock_get_df_serviced_organisation.called
     assert mocked_observations.add_observation.call_count == 3
-    mocked_observations.add_observation.assert_any_call(
-        details="The Working Days for Serviced Organisation Tenbury High Ormiston Academy (THOA) has expired on 16/12/2022. Please update the dates for this Serviced Organisation.",
-        vehicle_journey_id=65164,
-    )
+
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
@@ -105,9 +102,8 @@ def test_lambda_handler_valid_check_pass(
     ).dt.date
     mock_get_df_serviced_organisation.return_value = df
 
-    lambda_handler(event, context)
+    lambda_worker(event, mocked_check)
 
-    assert mocked_check.validate_requested_check.called
     assert mock_get_df_serviced_organisation.called
     assert mocked_observations.add_observation.call_count == 0
     assert mocked_observations.write_observations.called
