@@ -1261,12 +1261,12 @@ Resources:
   ###########################################
   ####       LAMBDA INVOKE        ####
   ###########################################
-  LambdaInvoke:
+  InitiateLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-lambda-invoke'
+      FunctionName: !Sub '${ProjectName}-${Environment}-intiate-lambda'
       CodeUri: ./src/template
-      Handler: lambda-invoke.lambda_handler
+      Handler: intiate-lambda.lambda_handler
       Layers: !If
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -1299,12 +1299,12 @@ Resources:
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       LoggingConfig:
-        LogGroup: !Ref LambdaInvokeLogGroup
+        LogGroup: !Ref InitiateLambdaLogGroup
 
-  LambdaInvokeLogGroup:
+  InitiateLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-lambda-invoke-log'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-intiate-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
@@ -1529,7 +1529,7 @@ Resources:
         CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
-        LambdaInvokeArn: !GetAtt LambdaInvoke.Arn
+        InitiateLambdaArn: !GetAtt InitiateLambda.Arn
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
@@ -1567,7 +1567,7 @@ Resources:
         - LambdaInvokePolicy:
             FunctionName: !Ref DataPreFetchLambda
         - LambdaInvokePolicy:
-            FunctionName: !Ref LambdaInvoke
+            FunctionName: !Ref InitiateLambda
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket

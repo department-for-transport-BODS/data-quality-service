@@ -1,14 +1,14 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Lambda Invoke",
+  "StartAt": "Initiate Lambda",
   "States": {
-      "Lambda Invoke": {
+      "Initiate Lambda": {
         "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
+        "Resource": "arn:aws:states:::initate:lambda",
         "Output": "{% $states.result.Payload %}",
         "Arguments": {
-          "FunctionName": "${LambdaInvokeArn}",
+          "FunctionName": "${InitiateLambdaArn}",
           "Payload": "{% $states.input %}"
         },
         "Retry": [
