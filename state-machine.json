@@ -2,7 +2,7 @@
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
   "StartAt": "Split out to initial steps",
-  "States": {
+  "States": { 
     "Split out to initial steps": {
       "Type": "Parallel",
       "Branches": [
@@ -162,6 +162,7 @@
                         "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -191,6 +192,7 @@
                         "FunctionName": "${LastStopIsNotATimingPointLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -220,6 +222,7 @@
                         "FunctionName": "${NoTimingPointMoreThan15MinsLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -249,6 +252,7 @@
                         "FunctionName": "${StopNotFoundInNaptanLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -278,6 +282,7 @@
                         "FunctionName": "${MissingJourneyCodeLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -307,6 +312,7 @@
                         "FunctionName": "${LastStopIsPickUpOnlyLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -336,6 +342,7 @@
                         "FunctionName": "${FirstStopIsSetDownOnlyLambdaArn}",
                         "Payload": "{% $states.input %}"
                       },
+                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
