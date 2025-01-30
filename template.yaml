@@ -1261,7 +1261,7 @@ Resources:
   ###########################################
   ####       LAMBDA INVOKE        ####
   ###########################################
-  DataPreFetchLambda:
+  LambdaInvoke:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-lambda-invoke'
@@ -1299,9 +1299,9 @@ Resources:
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       LoggingConfig:
-        LogGroup: !Ref DataPreFetchLambdaLogGroup
+        LogGroup: !Ref LambdaInvokeLogGroup
 
-  DataPreFetchLambdaLogGroup:
+  LambdaInvokeLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-lambda-invoke'
@@ -1529,6 +1529,7 @@ Resources:
         CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
+        LambdaInvokeArn: !GetAtt LambdaInvoke.Arn
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
@@ -1565,6 +1566,8 @@ Resources:
             FunctionName: !Ref ServicedOrganisationOutOfDateLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref DataPreFetchLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref LambdaInvoke
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
