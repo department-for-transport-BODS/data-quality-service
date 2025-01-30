@@ -1,7 +1,7 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Split out to initial steps",
+  "StartAt": "ProcessInput",
   "States": {
       "ProcessInput": {
         "Type": "Pass",
