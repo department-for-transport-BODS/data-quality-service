@@ -1,15 +1,48 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "ProcessInput",
+  "StartAt": "Lambda Invoke",
   "States": {
-      "ProcessInput": {
-        "Type": "Pass",
-        "Next": "Split out to initial steps",
-        "Assign": {
-          "fileId": "{% $states.input %}"
-        }
+      "Lambda Invoke": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Output": "{% $states.result.Payload %}",
+        "Arguments": {
+          "FunctionName": "",
+          "Payload": "{% $states.input %}"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 1,
+            "MaxAttempts": 3,
+            "BackoffRate": 2,
+            "JitterStrategy": "FULL"
+          }
+        ],
+        "Next": "Map"
       },
+      "Map": {
+        "Type": "Map",
+        "ItemProcessor": {
+          "ProcessorConfig": {
+            "Mode": "DISTRIBUTED",
+            "ExecutionType": "STANDARD"
+          },
+          "StartAt": "ProcessInput",
+          "States": {
+            "ProcessInput": {
+              "Type": "Pass",
+              "Next": "Split out to initial steps",
+              "Assign": {
+                "fileId": "{% $states.input %}"
+              }
+            },
     "Split out to initial steps": {
       "Type": "Parallel",
       "Branches": [
@@ -456,5 +489,8 @@
       ],
       "End": true
     }
+  }
+}
+}
   }
 }
