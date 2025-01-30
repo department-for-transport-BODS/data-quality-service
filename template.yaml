@@ -1266,7 +1266,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-intiate-lambda'
       CodeUri: ./src/template
-      Handler: intiate-lambda.lambda_handler
+      Handler: initiate_lambda.lambda_handler
       Layers: !If
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -1304,7 +1304,7 @@ Resources:
   InitiateLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-intiate-lambda'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-initiate-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
