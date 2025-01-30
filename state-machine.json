@@ -490,7 +490,10 @@
       "End": true
     }
   }
-}
-}
+},
+"End": true,
+"Label": "Map",
+"MaxConcurrency": 1000
+      }
+    }
   }
-}
