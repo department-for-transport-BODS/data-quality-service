@@ -1304,7 +1304,7 @@ Resources:
   LambdaInvokeLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-lambda-invoke'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-lambda-invoke-log'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
