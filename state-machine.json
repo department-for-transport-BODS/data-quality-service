@@ -5,7 +5,7 @@
   "States": {
       "Initiate Lambda": {
         "Type": "Task",
-        "Resource": "arn:aws:states:::initate:lambda",
+        "Resource": "arn:aws:states:::lambda:invoke",
         "Output": "{% $states.result.Payload %}",
         "Arguments": {
           "FunctionName": "${InitiateLambdaArn}",
