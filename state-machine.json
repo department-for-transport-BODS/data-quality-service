@@ -2,7 +2,14 @@
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
   "StartAt": "Split out to initial steps",
-  "States": { 
+  "States": {
+      "ProcessInput": {
+        "Type": "Pass",
+        "Next": "Split out to initial steps",
+        "Assign": {
+          "fileId": "{% $states.input %}"
+        }
+      },
     "Split out to initial steps": {
       "Type": "Parallel",
       "Branches": [
@@ -15,7 +22,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -44,7 +51,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${MissingBusWorkingNumberLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -73,7 +80,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${IncorrectStopTypeLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -102,7 +109,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${IncorrectNocLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -130,7 +137,7 @@
               "Resource": "arn:aws:states:::lambda:invoke",
               "Arguments": {
                 "FunctionName": "${DataPreFetchLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -160,9 +167,8 @@
                       "Resource": "arn:aws:states:::lambda:invoke",
                       "Arguments": {
                         "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -190,9 +196,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${LastStopIsNotATimingPointLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -220,9 +225,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${NoTimingPointMoreThan15MinsLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -250,9 +254,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${StopNotFoundInNaptanLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -280,9 +283,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${MissingJourneyCodeLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -310,9 +312,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${LastStopIsPickUpOnlyLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -340,9 +341,8 @@
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
                         "FunctionName": "${FirstStopIsSetDownOnlyLambdaArn}",
-                        "Payload": "{% $states.input %}"
+                        "Payload": "{% $fileId %}"
                       },
-                      "Input": "{% $states.input %}",
                       "Retry": [
                         {
                           "ErrorEquals": [
@@ -375,7 +375,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${CancelledServiceAppearingActiveLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -404,7 +404,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${DuplicateJourneyCodeLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
@@ -433,7 +433,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${IncorrectLicenceNumberLambdaArn}",
-                "Payload": "{% $states.input %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
