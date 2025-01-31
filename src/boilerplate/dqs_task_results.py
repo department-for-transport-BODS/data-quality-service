@@ -28,14 +28,22 @@ class DQTaskResults:
         """
         task_results_to_create = []
         for txc_file_attribute_id, check in combinations:
-            logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
-            task_results_to_create.append({
-                "status": TaskResultsStatus.PENDING.value,
-                "message": "",
-                "checks_id": check.id,
-                "dataquality_report_id": report_id,
-                "transmodel_txcfileattributes_id": txc_file_attribute_id,
-            })
+            task_result = self._table_name(
+                status=TaskResultsStatus.PENDING.value,
+                message="",
+                checks_id=check.id,
+                dataquality_report_id=report_id,
+                transmodel_txcfileattributes_id=txc_file_attribute_id  # Assuming txc_file_attribute_id is an object
+            )
+            task_results_to_create.append(task_result)
+            # logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
+            # task_results_to_create.append({
+            #     "status": TaskResultsStatus.PENDING.value,
+            #     "message": "",
+            #     "checks_id": check.id,
+            #     "dataquality_report_id": report_id,
+            #     "transmodel_txcfileattributes_id": txc_file_attribute_id,
+            # })
 
         # Execute the insert
         # self._db.session.execute(
