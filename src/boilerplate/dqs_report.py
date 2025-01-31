@@ -39,10 +39,11 @@ class DQReport:
                 self._db.session.delete(existing_report)
 
             new_report = self._table_name(file_name="",created=get_uk_time(), revision_id=revision.id, status=ReportStatus.PIPELINE_PENDING.value)
-
             self._db.session.add(new_report)
             self._db.session.commit()
-            return new_report
+            report_id = new_report.id
+            logger.info(f"report_id {report_id}")
+            return report_id
         except Exception as e:
             logger.error(f"Failed to initialise DQS task: {e}")
             self._db.session.rollback()
