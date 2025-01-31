@@ -21,7 +21,7 @@ class DQTaskResults:
             raise e
         return txc_file_attributes_list
 
-    def initialize_task_results(self, report: object, combinations: object) -> object:
+    def initialize_task_results(self, report_id: int, combinations: object) -> object:
         """
         Create a TaskResults object based on the given revision, TXCFileAttribute,
         and Check objects.
@@ -33,7 +33,7 @@ class DQTaskResults:
                 "status": TaskResultsStatus.PENDING.value,
                 "message": "",
                 "checks_id": check_id,
-                "dataquality_report_id": report.id,
+                "dataquality_report_id": report_id,
                 "transmodel_txcfileattributes_id": txc_file_attribute_id,
             })
 
