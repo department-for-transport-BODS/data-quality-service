@@ -4,7 +4,11 @@ from dqs_logger import logger
 from common import BodsDB
 from contextlib import contextmanager
 from enums import ReportStatus 
+from datetime import datetime, timezone
 
+# Define the UK timezone offset manually (+0100 for BST, +0000 for GMT)
+def get_uk_time():
+    return datetime.now(timezone.utc)
 
 class DQReport:
     def __init__(self):
@@ -34,7 +38,7 @@ class DQReport:
             if existing_report:
                 self._db.session.delete(existing_report)
 
-            new_report = self._table_name(file_name="", revision_id=revision.id, status=ReportStatus.PIPELINE_PENDING.value)
+            new_report = self._table_name(file_name="",created=get_uk_time(), revision_id=revision.id, status=ReportStatus.PIPELINE_PENDING.value)
 
             self._db.session.add(new_report)
             self._db.session.commit()
