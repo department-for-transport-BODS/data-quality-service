@@ -29,7 +29,8 @@ class DQReport:
         Create a new Report instance with the provided data and save it to the database.
         """
         try:
-            existing_report = self._db.session.query(self._table_name).filter(self._table_name.revision == revision).first()
+            logger.info(f"revsion: {revision.id}")
+            existing_report = self._db.session.query(self._table_name).filter(self._table_name.revision_id == revision.id).first()
             if existing_report:
                 self._db.session.delete(existing_report)
 
