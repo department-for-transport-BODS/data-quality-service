@@ -1,14 +1,12 @@
 import itertools
-from regex import D
-from boilerplate.common import Check
-from boilerplate.dqs_checks import DQChecks, DQ
-from boilerplate.dqs_report import DQReport
-from boilerplate.dqs_logger import logger
-from boilerplate.org_txcfileattributes import TXCFileAttributes
-from boilerplate.organisation_datasetrevision import Revision
-from boilerplate.dqs_task_results import DQTaskResults
+from dqs_checks import DQChecks
+from dqs_report import DQReport
+from dqs_logger import logger
+from org_txcfileattributes import TXCFileAttributes
+from organisation_datasetrevision import Revision
+from dqs_task_results import DQTaskResults
+
 def lambda_handler(event, context):
-        
     revision_id = event.get('revision_id','')
     if revision_id:
         revision = Revision.get_revision(revision_id)
