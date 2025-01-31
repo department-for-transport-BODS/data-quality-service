@@ -1292,7 +1292,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - states:StartExecution
-                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/dqs-${Environment}-sm}}'
+                Resource: !Sub 'arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${ProjectName}-${Environment}-sm'
           - !Ref 'AWS::NoValue'
         - !If
           - IsNotLocal
