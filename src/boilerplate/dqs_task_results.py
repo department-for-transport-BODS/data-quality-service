@@ -28,7 +28,7 @@ class DQTaskResults:
         """
         task_results_to_create = []
         for txc_file_attribute_id, check_id in combinations:
-                       
+            logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")   
             task_results_to_create.append({
                 "status": TaskResultsStatus.PENDING.value,
                 "message": "",
