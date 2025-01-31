@@ -15,7 +15,7 @@ class TXCFileAttributes:
                 self.service.revision_id == revision_id,
             ).union()
             txc_file_attributes_list = [txc_file_attributes.to_dict() for txc_file_attributes in query]
-            df = pd.read_sql_query(query.statement, self._db.session.bind)
+            # df = pd.read_sql_query(query.statement, self._db.session.bind)
         except Exception as e:
             logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             raise e

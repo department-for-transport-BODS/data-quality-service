@@ -34,7 +34,8 @@ class DQReport:
             if existing_report:
                 self._db.session.delete(existing_report)
 
-            new_report = self._table_name(file_name="", revision=revision, status=ReportStatus.PIPELINE_PENDING.value)
+            new_report = self._table_name(file_name="", revision_id=revision.id, status=ReportStatus.PIPELINE_PENDING.value)
+
             self._db.session.add(new_report)
             self._db.session.commit()
             return new_report
