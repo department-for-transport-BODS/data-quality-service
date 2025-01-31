@@ -3,6 +3,7 @@ import pandas as pd
 from dqs_logger import logger
 from common import BodsDB
 from contextlib import contextmanager
+from enums import ReportStatus 
 
 
 class DQReport:
@@ -22,7 +23,24 @@ class DQReport:
             logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             raise e
 
-        return df
+    
+    def initialise_dqs_task(self, revision: object) -> object:
+        """
+        Create a new Report instance with the provided data and save it to the database.
+        """
+        try:
+            existing_report = self._db.session.query(self._table_name).filter(self._table_name.revision == revision).first()
+            if existing_report:
+                self._db.session.delete(existing_report)
+
+            new_report = self._table_name(file_name="", revision=revision, status=ReportStatus.PIPELINE_PENDING.value)
+            self._db.session.add(new_report)
+            self._db.session.commit()
+            return new_report
+        except Exception as e:
+            logger.error(f"Failed to initialise DQS task: {e}")
+            self._db.session.rollback()
+            raise e
 
     @contextmanager
     def update_dq_reports_status_using_ids(
