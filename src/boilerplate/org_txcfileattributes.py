@@ -11,12 +11,14 @@ class TXCFileAttributes:
         try:
             result = self._db.session.query(self.service.txcfileattributes_id).filter(
                 self.service.revision_id == revision_id,
-            ).distinct()
+            ).distinct().all()
+            txc_file_attributes_list = [txc_file_attribute[0] for txc_file_attribute in result]
+
             logger.info(f"txc_file query result: {result}")
         except Exception as e:
             logger.error(f"Failed to retrieve txc_file ids: {e}")
             raise e
-        return result
+        return txc_file_attributes_list
 
 
 
