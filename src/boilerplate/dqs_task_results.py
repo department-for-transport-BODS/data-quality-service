@@ -29,6 +29,8 @@ class DQTaskResults:
         try:
             task_results_to_create = []  # List to hold task results as dictionaries
             for txc_file_attribute_id, check_id in combinations:
+                if isinstance(txc_file_attribute_id, tuple):
+                    txc_file_attribute_id = txc_file_attribute_id[0]
                 logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")
                 task_results_to_create.append({
                     "status": TaskResultsStatus.PENDING.value,
