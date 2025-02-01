@@ -29,14 +29,18 @@ class DQTaskResults:
         try:
             task_results_to_create = []
             for txc_file_attribute_id, check_id in combinations:
-                task_result = self._table_name(
-                    status=TaskResultsStatus.PENDING.value,
-                    message="",
-                    transmodel_txcfileattributes_id=txc_file_attribute_id,
-                    checks_id=check_id,
-                    dataquality_report_id=report_id
-                )
-                task_results_to_create.append(task_result)
+                task_result = {
+                    'status': TaskResultsStatus.PENDING.value,  # Status set to PENDING
+                    'message': "",  # Empty message
+                    'transmodel_txcfileattributes_id': txc_file_attribute_id,  # txcfileattributes_id
+                    'checks_id': check_id,  # check_id
+                    'dataquality_report_id': report_id  # report_id
+                }
+                task_results_to_create.append(task_result)  # Appending dictionary to list
+
+            # Changed here: Using bulk_insert_mappings to insert a list of dictionaries
+            self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
+            self._db.session.commit()
                 # logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
                 # task_results_to_create.append({
                 #     "status": TaskResultsStatus.PENDING.value,
