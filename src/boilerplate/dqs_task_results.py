@@ -26,29 +26,36 @@ class DQTaskResults:
         Create a TaskResults object based on the given revision, TXCFileAttribute,
         and Check objects.
         """
-        task_results_to_create = []
-        for txc_file_attribute_id, check_id in combinations:
-            task_result = self._table_name(
-                status=TaskResultsStatus.PENDING.value,
-                message="",
-                checks_id=check_id,
-                dataquality_report_id=report_id,
-                transmodel_txcfileattributes_id=txc_file_attribute_id  # Assuming txc_file_attribute_id is an object
-            )
-            task_results_to_create.append(task_result)
-            # logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
-            # task_results_to_create.append({
-            #     "status": TaskResultsStatus.PENDING.value,
-            #     "message": "",
-            #     "checks_id": check.id,
-            #     "dataquality_report_id": report_id,
-            #     "transmodel_txcfileattributes_id": txc_file_attribute_id,
-            # })
+        try:
+            task_results_to_create = []
+            for txc_file_attribute_id, check_id in combinations:
+                task_result = self._table_name(
+                    status=TaskResultsStatus.PENDING.value,
+                    message="",
+                    transmodel_txcfileattributes_id=txc_file_attribute_id,
+                    checks_id=check_id,
+                    dataquality_report_id=report_id
+                )
+                task_results_to_create.append(task_result)
+                # logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
+                # task_results_to_create.append({
+                #     "status": TaskResultsStatus.PENDING.value,
+                #     "message": "",
+                #     "checks_id": check.id,
+                #     "dataquality_report_id": report_id,
+                #     "transmodel_txcfileattributes_id": txc_file_attribute_id,
+                # })
 
-        # Execute the insert
-        # self._db.session.execute(
-        #     insert(self._table_name),  
-        #     task_results_to_create
-        # )
-        self._db.session.bulk_save_objects(task_results_to_create)
-        self._db.session.commit()
+            # Execute the insert
+            # self._db.session.execute(
+            #     insert(self._table_name),  
+            #     task_results_to_create
+            # )
+                        # Insert the task results using bulk_save_objects
+            self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
+            self._db.session.commit()
+
+        except Exception as e:
+            logger.error(f"Failed to initialize task results: {e}")
+            self._db.session.rollback()
+            raise
