@@ -12,9 +12,9 @@ def lambda_handler(event, context):
         revision = Revision().get_revision(revision_id)
         report_id = DQReport().initialise_dqs_task(revision)
         logger.info(f"report ${report_id}")
-        checks = DQChecks().get_all_checks()
+        check_ids = DQChecks().get_all_check_ids()
         txc_files = TXCFileAttributes().get_all_txc_file_attributes(revision_id=revision_id)
-        combinations = itertools.product(txc_files, checks)
+        combinations = itertools.product(txc_files, check_ids)
         DQTaskResults().initialize_task_results(report_id, combinations)
     else:
         logger.error(f"No revision id in even: {event}")

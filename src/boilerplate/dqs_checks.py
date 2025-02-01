@@ -8,11 +8,10 @@ class DQChecks:
         self._db = BodsDB()
         self._table_name = self._db.classes.dqs_checks
 
-    def get_all_checks(self) -> List:
+    def get_all_check_ids(self) -> List[int]:
         try:
-            result = self._db.session.query(self._table_name).all()
+            return [check_id for check_id, in self._db.session.query(self._table_name.id).all()]
         except Exception as e:
-            logger.error(f"Field to retrieve checks : {e}")
-            raise e
-        return result
+            logger.error(f"Failed to retrieve check ids: {e}")
+            raise
 

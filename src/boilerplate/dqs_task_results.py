@@ -27,11 +27,11 @@ class DQTaskResults:
         and Check objects.
         """
         task_results_to_create = []
-        for txc_file_attribute_id, check in combinations:
+        for txc_file_attribute_id, check_id in combinations:
             task_result = self._table_name(
                 status=TaskResultsStatus.PENDING.value,
                 message="",
-                checks_id=check.id,
+                checks_id=check_id,
                 dataquality_report_id=report_id,
                 transmodel_txcfileattributes_id=txc_file_attribute_id  # Assuming txc_file_attribute_id is an object
             )
