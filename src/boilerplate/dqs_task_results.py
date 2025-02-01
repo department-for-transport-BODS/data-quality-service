@@ -39,6 +39,7 @@ class DQTaskResults:
                 logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")
                 task_results_to_create.append({
                     "created": get_uk_time(),
+                    "modified": get_uk_time(),
                     "status": TaskResultsStatus.PENDING.value,
                     "message": "",  # Empty message
                     "checks_id": check_id,  # Use check_id from the combination tuple
