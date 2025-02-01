@@ -19,6 +19,8 @@ def lambda_handler(event, context):
     else:
         logger.error(f"No revision id in even: {event}")
 
-    logger.info(f"txc_files are: {txc_files}")
-    return txc_files
+    txc_files_str = list(map(str, txc_files))
+
+    logger.info(f"txc_files are: {txc_files_str}")
+    return txc_files_str
 
