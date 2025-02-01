@@ -3,6 +3,11 @@ from dqs_logger import logger
 from common import BodsDB
 from sqlalchemy import insert
 from enums import TaskResultsStatus
+from datetime import datetime, timezone
+
+# Define the UK timezone offset manually (+0100 for BST, +0000 for GMT)
+def get_uk_time():
+    return datetime.now(timezone.utc)
 class DQTaskResults:
     def __init__(self):
         self._db = BodsDB()
@@ -33,6 +38,7 @@ class DQTaskResults:
                     txc_file_attribute_id = txc_file_attribute_id[0]
                 logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")
                 task_results_to_create.append({
+                    "created": get_uk_time(),
                     "status": TaskResultsStatus.PENDING.value,
                     "message": "",  # Empty message
                     "checks_id": check_id,  # Use check_id from the combination tuple
