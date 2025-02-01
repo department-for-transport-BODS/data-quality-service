@@ -29,6 +29,7 @@
       },
       "Map": {
         "Type": "Map",
+        "ItemPath": "states.input",
         "ItemProcessor": {
           "ProcessorConfig": {
             "Mode": "DISTRIBUTED",
@@ -55,7 +56,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
-                "Payload": "{% $fileId %}"
+                "Payload": "{% \"$fileId\" %}"
               },
               "Retry": [
                 {
@@ -491,6 +492,7 @@
     }
   }
 },
+
 "End": true,
 "Label": "Map",
 "MaxConcurrency": 1000
