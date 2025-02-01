@@ -55,7 +55,7 @@
               "Output": "{% $states.result.Payload %}",
               "Arguments": {
                 "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
-                "Payload": "{% \"$fileId\" %}"
+                "Payload": "{% $fileId %}"
               },
               "Retry": [
                 {
