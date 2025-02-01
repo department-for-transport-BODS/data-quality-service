@@ -27,37 +27,23 @@ class DQTaskResults:
         and Check objects.
         """
         try:
-            task_results_to_create = []
+            task_results_to_create = []  # List to hold task results as dictionaries
             for txc_file_attribute_id, check_id in combinations:
-                task_result = {
-                    'status': TaskResultsStatus.PENDING.value,  # Status set to PENDING
-                    'message': "",  # Empty message
-                    'transmodel_txcfileattributes_id': txc_file_attribute_id,  # txcfileattributes_id
-                    'checks_id': check_id,  # check_id
-                    'dataquality_report_id': report_id  # report_id
-                }
-                task_results_to_create.append(task_result)  # Appending dictionary to list
+                logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")
+                task_results_to_create.append({
+                    "status": TaskResultsStatus.PENDING.value,
+                    "message": "",  # Empty message
+                    "checks_id": check_id,  # Use check_id from the combination tuple
+                    "dataquality_report_id": report_id,  # report_id
+                    "transmodel_txcfileattributes_id": txc_file_attribute_id,  # txc_file_attribute_id
+                })
 
-            # Changed here: Using bulk_insert_mappings to insert a list of dictionaries
-            self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
-            self._db.session.commit()
-                # logger.info(f"the comps list: {txc_file_attribute_id}: {check.id}")   
-                # task_results_to_create.append({
-                #     "status": TaskResultsStatus.PENDING.value,
-                #     "message": "",
-                #     "checks_id": check.id,
-                #     "dataquality_report_id": report_id,
-                #     "transmodel_txcfileattributes_id": txc_file_attribute_id,
-                # })
-
-            # Execute the insert
-            # self._db.session.execute(
-            #     insert(self._table_name),  
-            #     task_results_to_create
-            # )
-                        # Insert the task results using bulk_save_objects
-            self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
-            self._db.session.commit()
+            # Use bulk_insert_mappings for better performance
+            if task_results_to_create:
+                self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
+                self._db.session.commit()  # Commit the transaction
+            else:
+                logger.warning("No task results to create!")
 
         except Exception as e:
             logger.error(f"Failed to initialize task results: {e}")
