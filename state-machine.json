@@ -29,7 +29,6 @@
       },
       "Map": {
         "Type": "Map",
-        "ItemPath": "states.input",
         "ItemProcessor": {
           "ProcessorConfig": {
             "Mode": "DISTRIBUTED",
