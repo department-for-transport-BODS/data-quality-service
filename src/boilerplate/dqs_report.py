@@ -26,7 +26,8 @@ class DQReport:
         except Exception as e:
             logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             raise e
-
+        
+        return df
     
     def initialise_dqs_report(self, revision_id: int) -> int:
         """
