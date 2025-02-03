@@ -1,9 +1,9 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Initiate DQS",
+  "StartAt": "Initiate DQS Lambda",
   "States": {
-      "Initiate Lambda": {
+      "Initiate DQS Lambda": {
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "Output": "{% $states.result.Payload %}",
