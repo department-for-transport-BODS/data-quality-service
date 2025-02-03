@@ -28,21 +28,21 @@ class DQReport:
             raise e
 
     
-    def initialise_dqs_task(self, revision: object) -> object:
+    def initialise_dqs_report(self, revision_id: int) -> int:
         """
         Create a new Report instance with the provided data and save it to the database.
         """
         try:
-            logger.info(f"revsion: {revision.id}")
-            existing_report = self._db.session.query(self._table_name).filter(self._table_name.revision_id == revision.id).first()
+            existing_report = self._db.session.query(self._table_name).filter(self._table_name.revision_id == revision_id).first()
             if existing_report:
                 self._db.session.delete(existing_report)
 
-            new_report = self._table_name(file_name="",created=get_uk_time(), revision_id=revision.id, status=ReportStatus.PIPELINE_PENDING.value)
+            new_report = self._table_name(file_name="",created=get_uk_time(), revision_id=revision_id, status=ReportStatus.PIPELINE_PENDING.value)
             self._db.session.add(new_report)
             self._db.session.commit()
             report_id = new_report.id
-            logger.info(f"report_id {report_id}")
+            logger.info(f"Report object created with id: {report_id}")
+
             return report_id
         except Exception as e:
             logger.error(f"Failed to initialise DQS task: {e}")

@@ -7,18 +7,15 @@ class TXCFileAttributes:
         self._table_name = self._db.classes.organisation_txcfileattributes
         self.service = self._db.classes.transmodel_service
 
-    def get_all_txc_file_attributes(self,revision_id) -> List:
+    def get_all_txc_file_attributes(self, revision_id) -> List:
         try:
             result = self._db.session.query(self.service.txcfileattributes_id).filter(
-                self.service.revision_id == revision_id,
+                self.service.revision_id == revision_id
             ).distinct().all()
-            txc_file_attributes_list = [txc_file_attribute[0] for txc_file_attribute in result]
-
             logger.info(f"txc_file query result: {result}")
+
+            return [txc_file_attribute for txc_file_attribute, in result]
+
         except Exception as e:
             logger.error(f"Failed to retrieve txc_file ids: {e}")
             raise e
-        return txc_file_attributes_list
-
-
-
