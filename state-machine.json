@@ -383,7 +383,8 @@
                           ],
                           "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
                         }
-                      ]
+                      ],
+                      "End": true
                     },
                     "FirstStopIsSetDownOnlyExceptionHnadler": {
                       "Type": "Task",
@@ -964,6 +965,7 @@
           }
         }
       ], 
+      "end": true,
       "Catch": [
         {
           "ErrorEquals": [
