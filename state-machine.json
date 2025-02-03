@@ -71,7 +71,38 @@
                   "JitterStrategy": "FULL"
                 }
               ],
-              "End": true
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "ServicedOrganisationOutOfDateExceptionHnadler"
+                }
+              ]
+            },
+            "IncorrectStopTypeExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ]
             }
           }
         },
@@ -129,7 +160,38 @@
                   "JitterStrategy": "FULL"
                 }
               ],
-              "End": true
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "IncorrectStopTypeExceptionHnadler"
+                }
+              ]
+            },
+            "IncorrectStopTypeExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ]
             }
           }
         },
@@ -143,6 +205,38 @@
               "Arguments": {
                 "FunctionName": "${IncorrectNocLambdaArn}",
                 "Payload": "{% $fileId %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "IncorrectNocExceptionHnadler"
+                }
+              ]
+            },
+            "IncorrectNocExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
               },
               "Retry": [
                 {
@@ -187,7 +281,16 @@
                 }
               ],
               "Next": "Reuse of ServicePatternStop Query",
-              "Output": "{% $states.result.Payload %}"
+              "Output": "{% $states.result.Payload %}",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "FirstLevelExceptionHandler"
+                }
+              ]
+
             },
             "Reuse of ServicePatternStop Query": {
               "Type": "Parallel",
@@ -216,7 +319,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -245,7 +356,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "LastStopIsSetDownOnlyExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -274,7 +393,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "NoTimingPointMoreThan15MinsExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -303,7 +430,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "StopNotFoundInNaptanExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -332,7 +467,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "MissingJourneyCodeExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -361,7 +504,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "LastStopIsPickUpOnlyExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 },
@@ -390,7 +541,15 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                      "End": true
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
+                        }
+                      ]
                     }
                   }
                 }
@@ -409,6 +568,38 @@
               "Arguments": {
                 "FunctionName": "${CancelledServiceAppearingActiveLambdaArn}",
                 "Payload": "{% $fileId %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "CancelledServiceAppearingActiveExceptionHnadler"
+                }
+              ]
+            },
+            "CancelledServiceAppearingActiveExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
               },
               "Retry": [
                 {
@@ -453,6 +644,38 @@
                   "JitterStrategy": "FULL"
                 }
               ],
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "DuplicateJourneyCodeExceptionHnadler"
+                }
+              ]
+            },
+            "DuplicateJourneyCodeExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ],
               "End": true
             }
           }
@@ -482,19 +705,113 @@
                   "JitterStrategy": "FULL"
                 }
               ],
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "IncorrectLicenceNumExceptionHnadler"
+                }
+              ]
+            },
+            "IncorrectLicenceNumExceptionHnadler": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "GeneralErrorLambdaArn",
+                "Payload": "{% $states.input %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ],
               "End": true
             }
           }
         }
       ],
-      "End": true
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "SplitOutToInitialStepsExceptionHnadler"
+        }
+      ]
+    },
+    "SplitOutToInitialStepsExceptionHnadler": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "GeneralErrorLambdaArn",
+        "Payload": "{% $states.input %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ]
     }
   }
 },
 
 "End": true,
 "Label": "Map",
-"MaxConcurrency": 1000
-      }
-    }
+"MaxConcurrency": 1000,
+"Catch": [
+  {
+    "ErrorEquals": [
+      "States.ALL"
+    ],
+    "Next": "MapExceptionHnadler"
   }
+]
+},
+"MapExceptionHnadler": {
+"Type": "Task",
+"Resource": "arn:aws:states:::lambda:invoke",
+"Output": "{% $states.result.Payload %}",
+"Arguments": {
+  "FunctionName": "GeneralErrorLambdaArn",
+  "Payload": "{% $states.input %}"
+},
+"Retry": [
+  {
+    "ErrorEquals": [
+      "Lambda.ServiceException",
+      "Lambda.AWSLambdaException",
+      "Lambda.SdkClientException",
+      "Lambda.TooManyRequestsException"
+    ],
+    "IntervalSeconds": 1,
+    "MaxAttempts": 3,
+    "BackoffRate": 2,
+    "JitterStrategy": "FULL"
+  }
+]
+}
+}
+}
