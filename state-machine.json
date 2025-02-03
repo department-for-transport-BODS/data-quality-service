@@ -376,17 +376,17 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
+                      "End": true,
                       "Catch": [
                         {
                           "ErrorEquals": [
                             "States.ALL"
                           ],
-                          "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
+                          "Next": "FirstStopIsNotATimingPointExceptionHnadler"
                         }
-                      ],
-                      "End": true
+                      ]
                     },
-                    "FirstStopIsSetDownOnlyExceptionHnadler": {
+                    "FirstStopIsNotATimingPointExceptionHnadler": {
                       "Type": "Task",
                       "Resource": "arn:aws:states:::lambda:invoke",
                       "Output": "{% $states.result.Payload %}",
@@ -965,7 +965,6 @@
           }
         }
       ], 
-      "end": true,
       "Catch": [
         {
           "ErrorEquals": [
@@ -1001,8 +1000,6 @@
     }
   }
 },
-
-"End": true,
 "Label": "Map",
 "MaxConcurrency": 1000,
 "Catch": [
