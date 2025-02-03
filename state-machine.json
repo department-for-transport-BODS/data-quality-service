@@ -342,7 +342,6 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                     
                       "Catch": [
                         {
                           "ErrorEquals": [
@@ -350,7 +349,8 @@
                           ],
                           "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
                         }
-                      ]
+                      ],
+                      "End": true
                     }
                   }
                 },
@@ -527,7 +527,6 @@
                           "JitterStrategy": "FULL"
                         }
                       ],
-                     
                       "Catch": [
                         {
                           "ErrorEquals": [
@@ -535,7 +534,8 @@
                           ],
                           "Next": "LastStopIsPickUpOnlyExceptionHnadler"
                         }
-                      ]
+                      ],
+                      "End": true  
                     }
                   }
                 },
