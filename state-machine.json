@@ -491,7 +491,6 @@
     }
   }
 },
-"End": true,
 "Label": "Map",
 "MaxConcurrency": 1000,
 "Next": "Pipeline Monitor Lambda"
