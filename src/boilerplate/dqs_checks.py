@@ -1,4 +1,3 @@
-import pandas as pd
 from dqs_logger import logger
 from common import BodsDB
 from typing import List

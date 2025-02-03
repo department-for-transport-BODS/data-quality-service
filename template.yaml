@@ -1259,14 +1259,14 @@ Resources:
       RetentionInDays: 30
 
   ###########################################
-  ####           LAMBDA INVOKE           ####
+  ####            INITIATE DQS           ####
   ###########################################
-  InitiateLambda:
+  InitiateDQS:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-intiate-lambda'
+      FunctionName: !Sub '${ProjectName}-${Environment}-intiate-dqs-lambda'
       CodeUri: ./src/template
-      Handler: initiate_lambda.lambda_handler
+      Handler: initiate_dqs.lambda_handler
       Layers: !If
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -1305,12 +1305,12 @@ Resources:
           - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
           - 'AmazonRDSReadOnlyAccess'
       LoggingConfig:
-        LogGroup: !Ref InitiateLambdaLogGroup
+        LogGroup: !Ref InitiateDQSLambdaLogGroup
 
-  InitiateLambdaLogGroup:
+  InitiateDQSLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-initiate-lambda'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-initiate-dqs-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 

@@ -32,27 +32,26 @@ class DQTaskResults:
         and Check objects.
         """
         try:
-            task_results_to_create = []  # List to hold task results as dictionaries
+            task_results_to_create = []
             for txc_file_attribute_id, check_id in combinations:
                 if isinstance(txc_file_attribute_id, tuple):
                     txc_file_attribute_id = txc_file_attribute_id[0]
-                logger.info(f"the comps list: {txc_file_attribute_id}: {check_id}")
+
                 task_results_to_create.append({
                     "created": get_uk_time(),
                     "modified": get_uk_time(),
                     "status": TaskResultsStatus.PENDING.value,
-                    "message": "",  # Empty message
-                    "checks_id": check_id,  # Use check_id from the combination tuple
-                    "dataquality_report_id": report_id,  # report_id
-                    "transmodel_txcfileattributes_id": txc_file_attribute_id,  # txc_file_attribute_id
+                    "message": "",
+                    "checks_id": check_id,
+                    "dataquality_report_id": report_id,
+                    "transmodel_txcfileattributes_id": txc_file_attribute_id,
                 })
 
-            # Use bulk_insert_mappings for better performance
             if task_results_to_create:
                 self._db.session.bulk_insert_mappings(self._table_name, task_results_to_create)
-                self._db.session.commit()  # Commit the transaction
+                self._db.session.commit()
             else:
-                logger.warning("No task results to create!")
+                logger.warning("No task results to create")
 
         except Exception as e:
             logger.error(f"Failed to initialize task results: {e}")

@@ -1,7 +1,7 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Initiate Lambda",
+  "StartAt": "Initiate DQS",
   "States": {
       "Initiate Lambda": {
         "Type": "Task",
