@@ -1261,7 +1261,7 @@ Resources:
   ###########################################
   ####            INITIATE DQS           ####
   ###########################################
-  InitiateDQS:
+  InitiateDQSLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-intiate-dqs-lambda'
@@ -1535,7 +1535,7 @@ Resources:
         CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
-        InitiateLambdaArn: !GetAtt InitiateLambda.Arn
+        InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
@@ -1573,7 +1573,7 @@ Resources:
         - LambdaInvokePolicy:
             FunctionName: !Ref DataPreFetchLambda
         - LambdaInvokePolicy:
-            FunctionName: !Ref InitiateLambda
+            FunctionName: !Ref InitiateDQSLambda
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket

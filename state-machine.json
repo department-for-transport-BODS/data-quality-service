@@ -8,7 +8,7 @@
         "Resource": "arn:aws:states:::lambda:invoke",
         "Output": "{% $states.result.Payload %}",
         "Arguments": {
-          "FunctionName": "${InitiateLambdaArn}",
+          "FunctionName": "${InitiateDQSLambdaArn}",
           "Payload": "{% $states.input %}"
         },
         "Retry": [
