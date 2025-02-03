@@ -1576,6 +1576,8 @@ Resources:
             FunctionName: !Ref DataPreFetchLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref InitiateDQSLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PipelineMonitorLambda
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
