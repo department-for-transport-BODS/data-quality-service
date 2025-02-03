@@ -1000,6 +1000,7 @@
     }
   }
 },
+"end": true,
 "Label": "Map",
 "MaxConcurrency": 1000,
 "Catch": [
