@@ -27,7 +27,7 @@ def get_txc_files(revision_id: int) -> list:
     return txc_files
 
 def lambda_handler(event, context):
-    revision_id = event.get('revision_id','')
+    revision_id = event.get('DatasetRevisionId','')
     try:
         if revision_id:
             report_id = get_report_id(revision_id)
