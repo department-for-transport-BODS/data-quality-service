@@ -34,10 +34,10 @@ def lambda_handler(event, context):
             txc_files = get_txc_files(revision_id)
             combinations = itertools.product(txc_files, check_ids)
             DQTaskResults().initialize_task_results(report_id, combinations)
+            dict_txc_files = list(map(lambda x: {"file_id": x}, txc_files))
+            return dict_txc_files
         else:
             logger.error(f"No revision id in event: {event}")
-        dict_txc_files = list(map(lambda x: {"file_id": x}, txc_files))
-        return dict_txc_files
  
     except Exception as e:
         logger.error(f"Initiate DQS Lambda failed with: {e}")

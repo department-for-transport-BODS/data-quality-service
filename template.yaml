@@ -1264,7 +1264,7 @@ Resources:
   InitiateDQSLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-intiate-dqs-lambda'
+      FunctionName: !Sub '${ProjectName}-${Environment}-initiate-dqs-lambda'
       CodeUri: ./src/template
       Handler: initiate_dqs.lambda_handler
       Layers: !If
