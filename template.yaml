@@ -1536,6 +1536,8 @@ Resources:
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
         InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
+        PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
+        
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
