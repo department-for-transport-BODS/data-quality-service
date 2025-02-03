@@ -17,6 +17,7 @@ def get_check_ids_list() -> list:
     Get a list of DQS Check Ids
     """
     check_ids = DQChecks().get_all_check_ids()
+    return check_ids
 
 def get_txc_files(revision_id: int) -> list:
     """
