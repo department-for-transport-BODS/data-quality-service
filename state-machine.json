@@ -43,7 +43,7 @@
                 "fileId": "{% $states.input %}"
               }
             },
-    "Split out to initial steps": {
+     "Split out to initial steps": {
       "Type": "Parallel",
       "Branches": [
         {
@@ -491,10 +491,33 @@
     }
   }
 },
-
 "End": true,
 "Label": "Map",
-"MaxConcurrency": 1000
-      }
+"MaxConcurrency": 1000,
+"Next": "Pipeline Monitor Lambda"
+      },
+    "Pipeline Monitor Lambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${PipelineMonitorLambdaArn}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "End": true
     }
   }
+}

@@ -1391,12 +1391,12 @@ Resources:
       FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
       CodeUri: ./src/template
       Handler: monitor.lambda_handler
-      Events:
-        MonitorLambdas:
-          Type: Schedule
-          Properties:
-            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
-            Schedule: rate(2 minutes)
+      # Events:
+      #   MonitorLambdas:
+      #     Type: Schedule
+      #     Properties:
+      #       Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
+      #       Schedule: rate(2 minutes)
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
