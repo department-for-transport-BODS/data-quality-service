@@ -1315,6 +1315,57 @@ Resources:
       RetentionInDays: 30
 
   ###########################################
+  ####           General Error Lambda    ####
+  ###########################################
+  GeneralErrorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-general-error-lambda'
+      CodeUri: ./src/template
+      Handler: general_error_handler.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - S3WritePolicy:
+            BucketName: !Ref DQSCacheBucket
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      LoggingConfig:
+        LogGroup: !Ref GeneralErrorLambdaLogGroup
+
+  GeneralErrorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-general-error-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
+        
+
+  ###########################################
   #### SERVICED ORGANISATION OUT OF DATE ####
   ###########################################
   ServicedOrganisationOutOfDateQueue:
@@ -1530,6 +1581,7 @@ Resources:
         ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
         InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
+        GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
         
       Name: !Sub '${ProjectName}-${Environment}-sm'
@@ -1570,6 +1622,8 @@ Resources:
             FunctionName: !Ref DataPreFetchLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref InitiateDQSLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GeneralErrorLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref PipelineMonitorLambda
 
