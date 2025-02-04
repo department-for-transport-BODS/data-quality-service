@@ -1315,12 +1315,12 @@ Resources:
       RetentionInDays: 30
 
   ###########################################
-  ####           General Error Lambda    ####
+  ####       General Error Handler Lambda        ####
   ###########################################
   GeneralErrorLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-${Environment}-general-error-lambda'
+      FunctionName: !Sub '${ProjectName}-${Environment}-general-error-handler-lambda'
       CodeUri: ./src/template
       Handler: general_error_handler.lambda_handler
       Layers: !If
@@ -1360,7 +1360,7 @@ Resources:
   GeneralErrorLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-general-error-lambda'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-general-error-handler-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
         

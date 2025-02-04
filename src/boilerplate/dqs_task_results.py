@@ -4,10 +4,8 @@ from common import BodsDB
 from sqlalchemy import insert
 from enums import TaskResultsStatus
 from datetime import datetime, timezone
+from utils import get_uk_time
 
-# Define the UK timezone offset manually (+0100 for BST, +0000 for GMT)
-def get_uk_time():
-    return datetime.now(timezone.utc)
 class DQTaskResults:
     def __init__(self):
         self._db = BodsDB()

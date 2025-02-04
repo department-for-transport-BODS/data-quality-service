@@ -3,12 +3,8 @@ import pandas as pd
 from dqs_logger import logger
 from common import BodsDB
 from contextlib import contextmanager
-from enums import ReportStatus 
-from datetime import datetime, timezone
-
-# Define the UK timezone offset manually (+0100 for BST, +0000 for GMT)
-def get_uk_time():
-    return datetime.now(timezone.utc)
+from enums import ReportStatus
+from utils import get_uk_time
 
 class DQReport:
     def __init__(self):
