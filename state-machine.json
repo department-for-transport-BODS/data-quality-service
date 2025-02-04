@@ -108,12 +108,12 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "ServicedOrganisationOutOfDateExceptionHnadler"
+                        "Next": "ServicedOrganisationOutOfDateExceptionHandler"
                       }
                     ],
                     "End": true
                   },
-                  "ServicedOrganisationOutOfDateExceptionHnadler": {
+                  "ServicedOrganisationOutOfDateExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -170,11 +170,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "MissingBusWorkingNumberExceptionHnadler"
+                        "Next": "MissingBusWorkingNumberExceptionHandler"
                       }
                     ]
                   },
-                  "MissingBusWorkingNumberExceptionHnadler": {
+                  "MissingBusWorkingNumberExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -231,11 +231,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "IncorrectStopTypeExceptionHnadler"
+                        "Next": "IncorrectStopTypeExceptionHandler"
                       }
                     ]
                   },
-                  "IncorrectStopTypeExceptionHnadler": {
+                  "IncorrectStopTypeExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -292,11 +292,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "IncorrectNocExceptionHnadler"
+                        "Next": "IncorrectNocExceptionHandler"
                       }
                     ]
                   },
-                  "IncorrectNocExceptionHnadler": {
+                  "IncorrectNocExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -353,11 +353,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "DataPrefetchExceptionHnadler"
+                        "Next": "DataPrefetchExceptionHandler"
                       }
                     ]
                   },
-                  "DataPrefetchExceptionHnadler": {
+                  "DataPrefetchExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -414,11 +414,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "FirstStopIsNotATimingPointExceptionHnadler"
+                                "Next": "FirstStopIsNotATimingPointExceptionHandler"
                               }
                             ]
                           },
-                          "FirstStopIsNotATimingPointExceptionHnadler": {
+                          "FirstStopIsNotATimingPointExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -475,11 +475,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "LastStopIsSetDownOnlyExceptionHnadler"
+                                "Next": "LastStopIsSetDownOnlyExceptionHandler"
                               }
                             ]
                           },
-                          "LastStopIsSetDownOnlyExceptionHnadler": {
+                          "LastStopIsSetDownOnlyExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -536,11 +536,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "NoTimingPointMoreThan15MinsExceptionHnadler"
+                                "Next": "NoTimingPointMoreThan15MinsExceptionHandler"
                               }
                             ]
                           },
-                          "NoTimingPointMoreThan15MinsExceptionHnadler": {
+                          "NoTimingPointMoreThan15MinsExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -597,11 +597,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "StopNotFoundInNaptanExceptionHnadler"
+                                "Next": "StopNotFoundInNaptanExceptionHandler"
                               }
                             ]
                           },
-                          "StopNotFoundInNaptanExceptionHnadler": {
+                          "StopNotFoundInNaptanExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -658,11 +658,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "MissingJourneyCodeExceptionHnadler"
+                                "Next": "MissingJourneyCodeExceptionHandler"
                               }
                             ]
                           },
-                          "MissingJourneyCodeExceptionHnadler": {
+                          "MissingJourneyCodeExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -719,11 +719,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "LastStopIsPickUpOnlyExceptionHnadler"
+                                "Next": "LastStopIsPickUpOnlyExceptionHandler"
                               }
                             ]
                           },
-                          "LastStopIsPickUpOnlyExceptionHnadler": {
+                          "LastStopIsPickUpOnlyExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -780,11 +780,11 @@
                                 "ErrorEquals": [
                                   "States.ALL"
                                 ],
-                                "Next": "FirstStopIsSetDownOnlyExceptionHnadler"
+                                "Next": "FirstStopIsSetDownOnlyExceptionHandler"
                               }
                             ]
                           },
-                          "FirstStopIsSetDownOnlyExceptionHnadler": {
+                          "FirstStopIsSetDownOnlyExceptionHandler": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
@@ -846,11 +846,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "CancelledServiceAppearingActiveExceptionHnadler"
+                        "Next": "CancelledServiceAppearingActiveExceptionHandler"
                       }
                     ]
                   },
-                  "CancelledServiceAppearingActiveExceptionHnadler": {
+                  "CancelledServiceAppearingActiveExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -907,11 +907,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "DuplicateJourneyCodeExceptionHnadler"
+                        "Next": "DuplicateJourneyCodeExceptionHandler"
                       }
                     ]
                   },
-                  "DuplicateJourneyCodeExceptionHnadler": {
+                  "DuplicateJourneyCodeExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -968,11 +968,11 @@
                         "ErrorEquals": [
                           "States.ALL"
                         ],
-                        "Next": "IncorrectLicenceNumExceptionHnadler"
+                        "Next": "IncorrectLicenceNumExceptionHandler"
                       }
                     ]
                   },
-                  "IncorrectLicenceNumExceptionHnadler": {
+                  "IncorrectLicenceNumExceptionHandler": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
@@ -1005,11 +1005,11 @@
                 "ErrorEquals": [
                   "States.ALL"
                 ],
-                "Next": "SplitOutToInitialStepsExceptionHnadler"
+                "Next": "SplitOutToInitialStepsExceptionHandler"
               }
             ]
           },
-          "SplitOutToInitialStepsExceptionHnadler": {
+          "SplitOutToInitialStepsExceptionHandler": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
             "Output": "{% $states.result.Payload %}",
