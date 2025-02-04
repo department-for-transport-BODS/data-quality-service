@@ -51,5 +51,6 @@ def lambda_handler(event, context):
         logger.info("Task results status updated successfully.")
     except Exception as e:
         logger.info(f"Error updating task results status: {e}")
+        logger.exception(e)
 
     logger.info("Monitor pipeline function completed successfully.")

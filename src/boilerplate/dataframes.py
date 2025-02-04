@@ -1,18 +1,26 @@
 from common import Check, DQSReport
 import pandas as pd
 import numpy as np
-import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
+from sqlalchemy import and_, func, String, asc
+from dqs_logger import logger
+from data_persistence import PersistedData, PersistenceKey
 from sqlalchemy import and_, func, String, asc, case
 
 
-def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
+def get_df_vehicle_journey(check: Check, refresh=False) -> pd.DataFrame:
     """
     Get the dataframe containing the vehicle journey and the stop activity
 
     """
 
+    persistence = PersistedData()
+    if not refresh and persistence.exists(PersistenceKey.VEHICLE_JOURNEY.to_check_value(check)):
+        logger.info(f"Returning persisted vehicle journey dataframe for {check.file_id}")
+        return persistence.get(PersistenceKey.VEHICLE_JOURNEY.to_check_value(check))
+
+    logger.info(f"Retrieving vehicle Journey DF for {check.file_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop
@@ -55,7 +63,10 @@ def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
             VehicleJourney.journey_code.label("vehicle_journey_code"),
         )
     )
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    logger.info(f"Persisting Vehicle data DF for {check.file_id}")
+    persistence.save(PersistenceKey.VEHICLE_JOURNEY.to_check_value(check), df)
+    return df
 
 
 def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
@@ -147,7 +158,8 @@ def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
 
     result = result.all()
 
-    return pd.DataFrame.from_records(result, columns=columns)
+    df = pd.DataFrame.from_records(result, columns=columns)
+    return df
 
 
 def get_df_dqs_observation_results(report: DQSReport) -> pd.DataFrame:
@@ -199,6 +211,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
     """
     VehicleJourney = check.db.classes.transmodel_vehiclejourney
 
+    logger.info(f"Retrieving duplicate Journey Code DF {check.file_id}/{check.check_id}")
     Service = check.db.classes.transmodel_service
     ServicePatternService = check.db.classes.transmodel_service_service_patterns
     ServicePatternStop = check.db.classes.transmodel_servicepatternstop

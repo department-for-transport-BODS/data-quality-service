@@ -33,7 +33,7 @@ class data_quality_observationresults(Base):
     taskresults_id = Column(Integer, ForeignKey("data_quality_taskresults.id"))
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
-
+    serviced_organisation_vehicle_journey_id = Column(Integer)
 
 class organisation_txcfileattributes(Base):
     __tablename__ = "organisation_txcfileattributes"
@@ -65,17 +65,16 @@ class data_quality_report(Base):
     revision_id = Column(Integer)
     status = Column(String)
 
-
 class MockedDB:
     def __init__(self):
         engine = create_engine("sqlite:///:memory:")
         self.session = Session(engine)
         Base.metadata.create_all(engine)
         self.classes = SimpleNamespace(
-            data_quality_taskresults=data_quality_taskresults,
-            data_quality_observationresults=data_quality_observationresults,
+            dqs_taskresults=data_quality_taskresults,
+            dqs_observationresults=data_quality_observationresults,
             organisation_txcfileattributes=organisation_txcfileattributes,
-            data_quality_report=data_quality_report,
+            data_quality_report=data_quality_report
         )
 
 

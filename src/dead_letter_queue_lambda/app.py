@@ -14,7 +14,7 @@ recipient_email = os.environ.get("RECIPIENT_EMAIL")
 def lambda_handler(event, context):
 
     try:
-        check = Check(event)
+        check = Check(event, "")
         check.validate_requested_check()
 
         file_id = check.file_id
