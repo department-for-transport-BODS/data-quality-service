@@ -31,11 +31,11 @@
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "ParentExceptionHnadler"
+          "Next": "ParentExceptionHandler"
         }
       ]
     },
-    "ParentExceptionHnadler": {
+    "ParentExceptionHandler": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
@@ -1035,17 +1035,48 @@
           }
         }
       },
-      "End": true,
       "Label": "Map",
       "MaxConcurrency": 1000,
+      "Next": "Pipeline Monitor Lambda",
       "Catch": [
         {
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "ParentExceptionHnadler"
+          "Next": "ParentExceptionHandler"
         }
       ]
+      },
+      "Pipeline Monitor Lambda": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Output": "{% $states.result.Payload %}",
+        "Arguments": {
+          "FunctionName": "${PipelineMonitorLambdaArn}"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 1,
+            "MaxAttempts": 3,
+            "BackoffRate": 2,
+            "JitterStrategy": "FULL"
+          }
+        ],
+        "End": true,
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "Next": "ParentExceptionHandler"
+          }
+        ]
+      }
     }
   }
-}
