@@ -2,6 +2,7 @@ from dqs_logger import logger
 from common import Check
 from enums import DQSTaskResultStatus
 from dataframes import get_df_vehicle_journey
+from organisation_txcfileattributes import OrganisationTxcFileAttributes
 from observation_results import ObservationResult
 import pandas as pd
 from time_out_handler import TimeOutHandler, get_timeout
@@ -14,7 +15,7 @@ _ALLOWED_IS_TIMING_POINT = True
 def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> bool:
     """
     Filter the service pattern stop whose departure time is having a
-    gap of more than or equal to 15 mins.
+    gap of more than 15 mins.
     """
 
     df["departure_time_new"] = pd.to_datetime(df["departure_time"], format="%H:%M:%S")
@@ -24,7 +25,7 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
     df = df.reset_index()
 
     for i in range(1, len(df)):
-        if df.loc[i, "time_diff"] >= timedelta(minutes=15):
+        if df.loc[i, "time_diff"] > timedelta(minutes=15):
 
             prev_row = df.iloc[i - 1]
             curr_row = df.iloc[i]
@@ -43,22 +44,35 @@ def filter_vehicle_journey(df: pd.DataFrame, observation: ObservationResult) -> 
             logger.info("Observation added in memory")
 
 
-def lambda_worker(event, check):
+def lambda_worker(event, check: Check):
 
     status = DQSTaskResultStatus.SUCCESS.value
     try:
-        observation = ObservationResult(check)
-        df = get_df_vehicle_journey(check)
-        logger.info(f"Looking in the Dataframes: {df.size}")
-        if not df.empty:
-            # Filter the timing point stops
-            df = df[df["is_timing_point"] == _ALLOWED_IS_TIMING_POINT]
-            df = df.sort_values(by="auto_sequence_number")
-            df.groupby("vehicle_journey_id").apply(filter_vehicle_journey, observation)
+        org_txc_attributes = OrganisationTxcFileAttributes(check)
+        mode = (
+            org_txc_attributes.service_mode.lower()
+            if org_txc_attributes.service_mode
+            and org_txc_attributes.service_mode.strip() != ""
+            else "bus"
+        )
 
-            # Write the observations to database
-            observation.write_observations()
+        # If the service code starts with UZ, ignore the check
+        if mode == "coach":
+            logger.info(f"Ignoring check, ServiceMode: {mode}")
+        else:
+            observation = ObservationResult(check)
+            df = get_df_vehicle_journey(check)
+            logger.info(f"Looking in the Dataframes: {df.size}")
+            if not df.empty:
+                # Filter the timing point stops
+                df = df[df["is_timing_point"] == _ALLOWED_IS_TIMING_POINT]
+                df = df.sort_values(by="auto_sequence_number")
+                df.groupby("vehicle_journey_id").apply(
+                    filter_vehicle_journey, observation
+                )
 
+                # Write the observations to database
+                observation.write_observations()
 
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
@@ -67,7 +81,6 @@ def lambda_worker(event, check):
         check.set_status(status)
         logger.info("Check status updated in DB")
     return
-
 
 
 def lambda_handler(event, context):

@@ -21,6 +21,11 @@ def lambda_worker(event, check):
             null_journey_codes = df[df['vehicle_journey_code'].isnull()]['vehicle_journey_id'].unique()
             df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
             logger.info("Iterating over rows to add observations")
+            # Sort the dataframe with vehicle journey id and auto sequence number
+            df = df.sort_values(
+                ["vehicle_journey_id", "auto_sequence_number"], ascending=True
+            )
+            df = df.groupby("vehicle_journey_id").first().reset_index()
             for row in df.itertuples():
                 details = f"The ({row.start_time}) {row.direction} journey is missing a journey code."
                 observation.add_observation(

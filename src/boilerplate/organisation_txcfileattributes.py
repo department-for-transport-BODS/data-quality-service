@@ -38,6 +38,7 @@ class OrganisationTxcFileAttributes:
             self.revision_id = result.revision_id
             self.service_code = result.service_code
             self.licence_number = result.licence_number
+            self.service_mode = result.service_mode
         except Exception as e:
             logger.error(
                 f"Attempting to fetch details of organisation_txcfileattributes for id = {str(self._check.file_id)}",

@@ -1,5 +1,5 @@
 [
-    {
+    {        
         "vehicle_journey_id": 1940,
         "line_ref": "NOCT:PB2003801:50:20",
         "journey_code": "1025",
@@ -7,7 +7,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713041,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1941,
@@ -17,7 +18,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713060,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1942,
@@ -27,7 +29,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713079,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1943,
@@ -37,7 +40,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713187,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1944,
@@ -47,7 +51,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713098,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1945,
@@ -57,7 +62,8 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713135,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     },
     {
         "vehicle_journey_id": 1946,
@@ -67,6 +73,7 @@
         "operating_date": [],
         "day_of_week": ["Friday", "Tuesday"],
         "service_pattern_stop_id": 18713172,
-        "serviced_organisation_id": []
+        "serviced_organisation_id": [],
+        "operating_on_working_days": null
     }
 ]

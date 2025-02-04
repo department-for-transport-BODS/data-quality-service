@@ -1,9 +1,10 @@
 from common import Check, DQSReport
 import pandas as pd
+import numpy as np
 import geoalchemy2
 from sqlalchemy.sql.functions import coalesce
 from typing import List
-from sqlalchemy import and_, func, String, asc
+from sqlalchemy import and_, func, String, asc, case
 
 
 def get_df_vehicle_journey(check: Check) -> pd.DataFrame:
@@ -214,7 +215,12 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
         .join(
             VehicleJourney, ServicePatternStop.vehicle_journey_id == VehicleJourney.id
         )
-        .join(ServicedOrganisationVJ,ServicedOrganisationVJ.vehicle_journey_id == VehicleJourney.id)
+        .join(
+            ServicedOrganisationVJ,
+            ServicedOrganisationVJ.vehicle_journey_id == VehicleJourney.id,
+            isouter=True,
+            full=True,
+        )
         .where(Service.txcfileattributes_id == check.file_id)
         .with_entities(
             VehicleJourney.line_ref,
@@ -223,15 +229,25 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
             VehicleJourney.direction,
             ServicePatternStop.id.label("service_pattern_stop_id"),
             ServicePatternStop.auto_sequence_number,
-            ServicedOrganisationVJ.operating_on_working_days.label("operating_on_working_days"),
+            ServicedOrganisationVJ.operating_on_working_days.label(
+                "operating_on_working_days"
+            ),
         )
         .order_by(asc(VehicleJourney.id), asc(ServicePatternStop.auto_sequence_number))
     )
 
     df = pd.read_sql_query(result.statement, check.db.session.bind)
-
+    df.fillna({"operating_on_working_days": np.nan}, inplace=True)
     vehicle_journey_df = (
-        df.groupby(["vehicle_journey_id", "line_ref", "journey_code","operating_on_working_days"])
+        df.groupby(
+            [
+                "vehicle_journey_id",
+                "line_ref",
+                "journey_code",
+                "operating_on_working_days",
+            ],
+            dropna=False,
+        )
         .agg(
             {
                 "service_pattern_stop_id": "first",
@@ -473,5 +489,26 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
             ),
         )
     )
+
+    return pd.read_sql_query(result.statement, check.db.session.bind)
+
+
+def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFrame:
+    """
+    Get the naptan atco code availability and returned the dataframe containing the extra
+    column atco_code_exists returns the boolean value which is True if the atco code is available
+    otherwise False
+    """
+
+    NaptanStopPoint = check.db.classes.naptan_stoppoint
+
+    result = check.db.session.query(
+        NaptanStopPoint,
+        case(
+            (func.lower(NaptanStopPoint.atco_code).in_(atco_codes), True), else_=False
+        ).label(
+            "atco_code_exists"
+        ),  # Label the new column as "atco_code_exists"
+    ).where(func.lower(NaptanStopPoint.atco_code).in_(atco_codes))
 
     return pd.read_sql_query(result.statement, check.db.session.bind)
