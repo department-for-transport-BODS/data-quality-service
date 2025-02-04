@@ -40,7 +40,7 @@
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
-        "FunctionName": "GeneralErrorLambdaArn",
+        "FunctionName": "${GeneralErrorLambdaArn}",
         "Payload": "{% $states.input %}"
       },
       "Retry": [
@@ -118,7 +118,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -179,7 +179,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -240,7 +240,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${${GeneralErrorLambdaArn}}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -301,7 +301,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -362,7 +362,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -423,7 +423,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -484,7 +484,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -545,7 +545,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -606,7 +606,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -667,7 +667,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -728,7 +728,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -789,7 +789,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "GeneralErrorLambdaArn",
+                              "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -855,7 +855,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -916,7 +916,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -977,7 +977,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "GeneralErrorLambdaArn",
+                      "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -1014,7 +1014,7 @@
             "Resource": "arn:aws:states:::lambda:invoke",
             "Output": "{% $states.result.Payload %}",
             "Arguments": {
-              "FunctionName": "GeneralErrorLambdaArn",
+              "FunctionName": "${GeneralErrorLambdaArn}",
               "Payload": "{% $states.input %}"
             },
             "Retry": [
