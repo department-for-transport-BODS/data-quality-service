@@ -1,6 +1,7 @@
 from dqs_logger import logger
 from common import BodsDB
 from typing import List
+
 class TXCFileAttributes:
     def __init__(self):
         self._db = BodsDB()

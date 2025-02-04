@@ -1,9 +1,7 @@
 import pandas as pd
 from dqs_logger import logger
 from common import BodsDB
-from sqlalchemy import insert
-from enums import TaskResultsStatus
-from datetime import datetime, timezone
+from enums import DQSTaskResultStatus
 from utils import get_uk_time
 
 class DQTaskResults:
@@ -38,7 +36,7 @@ class DQTaskResults:
                 task_results_to_create.append({
                     "created": get_uk_time(),
                     "modified": get_uk_time(),
-                    "status": TaskResultsStatus.PENDING.value,
+                    "status": DQSTaskResultStatus.PENDING.value,
                     "message": "",
                     "checks_id": check_id,
                     "dataquality_report_id": report_id,

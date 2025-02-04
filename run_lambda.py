@@ -141,6 +141,7 @@ def main():
                 if check_id == first: continue
                 try:
                     data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
+                    print(list(data_flow.keys()))
                 except Exception:
                     pass
     else:
@@ -152,10 +153,12 @@ def main():
             for check_id, _ in lambdas.items():
                 if check_id == first: continue
                 data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
+                print(list(data_flow.keys()))
         else:
             module_input = int(module_input) if module_input.isdigit() else 0
             check_id = module_input
             data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
+            print(list(data_flow.keys()))
 
 if __name__ == "__main__":
     main()
