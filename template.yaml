@@ -103,6 +103,26 @@ Resources:
     Metadata:
       BuildMethod: python3.11
 
+    DQSStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: states.amazonaws.com
+      Policies:
+        - PolicyName: StateMachineSfInvokePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource:
+                  - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:dqs-${Environment}-sm'
+
   ###############################
   #### DQS DEAD LETTER QUEUE ####
   ###############################
@@ -1626,14 +1646,6 @@ Resources:
             FunctionName: !Ref GeneralErrorLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref PipelineMonitorLambda
-        - PolicyName: StateMachineSfInvokePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: states:StartExecution
-                Resource:
-                  - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:dqs-${Environment}-sm'
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
