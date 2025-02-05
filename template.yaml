@@ -103,7 +103,7 @@ Resources:
     Metadata:
       BuildMethod: python3.11
 
-    DQSStateMachineRole:
+  DQSStateMachineRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
