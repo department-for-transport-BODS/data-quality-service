@@ -1277,7 +1277,6 @@ Resources:
         - 'AWSXrayWriteOnlyAccess'
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
-        - 'StateMachineSfInvokePolicy'
         - S3WritePolicy:
             BucketName: !Ref DQSCacheBucket
         - S3ReadPolicy:
