@@ -1277,6 +1277,7 @@ Resources:
         - 'AWSXrayWriteOnlyAccess'
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - 'StateMachineSfInvokePolicy'
         - S3WritePolicy:
             BucketName: !Ref DQSCacheBucket
         - S3ReadPolicy:
@@ -1626,6 +1627,14 @@ Resources:
             FunctionName: !Ref GeneralErrorLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref PipelineMonitorLambda
+        - PolicyName: StateMachineSfInvokePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource:
+                  - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:dqs-${Environment}-sm'
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
