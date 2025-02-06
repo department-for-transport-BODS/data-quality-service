@@ -502,13 +502,10 @@ def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFra
 
     NaptanStopPoint = check.db.classes.naptan_stoppoint
 
-    result = check.db.session.query(
-        NaptanStopPoint,
-        case(
-            (func.lower(NaptanStopPoint.atco_code).in_(atco_codes), True), else_=False
-        ).label(
-            "atco_code_exists"
-        ),  # Label the new column as "atco_code_exists"
-    ).where(func.lower(NaptanStopPoint.atco_code).in_(atco_codes))
+    result = check.db.session.query(NaptanStopPoint).where(
+        func.lower(NaptanStopPoint.atco_code).in_(atco_codes)
+    )
 
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    df["atco_code_exists"] = df["atco_code"].apply(lambda cell: cell in atco_codes)
+    return df
