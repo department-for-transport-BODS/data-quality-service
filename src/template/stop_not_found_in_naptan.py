@@ -15,16 +15,14 @@ def lambda_worker(event, check) -> None:
         df = get_df_vehicle_journey(check)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            # Set of atco codes with case-insensitive
-            atco_codes = set(df["atco_code"].str.lower())
+            # Set of atco codes with lower case            
+            df["atco_code_lower"] = df.atco_code.str.lower()
+            atco_codes = set(df["atco_code_lower"])
             # List of atco codes from naptan stop point
             atco_codes_df = get_naptan_availablilty(check, atco_codes)
-            atco_codes_df["atco_code_lower"] = atco_codes_df.atco_code.str.lower()
-            atco_codes_df = atco_codes_df.drop("atco_code", axis=1)
+            atco_codes_db = set(atco_codes_df.atco_code.str.lower())
+            df["atco_code_exists"] = df["atco_code_lower"].apply(lambda cell: cell in atco_codes_db)
 
-            df["atco_code_lower"] = df.atco_code.str.lower()
-            df = pd.merge(df, atco_codes_df, on="atco_code_lower", how="left")
-            df.rename(columns={"common_name_x": "common_name"}, inplace=True)
             # Send the list to check with naptan stop point
             df = df[df["atco_code_exists"] == False]
 
