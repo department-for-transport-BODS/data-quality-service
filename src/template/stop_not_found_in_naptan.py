@@ -24,6 +24,7 @@ def lambda_worker(event, check):
 
             df["atco_code_lower"] = df.atco_code.str.lower()
             df = pd.merge(df, atco_codes_df, on="atco_code_lower", how="left")
+            df.rename(columns={"common_name_x": "common_name"}, inplace=True)
             # Send the list to check with naptan stop point
             df = df[df["atco_code_exists"] == False]
 
