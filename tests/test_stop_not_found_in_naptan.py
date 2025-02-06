@@ -32,6 +32,13 @@ def test_lambda_handler_valid_check(
             "service_pattern_stop_id": [101, 102, 103],
         }
     )
+    mock_get_naptan_availablilty.return_value = pd.DataFrame(
+        {
+            "atco_code": ["123", "456", "789"],
+            "atco_code_exists": [False, True, True],
+        }
+    )
+
     lambda_worker(None, mocked_check)
 
     assert mock_get_df_non_naptan_vehicle_journey.called
@@ -98,4 +105,3 @@ def test_lambda_handler_valid_check_case_sensitive(
 @patch("src.template.stop_not_found_in_naptan.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):
     lambda_invalid_check(lambda_handler, mock_check, mocked_context)
-
