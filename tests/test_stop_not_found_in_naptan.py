@@ -34,8 +34,7 @@ def test_lambda_handler_valid_check(
     )
     mock_get_naptan_availablilty.return_value = pd.DataFrame(
         {
-            "atco_code": ["123", "456", "789"],
-            "atco_code_exists": [False, True, True],
+            "atco_code": ["456", "789"],
         }
     )
 
