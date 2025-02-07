@@ -62,7 +62,7 @@
     "Map": {
       "Type": "Map",
       "Label": "Map",
-      "MaxConcurrency": 200,
+      "MaxConcurrency": 20,
       "Next": "Pipeline Monitor Lambda",
       "Catch": [
         {
@@ -72,7 +72,9 @@
           "Next": "ParentExceptionHandler"
         }
       ],
-      "Output": "Sucess",
+      "Output": {
+        "mapResults": "$$.MapStateName.result"
+      },
       "ItemProcessor": {
         "ProcessorConfig": {
           "Mode": "DISTRIBUTED",
