@@ -61,6 +61,20 @@
     },
     "Map": {
       "Type": "Map",
+      "Label": "Map",
+      "MaxConcurrency": 20,
+      "Next": "Pipeline Monitor Lambda",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ParentExceptionHandler"
+        }
+      ],
+      "Output": {
+        "mapResults": "$$.MapStateName.result"
+      },
       "ItemProcessor": {
         "ProcessorConfig": {
           "Mode": "DISTRIBUTED",
@@ -1034,18 +1048,7 @@
             "End": true
           }
         }
-      },
-      "Label": "Map",
-      "MaxConcurrency": 1000,
-      "Next": "Pipeline Monitor Lambda",
-      "Catch": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "Next": "ParentExceptionHandler"
-        }
-      ]
+      }
       },
       "Pipeline Monitor Lambda": {
         "Type": "Task",
