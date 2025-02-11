@@ -65,7 +65,7 @@
       "MaxConcurrency": 20,
       "Next": "Pipeline Monitor Lambda",
       "Assign": {
-        "s3Bucket": "{% '${S3BucketName}' %}"
+        "s3Bucket": "${S3BucketName}"
       },
       "Catch": [
         {
@@ -81,7 +81,7 @@
       "ResultWriter": {
         "Resource": "arn:aws:states:::s3:putObject",
         "Arguments": {
-          "Bucket": "{% $s3Bucket %}",
+          "Bucket": "${s3Bucket}",
           "Prefix": "dqs-map-results"
         }
       },
