@@ -1583,6 +1583,7 @@ Resources:
         InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
         GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
+        S3BucketName: !Sub 'bodds-${Environment}'
         
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
@@ -1628,6 +1629,8 @@ Resources:
             FunctionName: !Ref PipelineMonitorLambda
         - StepFunctionsExecutionPolicy:
             StateMachineName: !Sub 'dqs-${Environment}-sm'
+        - S3WritePolicy:
+            BucketName: '$bodds-${Environment}'
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
