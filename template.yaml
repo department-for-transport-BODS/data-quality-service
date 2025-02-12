@@ -1630,7 +1630,7 @@ Resources:
         - StepFunctionsExecutionPolicy:
             StateMachineName: !Sub 'dqs-${Environment}-sm'
         - S3WritePolicy:
-            BucketName: '$bodds-${Environment}'
+            BucketName: !Sub '$bodds-${Environment}'
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket

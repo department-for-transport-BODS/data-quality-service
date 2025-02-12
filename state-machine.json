@@ -81,7 +81,7 @@
       "ResultWriter": {
         "Resource": "arn:aws:states:::s3:putObject",
         "Arguments": {
-          "Bucket": "${s3Bucket}",
+          "Bucket": "{% $s3Bucket %}",
           "Prefix": "dqs-map-results"
         }
       },
