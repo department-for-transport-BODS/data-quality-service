@@ -33,6 +33,7 @@ Globals:
     MemorySize: 512
     Tracing: Active
     KmsKeyArn: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+    ReservedConcurrentExecutions: 10
     VpcConfig: !If
       - IsNotLocal
       -
@@ -166,7 +167,7 @@ Resources:
             Queue: !GetAtt FirstStopIsSetDownOnlyQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref FirstStopIsSetDownOnlyLambdaLogGroup
 
