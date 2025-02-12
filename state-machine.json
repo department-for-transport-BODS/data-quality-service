@@ -62,7 +62,7 @@
     "Map": {
       "Type": "Map",
       "Label": "Map",
-      "MaxConcurrency": 20,
+      "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
       "Catch": [
         {
