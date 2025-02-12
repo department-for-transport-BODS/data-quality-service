@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.last_stop_is_pick_up_only import lambda_handler, lambda_worker
+from tests.test_templates import lambda_invalid_check
 
 
 @patch("src.template.last_stop_is_pick_up_only.get_df_vehicle_journey")
@@ -12,8 +13,6 @@ def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey,
     mocked_context
 ):
-    event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
     mocked_observations = mock_observation.return_value
@@ -33,7 +32,7 @@ def test_lambda_handler_valid_check(
             "auto_sequence_number": [1, 2, 3],
         }
     )
-    lambda_worker(event, mocked_check)
+    lambda_worker(None, mocked_check)
 
     
     assert mock_get_df_vehicle_journey.called
@@ -48,14 +47,6 @@ def test_lambda_handler_valid_check(
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
 
-
 @patch("src.template.last_stop_is_pick_up_only.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):
-    event = {"Records": [{"body": '{"file_id": 40, "check_id": 1, "result_id": 8}'}]}
-    context = mocked_context
-    mocked_check = mock_check.return_value
-    mocked_check.validate_requested_check.return_value = False
-
-    lambda_handler(event, context)
-
-    assert mocked_check.validate_requested_check.called
+    lambda_invalid_check(lambda_handler, mock_check, mocked_context)

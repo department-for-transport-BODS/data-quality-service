@@ -20,7 +20,7 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
     "POSTGRES_PASSWORD": "my_password",
 }
 
-# TODO: client is not there as of now, need to change the test cases
+# TODO: Remove - there is no boilerplate client, are we testing secrets manager because it's not in use?
 # @patch("src.boilerplate.common.client")
 # @patch.dict(environ, ENVIRONMENT_INPUT_TEST_VALUES)
 # def test_connection_details_valid(mocked_client):
@@ -29,12 +29,12 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
 #     }
 #     db = BodsDB()
 #     assert db._get_connection_details() == ENVIRONMENT_OUTPUT_TEST_VALUES
-
-
+#
+#
 # environment_missing_test_values = dict(ENVIRONMENT_INPUT_TEST_VALUES)
 # environment_missing_test_values.pop("POSTGRES_HOST")
 
-
+# TODO: Remove - there is no boilerplate client, are we testing secrets manager because it's not in use?
 # @patch("src.boilerplate.common.client")
 # @patch.dict(environ, environment_missing_test_values)
 # def test_connection_details_missing(mocked_client, caplog):
