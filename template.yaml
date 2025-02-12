@@ -1631,6 +1631,15 @@ Resources:
             StateMachineName: !Sub 'dqs-${Environment}-sm'
         - S3WritePolicy:
             BucketName: !Sub '$bodds-${Environment}'
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: 'KMSAccessPolicy'
+              Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Encrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+ 
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
