@@ -10,7 +10,6 @@ logger.setLevel(logging.DEBUG)
 
 @patch("src.template.first_stop_is_not_a_timing_point.Check")
 @patch("src.template.first_stop_is_not_a_timing_point.ObservationResult")
-@patch("src.template.first_stop_is_not_a_timing_point.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
     mock_get_df_vehicle_journey, mock_observation, mock_check
 ):
