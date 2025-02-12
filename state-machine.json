@@ -11,6 +11,9 @@
         "FunctionName": "${InitiateDQSLambdaArn}",
         "Payload": "{% $states.input %}"
       },
+      "Assign": {
+        "s3Bucket": "${S3BucketName}"
+      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -64,9 +67,6 @@
       "Label": "Map",
       "MaxConcurrency": 20,
       "Next": "Pipeline Monitor Lambda",
-      "Assign": {
-        "s3Bucket": "${S3BucketName}"
-      },
       "Catch": [
         {
           "ErrorEquals": [
