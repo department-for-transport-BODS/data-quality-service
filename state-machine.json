@@ -11,9 +11,6 @@
         "FunctionName": "${InitiateDQSLambdaArn}",
         "Payload": "{% $states.input %}"
       },
-      "Assign": {
-        "s3Bucket": "${S3BucketName}"
-      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -81,7 +78,7 @@
       "ResultWriter": {
         "Resource": "arn:aws:states:::s3:putObject",
         "Arguments": {
-          "Bucket": "{% $s3Bucket %}",
+          "Bucket": "${S3BucketName}",
           "Prefix": "dqs-map-results"
         }
       },
