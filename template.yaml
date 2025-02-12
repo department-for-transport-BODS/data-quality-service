@@ -1638,6 +1638,7 @@ Resources:
               Action:
                 - kms:GenerateDataKey
                 - kms:Encrypt
+                - kms:Decrypt
               Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
  
 
