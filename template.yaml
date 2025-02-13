@@ -33,6 +33,7 @@ Globals:
     MemorySize: 512
     Tracing: Active
     KmsKeyArn: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+    ReservedConcurrentExecutions: 10
     VpcConfig: !If
       - IsNotLocal
       -
@@ -170,7 +171,7 @@ Resources:
             Queue: !GetAtt FirstStopIsSetDownOnlyQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref FirstStopIsSetDownOnlyLambdaLogGroup
 
@@ -238,7 +239,7 @@ Resources:
             Queue: !GetAtt LastStopIsPickUpOnlyQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref LastStopIsPickUpOnlyLambdaLogGroup
 
@@ -306,7 +307,7 @@ Resources:
             Queue: !GetAtt FirstStopIsNotATimingPointQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref FirstStopIsNotATimingPointLambdaLogGroup
 
@@ -374,7 +375,7 @@ Resources:
             Queue: !GetAtt LastStopIsNotATimingPointQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref LastStopIsNotATimingPointLambdaLogGroup
 
@@ -442,7 +443,7 @@ Resources:
             Queue: !GetAtt IncorrectNocQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref IncorrectNocLambdaLogGroup
 
@@ -510,7 +511,7 @@ Resources:
             Queue: !GetAtt IncorrectStopTypeQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref IncorrectStopTypeLambdaLogGroup
 
@@ -578,7 +579,7 @@ Resources:
             Queue: !GetAtt IncorrectLicenceNumberQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref IncorrectLicenceNumberLambdaLogGroup
 
@@ -647,7 +648,7 @@ Resources:
             Queue: !GetAtt MissingStopQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref MissingStopLambdaLogGroup
 
@@ -715,7 +716,7 @@ Resources:
             Queue: !GetAtt MissingBusWorkingNumberQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref MissingBusWorkingNumberLambdaLogGroup
 
@@ -783,7 +784,7 @@ Resources:
             Queue: !GetAtt DuplicateJourneyCodeQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref DuplicateJourneyCodeLambdaLogGroup
 
@@ -851,7 +852,7 @@ Resources:
             Queue: !GetAtt StopNotFoundInNaptanQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref StopNotFoundInNaptanLambdaLogGroup
 
@@ -919,7 +920,7 @@ Resources:
             Queue: !GetAtt SameStopFoundMultipleTimesQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref SameStopFoundMultipleTimesLambdaLogGroup
 
@@ -987,7 +988,7 @@ Resources:
             Queue: !GetAtt NoTimingPointMoreThan15MinsQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref NoTimingPointMoreThan15MinsLogGroup
 
@@ -1056,7 +1057,7 @@ Resources:
             Queue: !GetAtt MissingJourneyCodeQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref MissingJourneyCodeLambdaLogGroup
 
@@ -1129,7 +1130,7 @@ Resources:
             Queue: !GetAtt GenerateDQSCSVReportQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref GenerateDQSCSVReportLambdaLogGroup
 
@@ -1197,7 +1198,7 @@ Resources:
             Queue: !GetAtt CancelledServiceAppearingActiveQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref CancelledServiceAppearingActiveLambdaLogGroup
 
@@ -1422,7 +1423,7 @@ Resources:
             Queue: !GetAtt ServicedOrganisationOutOfDateQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref ServicedOrganisationOutOfDateLambdaLogGroup
 
@@ -1547,7 +1548,7 @@ Resources:
             Queue: !GetAtt DQSDeadLetterQueue.Arn
             BatchSize: 1
             ScalingConfig:
-              MaximumConcurrency: 100
+              MaximumConcurrency: 10
       LoggingConfig:
         LogGroup: !Ref DeadLetterQueueLambdaLogGroup
 
@@ -1583,6 +1584,7 @@ Resources:
         InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
         GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
+        S3BucketName: !Sub 'bodds-${Environment}'
         
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
@@ -1628,6 +1630,18 @@ Resources:
             FunctionName: !Ref PipelineMonitorLambda
         - StepFunctionsExecutionPolicy:
             StateMachineName: !Sub 'dqs-${Environment}-sm'
+        - S3WritePolicy:
+            BucketName: !Sub 'bodds-${Environment}'
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: 'KMSAccessPolicy'
+              Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Encrypt
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+ 
 
   DQSCacheBucket:
     Type:  AWS::S3::Bucket

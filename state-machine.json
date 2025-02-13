@@ -62,7 +62,7 @@
     "Map": {
       "Type": "Map",
       "Label": "Map",
-      "MaxConcurrency": 20,
+      "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
       "Catch": [
         {
@@ -73,13 +73,21 @@
         }
       ],
       "Output": {
-        "mapResults": "$$.MapStateName.result"
+        "mapResults": "{% $states.result %}"
+      },
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Arguments": {
+          "Bucket": "${S3BucketName}",
+          "Prefix": "dqs-map-results"
+        }
       },
       "ItemProcessor": {
         "ProcessorConfig": {
           "Mode": "DISTRIBUTED",
           "ExecutionType": "STANDARD"
         },
+        
         "StartAt": "ProcessInput",
         "States": {
           "ProcessInput": {
