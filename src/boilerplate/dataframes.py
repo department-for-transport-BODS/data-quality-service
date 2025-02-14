@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from common import Check, DQSReport
 import pandas as pd
 import numpy as np
@@ -522,3 +523,35 @@ def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFra
     df = pd.read_sql_query(result.statement, check.db.session.bind)
     df["atco_code_exists"] = df["atco_code"].apply(lambda cell: cell in atco_codes)
     return df
+
+
+
+@contextmanager
+def update_taskresult_status(report, file_id,obervation, status):
+    """
+    Get the dataframe containing the vehicle journey and the stop activity
+
+    """
+    dqs_taskresults = report.db.classes.dqs_taskresults
+    dqs_report = report.db.classes.dqs_report
+    dqs_checks = report.db.classes.dqs_checks
+    try:
+        if status:
+            update_task_results = (
+                dqs_taskresults.filter(
+                    dqs_taskresults.dataquality_report_id.in_(report.ids)
+                )
+                .filter(dqs_checks.id.in_(dqs_checks.observation == obervation))
+                .filter(dqs_report.id == report.report_id)
+                .filter(dqs_taskresults.transmodel_txcfileattributes_id == file_id)
+            )
+        
+            for record in update_task_results:
+                record.status = status
+            report.db.session.commit()
+    except Exception as e:
+        logger.error(
+            f"Failed to update task result status for check = pipeline_monitor: {e}"
+        )
+        report.db.session.rollback()
+        raise e

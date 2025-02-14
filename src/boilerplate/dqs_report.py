@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy import update
 import pandas as pd
 from dqs_logger import logger
@@ -10,6 +11,10 @@ class DQReport:
     def __init__(self):
         self._db = BodsDB()
         self._table_name = self._db.classes.dqs_report
+
+    @property
+    def db(self):
+        return self._db
 
     def get_dq_reports_by_status(self, status: str) -> pd.DataFrame:
         df = pd.DataFrame()
@@ -24,6 +29,26 @@ class DQReport:
             raise e
         
         return df
+
+    def get_dq_reports_by_revision_id(self, revision_id: int) -> pd.DataFrame:
+        df = pd.DataFrame()
+        try:
+            if revision_id:
+                query = self._db.session.query(self._table_name).filter(self._table_name.revision_id == revision_id)
+                df = pd.read_sql_query(query.statement, self._db.session.bind)
+        except Exception as e:
+            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
+            raise e
+        return df
+
+    def get_dq_report_ids_by_revision_id(self, revision_id: int) -> List:
+        try:
+            query = self._db.session.query(self._table_name.id).filter(self._table_name.revision_id == revision_id)
+            return [id for id, in query.all()]
+        except Exception as e:
+            logger.error(f"Failed to retrieve check ids: {e}")
+            raise
+
     
     def initialise_dqs_report(self, revision_id: int) -> int:
         """
@@ -61,3 +86,19 @@ class DQReport:
             logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             self._db.session.rollback()
             raise e
+
+
+
+
+class TobLevelErrorHandler:
+    def __init__(self, revision_id: int):
+        self.revision_id = revision_id
+
+    def get_dq_reports(self):
+        dq_report_instance = DQReport()
+        dq_reports = dq_report_instance.get_dq_reports_by_revision_id(self.revision_id)
+        return dq_reports
+
+    def update_dq_reports(self, dq_reports):
+        dq_report_instance = DQReport()
+        dq_report_instance.update_dq_reports_status_using_ids(dq_reports, DQSReportStatus.PIPELINE_FAILED.value)
