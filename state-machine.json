@@ -73,7 +73,7 @@
       "Next": "Pipeline Monitor Lambda",
       "ItemSelector":{
         "revision_id": "{% $revision_id %}",
-        "DQSCheck_MissingBusWstate.inputorkingNumber": "{% $DQSCheck_MissingBusWorkingNumber %}",
+        "DQSCheck_MissingBusWorkingNumber": "{% $DQSCheck_MissingBusWorkingNumber %}",
         "DQSCheck_MissingStop": "{% $DQSCheck_MissingStop %}",
         "DQSCheck_IncorrectLicenceNumber": "{% $DQSCheck_IncorrectLicenceNumber %}",
         "DQSCheck_IncorrectNoc": "{% $DQSCheck_IncorrectNoc %}",
@@ -90,7 +90,6 @@
         "DQSCheck_CancelledServiceIncorrectlyAppearingActive": "{% $DQSCheck_CancelledServiceIncorrectlyAppearingActive %}",
         "DQSCheck_ServicedOrganisationDataIsOutOfDate": "{% $DQSCheck_ServicedOrganisationDataIsOutOfDate %}",
         "DQSCheck_DataPreFetch": "{% $DQSCheck_DataPreFetch %}"
-
       },
       "Catch": [
         {
@@ -136,7 +135,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
-                      "Payload": "{% $fileId %}",
+                      "Payload": "{% $fileId %}"
                     },
                     "Retry": [
                       {
@@ -169,7 +168,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_ServicedOrganisationDataIsOutOfDate %}"
+                      "observation": "{% $states.input.DQSCheck_ServicedOrganisationDataIsOutOfDate %}"
                     },
                     "Retry": [
                       {
@@ -231,7 +230,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_MissingBusWorkingNumber %}"
+                      "observation": "{% $states.input.DQSCheck_MissingBusWorkingNumber %}"
                     },
                     "Retry": [
                       {
@@ -293,7 +292,7 @@
                     "Arguments": {
                       "FunctionName": "${${GeneralErrorLambdaArn}}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_IncorrectStopType %}"
+                      "observation": "{% $states.input.DQSCheck_IncorrectStopType %}"
                     },
                     "Retry": [
                       {
@@ -355,7 +354,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_IncorrectNoc %}"
+                      "observation": "{% $states.input.DQSCheck_IncorrectNoc %}"
                     },
                     "Retry": [
                       {
@@ -417,7 +416,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_DataPreFetch %}"
+                      "observation": "{% $states.input.DQSCheck_DataPreFetch %}"
                     },
                     "Retry": [
                       {
@@ -479,7 +478,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_FirstStopIsNotATimingPoint %}"
+                              "observation": "{% $states.input.DQSCheck_FirstStopIsNotATimingPoint %}"
                             },
                             "Retry": [
                               {
@@ -541,7 +540,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_LastStopIsNotATimingPoint %}"
+                              "observation": "{% $states.input.DQSCheck_LastStopIsNotATimingPoint %}"
                             },
                             "Retry": [
                               {
@@ -603,7 +602,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_NoTimingPointMoreThan15Mins %}"
+                              "observation": "{% $states.input.DQSCheck_NoTimingPointMoreThan15Mins %}"
                             },
                             "Retry": [
                               {
@@ -665,7 +664,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_StopNotFoundInNaptan %}"
+                              "observation": "{% $states.input.DQSCheck_StopNotFoundInNaptan %}"
                             },
                             "Retry": [
                               {
@@ -727,7 +726,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_MissingJourneyCode %}" 
+                              "observation": "{% $states.input.DQSCheck_MissingJourneyCode %}" 
                             },
                             "Retry": [
                               {
@@ -789,7 +788,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_LastStopIsPickUpOnly %}"
+                              "observation": "{% $states.input.DQSCheck_LastStopIsPickUpOnly %}"
                             },
                             "Retry": [
                               {
@@ -851,7 +850,7 @@
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
                               "Payload": "{% $states.input %}",
-                              "observation": "{% $DQSCheck_FirstStopIsSetDownOnly %}"
+                              "observation": "{% $states.input.DQSCheck_FirstStopIsSetDownOnly %}"
                             },
                             "Retry": [
                               {
@@ -918,7 +917,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_CancelledServiceIncorrectlyAppearingActive %}"
+                      "observation": "{% $states.input.DQSCheck_CancelledServiceIncorrectlyAppearingActive %}"
                     },
                     "Retry": [
                       {
@@ -980,7 +979,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_DuplicateJourneyCode %}"
+                      "observation": "{% $states.input.DQSCheck_DuplicateJourneyCode %}"
                     },
                     "Retry": [
                       {
@@ -1042,7 +1041,7 @@
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
                       "Payload": "{% $states.input %}",
-                      "observation": "{% $DQSCheck_IncorrectLicenceNumber %}"
+                      "observation": "{% $states.input.DQSCheck_IncorrectLicenceNumber %}"
                     },
                     "Retry": [
                       {
@@ -1080,7 +1079,7 @@
             "Arguments": {
               "FunctionName": "${GeneralErrorLambdaArn}",
               "Payload": "{% $states.input %}",
-              "revision_id": "{% $revision_id %}"
+              "revision_id": "{% $states.input.revision_id %}"
             },
             "Retry": [
               {
