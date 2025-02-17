@@ -71,7 +71,7 @@
       "Label": "Map",
       "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
-      "Parameters":{
+      "ItemSelector":{
         "revision_id": "{% $revision_id %}",
         "DQSCheck_MissingBusWstate.inputorkingNumber": "{% $DQSCheck_MissingBusWorkingNumber %}",
         "DQSCheck_MissingStop": "{% $DQSCheck_MissingStop %}",
