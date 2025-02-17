@@ -1,7 +1,7 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Initiate DQS Lambda",
+  "StartAt": "InitialProcessInput",
   "States": {
     "InitialProcessInput": {
       "Type": "Pass",
