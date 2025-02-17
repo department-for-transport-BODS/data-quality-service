@@ -7,7 +7,7 @@
       "Type": "Pass",
       "Next": "Initiate DQS Lambda",
       "Assign": {
-        "revision_id": "{% $DatasetRevisionId %}",
+        "revision_id": "{% $state.input.DatasetRevisionId %}",
         "DQSCheck_MissingBusWorkingNumber": "{% $DQSCheck_MissingBusWorkingNumber %}",
         "DQSCheck_MissingStop": "{% $DQSCheck_MissingStop %}",
         "DQSCheck_IncorrectLicenceNumber": "{% $DQSCheck_IncorrectLicenceNumber %}",
