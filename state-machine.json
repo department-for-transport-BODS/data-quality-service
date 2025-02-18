@@ -7,7 +7,8 @@
       "Type": "Pass",
       "Next": "Initiate DQS Lambda",
       "Assign": {
-        "revision_id": "{% $state.input %}" }
+        "revision_id": "{% $state.input %}"
+      }
     },
     "Initiate DQS Lambda": {
       "Type": "Task",
@@ -71,7 +72,7 @@
       "Label": "Map",
       "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
-      "ItemSelector":{
+      "ItemSelector": {
         "revision_id": "{% $revision_id %}",
         "DQSCheck_MissingBusWorkingNumber": "${DQSCheck_MissingBusWorkingNumber}",
         "DQSCheck_MissingStop": "${DQSCheck_MissingStop}",
@@ -113,7 +114,7 @@
         "ProcessorConfig": {
           "Mode": "DISTRIBUTED",
           "ExecutionType": "STANDARD"
-        }, 
+        },
         "StartAt": "ProcessInput",
         "States": {
           "ProcessInput": {
@@ -136,6 +137,9 @@
                     "Arguments": {
                       "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
                       "Payload": "{% $fileId %}"
+                    },
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
                     },
                     "Retry": [
                       {
@@ -167,8 +171,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_ServicedOrganisationDataIsOutOfDate %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -195,6 +198,9 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Arguments": {
                       "FunctionName": "${MissingBusWorkingNumberLambdaArn}",
                       "Payload": "{% $fileId %}"
@@ -229,8 +235,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_MissingBusWorkingNumber %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -255,6 +260,9 @@
                 "States": {
                   "Incorrect Stop Type": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -291,8 +299,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${${GeneralErrorLambdaArn}}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_IncorrectStopType %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -317,6 +324,9 @@
                 "States": {
                   "Incorrect NOC": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -353,8 +363,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_IncorrectNoc %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -379,6 +388,9 @@
                 "States": {
                   "Data Prefetch": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Arguments": {
                       "FunctionName": "${DataPreFetchLambdaArn}",
@@ -415,8 +427,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_DataPreFetch %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -442,6 +453,10 @@
                         "States": {
                           "First Stop is Not a Timing Point": {
                             "Type": "Task",
+                            
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Arguments": {
                               "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
@@ -473,12 +488,14 @@
                           },
                           "FirstStopIsNotATimingPointExceptionHandler": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_FirstStopIsNotATimingPoint %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -503,6 +520,9 @@
                         "States": {
                           "Last Stop is Not a Timing Point": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -539,8 +559,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_LastStopIsNotATimingPoint %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -565,6 +584,9 @@
                         "States": {
                           "No Timing Point More than 15 Minutes": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -601,8 +623,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_NoTimingPointMoreThan15Mins %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -627,6 +648,9 @@
                         "States": {
                           "Stop not Found in Naptan": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -663,8 +687,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_StopNotFoundInNaptan %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -689,6 +712,9 @@
                         "States": {
                           "Missing Journey Code": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -725,8 +751,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_MissingJourneyCode %}" 
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -751,6 +776,9 @@
                         "States": {
                           "Last Stop is Pickup Only": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -787,8 +815,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_LastStopIsPickUpOnly %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -813,6 +840,9 @@
                         "States": {
                           "First Stop is Set Down Only": {
                             "Type": "Task",
+                            "Assign": {
+                              "FunctionName": "{% $states.context.State.Name %}"
+                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -849,8 +879,7 @@
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
                               "FunctionName": "${GeneralErrorLambdaArn}",
-                              "Payload": "{% $states.input %}",
-                              "observation": "{% $states.input.DQSCheck_FirstStopIsSetDownOnly %}"
+                              "Payload": "{% $states.input %}"
                             },
                             "Retry": [
                               {
@@ -880,6 +909,9 @@
                 "States": {
                   "Cancelled Service Appearing as Active": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -916,8 +948,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_CancelledServiceIncorrectlyAppearingActive %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -942,6 +973,9 @@
                 "States": {
                   "Duplicate Journey Code": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -978,8 +1012,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_DuplicateJourneyCode %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -1004,6 +1037,9 @@
                 "States": {
                   "Incorrect Licence Number": {
                     "Type": "Task",
+                    "Assign": {
+                      "FunctionName": "{% $states.context.State.Name %}"
+                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -1040,8 +1076,7 @@
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
                       "FunctionName": "${GeneralErrorLambdaArn}",
-                      "Payload": "{% $states.input %}",
-                      "observation": "{% $states.input.DQSCheck_IncorrectLicenceNumber %}"
+                      "Payload": "{% $states.input %}"
                     },
                     "Retry": [
                       {
@@ -1078,8 +1113,7 @@
             "Output": "{% $states.result.Payload %}",
             "Arguments": {
               "FunctionName": "${GeneralErrorLambdaArn}",
-              "Payload": "{% $states.input %}",
-              "revision_id": "{% $states.input.revision_id %}"
+              "Payload": "{% $states.input %}"
             },
             "Retry": [
               {
@@ -1099,37 +1133,37 @@
           }
         }
       }
+    },
+    "Pipeline Monitor Lambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${PipelineMonitorLambdaArn}"
       },
-      "Pipeline Monitor Lambda": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
-        "Output": "{% $states.result.Payload %}",
-        "Arguments": {
-          "FunctionName": "${PipelineMonitorLambdaArn}"
-        },
-        "Retry": [
-          {
-            "ErrorEquals": [
-              "Lambda.ServiceException",
-              "Lambda.AWSLambdaException",
-              "Lambda.SdkClientException",
-              "Lambda.TooManyRequestsException"
-            ],
-            "IntervalSeconds": 1,
-            "MaxAttempts": 3,
-            "BackoffRate": 2,
-            "JitterStrategy": "FULL"
-          }
-        ],
-        "End": true,
-        "Catch": [
-          {
-            "ErrorEquals": [
-              "States.ALL"
-            ],
-            "Next": "ParentExceptionHandler"
-          }
-        ]
-      }
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ParentExceptionHandler"
+        }
+      ]
     }
   }
+}
