@@ -1316,7 +1316,7 @@ Resources:
       RetentionInDays: 30
 
   ###########################################
-  ####       General Error Handler Lambda        ####
+  ##    General Error Handler Lambda     ####
   ###########################################
   GeneralErrorLambda:
     Type: AWS::Serverless::Function
@@ -1334,6 +1334,17 @@ Resources:
         - 'AWSXrayWriteOnlyAccess'
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
         - S3WritePolicy:
             BucketName: !Ref DQSCacheBucket
         - S3ReadPolicy:
@@ -1365,6 +1376,43 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
         
+  ###########################################
+  ##      Check Error Handler Lambda      ####
+  ###########################################
+  CheckErrorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-check-error-handler-lambda'
+      CodeUri: ./src/template
+      Handler: check_error_handler.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref CheckErrorLambdaLogGroup
+
+  CheckErrorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-check-error-handler-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
 
   ###########################################
   #### SERVICED ORGANISATION OUT OF DATE ####
@@ -1583,28 +1631,9 @@ Resources:
         DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
         InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
         GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
+        CheckErrorLambdaArn: !GetAtt CheckErrorLambda.Arn
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
         S3BucketName: !Sub 'bodds-${Environment}'
-        DQSCheck_MissingBusWorkingNumber: 'Missing bus working number'
-        DQSCheck_MissingStop: 'Missing stop'
-        DQSCheck_IncorrectLicenceNumber: 'Incorrect licence number'
-        DQSCheck_IncorrectNoc: 'Incorrect noc'
-        DQSCheck_IncorrectStopType: 'Incorrect stop type'
-        DQSCheck_FirstStopIsSetDownOnly: 'First stop is set down only'
-        DQSCheck_LastStopIsPickUpOnly: 'Last stop is pick up only'
-        DQSCheck_FirstStopIsNotATimingPoint: 'First stop is not a timing point'
-        DQSCheck_LastStopIsNotATimingPoint: 'Last stop is not a timing point'
-        DQSCheck_DuplicateJourneyCode: 'Duplicate journey code'
-        DQSCheck_StopNotFoundInNaptan: 'Stop not found in naptan'
-        DQSCheck_SameStopFoundMultipleTimes: 'Same stop found multiple times'
-        DQSCheck_NoTimingPointMoreThan15Mins: 'No timing point for more than 15 minutes'
-        DQSCheck_MissingJourneyCode: 'Missing journey code'
-        DQSCheck_CancelledServiceIncorrectlyAppearingActive: 'Cancelled service incorrectly appearing active'
-        DQSCheck_ServicedOrganisationDataIsOutOfDate: 'Serviced organisation data is out of date'
-        DQSCheck_DataPreFetch: 'Data pre-fetch'
-        DQSCheck_InitiateDQS: 'Initiate DQS'
-        DQSCheck_GeneralError: 'General error'
-        DQSCheck_LicenceNumberNotMatch: 'Licence number not match'
         
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
@@ -1646,6 +1675,8 @@ Resources:
             FunctionName: !Ref InitiateDQSLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref GeneralErrorLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CheckErrorLambda
         - LambdaInvokePolicy:
             FunctionName: !Ref PipelineMonitorLambda
         - StepFunctionsExecutionPolicy:
