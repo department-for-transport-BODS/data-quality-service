@@ -138,9 +138,6 @@
                       "FunctionName": "${ServicedOrganisationOutOfDateLambdaArn}",
                       "Payload": "{% $fileId %}"
                     },
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Retry": [
                       {
                         "ErrorEquals": [
@@ -198,9 +195,6 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Arguments": {
                       "FunctionName": "${MissingBusWorkingNumberLambdaArn}",
                       "Payload": "{% $fileId %}"
@@ -260,9 +254,6 @@
                 "States": {
                   "Incorrect Stop Type": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -324,9 +315,6 @@
                 "States": {
                   "Incorrect NOC": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -388,9 +376,6 @@
                 "States": {
                   "Data Prefetch": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Arguments": {
                       "FunctionName": "${DataPreFetchLambdaArn}",
@@ -453,10 +438,6 @@
                         "States": {
                           "First Stop is Not a Timing Point": {
                             "Type": "Task",
-                            
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Arguments": {
                               "FunctionName": "${FirstStopIsNotATimingPointLambdaArn}",
@@ -488,9 +469,6 @@
                           },
                           "FirstStopIsNotATimingPointExceptionHandler": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -520,9 +498,6 @@
                         "States": {
                           "Last Stop is Not a Timing Point": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -584,9 +559,6 @@
                         "States": {
                           "No Timing Point More than 15 Minutes": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -648,9 +620,6 @@
                         "States": {
                           "Stop not Found in Naptan": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -712,9 +681,6 @@
                         "States": {
                           "Missing Journey Code": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -776,9 +742,6 @@
                         "States": {
                           "Last Stop is Pickup Only": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -840,9 +803,6 @@
                         "States": {
                           "First Stop is Set Down Only": {
                             "Type": "Task",
-                            "Assign": {
-                              "FunctionName": "{% $states.context.State.Name %}"
-                            },
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
@@ -909,9 +869,6 @@
                 "States": {
                   "Cancelled Service Appearing as Active": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -973,9 +930,6 @@
                 "States": {
                   "Duplicate Journey Code": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
@@ -1037,9 +991,6 @@
                 "States": {
                   "Incorrect Licence Number": {
                     "Type": "Task",
-                    "Assign": {
-                      "FunctionName": "{% $states.context.State.Name %}"
-                    },
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
