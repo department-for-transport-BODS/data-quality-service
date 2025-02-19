@@ -1348,10 +1348,6 @@ Resources:
             Action:
               - 'sqs:ListQueues'
             Resource: '*'
-        - S3WritePolicy:
-            BucketName: !Ref DQSCacheBucket
-        - S3ReadPolicy:
-            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -1359,6 +1355,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - kms:Decrypt
+                  - kms:GenerateDataKey
                 Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
           - !Ref 'AWS::NoValue'
         - !If
