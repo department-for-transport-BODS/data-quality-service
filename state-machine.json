@@ -48,8 +48,10 @@
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
         "FunctionName": "${GeneralErrorLambdaArn}",
-        "Payload": "{% $states.input %}",
-        "revision_id": "{% $revision_id %}"
+        "Payload":{
+          "Error": "{% $states.input %}",
+          "revision_id": "{% $revision_id %}"
+          }
       },
       "Retry": [
         {

@@ -1328,6 +1328,9 @@ Resources:
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
         - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
         - 'AWSLambdaVPCAccessExecutionRole'

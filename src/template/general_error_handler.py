@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         tasks = tasks[['dataquality_report_id', 'status']].drop_duplicates()
         dq_report_with_status = tasks.groupby(["dataquality_report_id"])[["status"]].apply(map_pipeline_status, include_groups=False).reset_index()
         dq_report_with_status = dq_report_with_status.rename(columns={'pipeline_status': 'status'})
-        
+        dq_report_with_status.rename(columns={"dataquality_report_id":"id"}, inplace=True)
         dq_report_with_status = dq_report_with_status[["id", "status"]].drop_duplicates().reset_index(drop=True)
         
         df_generate_csv = dq_report_with_status[dq_report_with_status['status'].isin([DQSReportStatus.PIPELINE_SUCCEEDED.value, DQSReportStatus.PIPELINE_SUCCEEDED_WITH_ERRORS.value])]
