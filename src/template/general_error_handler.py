@@ -76,7 +76,5 @@ def lambda_handler(event, context):
 
     finally:
         logger.info("lambda_handler completed successfully.")
-        send_sqs_messages(df_generate_csv)
-
 
 
