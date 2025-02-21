@@ -39,7 +39,7 @@ class DQReport:
                         self._table_name.status == status)
                 df = pd.read_sql_query(query.statement, self._db.session.bind)
         except Exception as e:
-            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
+            logger.error(f"Failed to get report {e}")
             raise e
         return df
 
