@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy import update
 import pandas as pd
 from dqs_logger import logger
@@ -10,6 +11,10 @@ class DQReport:
     def __init__(self):
         self._db = BodsDB()
         self._table_name = self._db.classes.dqs_report
+
+    @property
+    def db(self):
+        return self._db
 
     def get_dq_reports_by_status(self, status: str) -> pd.DataFrame:
         df = pd.DataFrame()
@@ -24,6 +29,20 @@ class DQReport:
             raise e
         
         return df
+
+    def get_dq_report_by_revision_id(self, revision_id: int, status) -> pd.DataFrame:
+        df = pd.DataFrame()
+        try:
+            if revision_id:
+                query = self._db.session.query(self._table_name).filter(
+                    self._table_name.revision_id == revision_id).filter(
+                        self._table_name.status == status)
+                df = pd.read_sql_query(query.statement, self._db.session.bind)
+        except Exception as e:
+            logger.error(f"Failed to get report {e}")
+            raise e
+        return df
+
     
     def initialise_dqs_report(self, revision_id: int) -> int:
         """
