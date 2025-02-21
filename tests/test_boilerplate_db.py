@@ -58,8 +58,6 @@ def test_database_initialization(
     session, automap_base, create_engine, connection_details
 ):
     """Test database initialization."""
-    
-    print(dir(session))
     connection_details.return_value = ENVIRONMENT_INPUT_TEST_VALUES
     automap_base.prepare.return_value = True
     db = BodsDB()
