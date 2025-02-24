@@ -10,10 +10,9 @@ logger.setLevel(logging.DEBUG)
 
 @patch("src.template.first_stop_is_not_a_timing_point.Check")
 @patch("src.template.first_stop_is_not_a_timing_point.ObservationResult")
-def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey, mock_observation, mock_check
-):
-    mocked_check = mock_check.return_value
+@patch("src.template.first_stop_is_not_a_timing_point.get_df_vehicle_journey")
+def test_lambda_handler_valid_check(mock_get_df_vehicle_journey, mock_observation, mocked_check, mocked_context):
+    mocked_check = MagicMock()
     mocked_check.validate_requested_check.return_value = True
     mocked_check.set_status = MagicMock()
     mocked_observations = mock_observation.return_value

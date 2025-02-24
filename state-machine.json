@@ -1,15 +1,22 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "Initiate DQS Lambda",
+  "StartAt": "InitialProcessInput",
   "States": {
+    "InitialProcessInput": {
+      "Type": "Pass",
+      "Next": "Initiate DQS Lambda",
+      "Assign": {
+        "revision_id": "{% $exists($states.input) ? $states.input : null %}"
+      }
+    },
     "Initiate DQS Lambda": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
         "FunctionName": "${InitiateDQSLambdaArn}",
-        "Payload": "{% $states.input %}"
+        "Payload": "{% $revision_id %}"
       },
       "Retry": [
         {
@@ -19,7 +26,7 @@
             "Lambda.SdkClientException",
             "Lambda.TooManyRequestsException"
           ],
-          "IntervalSeconds": 1,
+          "IntervalSeconds": 1, 
           "MaxAttempts": 3,
           "BackoffRate": 2,
           "JitterStrategy": "FULL"
@@ -41,7 +48,10 @@
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
         "FunctionName": "${GeneralErrorLambdaArn}",
-        "Payload": "{% $states.input %}"
+        "Payload":{
+          "Error": "{% $states.input %}",
+          "revision_id": "{% $revision_id %}"
+          }
       },
       "Retry": [
         {
@@ -87,7 +97,6 @@
           "Mode": "DISTRIBUTED",
           "ExecutionType": "STANDARD"
         },
-        
         "StartAt": "ProcessInput",
         "States": {
           "ProcessInput": {
@@ -140,7 +149,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -201,7 +210,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -262,7 +271,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${${GeneralErrorLambdaArn}}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -323,7 +332,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -384,7 +393,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -445,7 +454,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -506,7 +515,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -567,7 +576,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -628,7 +637,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -689,7 +698,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -750,7 +759,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -811,7 +820,7 @@
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "Output": "{% $states.result.Payload %}",
                             "Arguments": {
-                              "FunctionName": "${GeneralErrorLambdaArn}",
+                              "FunctionName": "${CheckErrorLambdaArn}",
                               "Payload": "{% $states.input %}"
                             },
                             "Retry": [
@@ -877,7 +886,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -938,7 +947,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -999,7 +1008,7 @@
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "Output": "{% $states.result.Payload %}",
                     "Arguments": {
-                      "FunctionName": "${GeneralErrorLambdaArn}",
+                      "FunctionName": "${CheckErrorLambdaArn}",
                       "Payload": "{% $states.input %}"
                     },
                     "Retry": [
@@ -1036,7 +1045,7 @@
             "Resource": "arn:aws:states:::lambda:invoke",
             "Output": "{% $states.result.Payload %}",
             "Arguments": {
-              "FunctionName": "${GeneralErrorLambdaArn}",
+              "FunctionName": "${CheckErrorLambdaArn}",
               "Payload": "{% $states.input %}"
             },
             "Retry": [
@@ -1057,37 +1066,37 @@
           }
         }
       }
+    },
+    "Pipeline Monitor Lambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${PipelineMonitorLambdaArn}"
       },
-      "Pipeline Monitor Lambda": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
-        "Output": "{% $states.result.Payload %}",
-        "Arguments": {
-          "FunctionName": "${PipelineMonitorLambdaArn}"
-        },
-        "Retry": [
-          {
-            "ErrorEquals": [
-              "Lambda.ServiceException",
-              "Lambda.AWSLambdaException",
-              "Lambda.SdkClientException",
-              "Lambda.TooManyRequestsException"
-            ],
-            "IntervalSeconds": 1,
-            "MaxAttempts": 3,
-            "BackoffRate": 2,
-            "JitterStrategy": "FULL"
-          }
-        ],
-        "End": true,
-        "Catch": [
-          {
-            "ErrorEquals": [
-              "States.ALL"
-            ],
-            "Next": "ParentExceptionHandler"
-          }
-        ]
-      }
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ParentExceptionHandler"
+        }
+      ]
     }
   }
+}

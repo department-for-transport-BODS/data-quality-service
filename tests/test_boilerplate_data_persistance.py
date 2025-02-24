@@ -45,7 +45,7 @@ class TestBoilerplateDataPersistence(unittest.TestCase):
     @patch.dict('src.boilerplate.data_persistence.environ', valid_s3_environ, clear=True)
     def test_save_and_load_pickles_ok(self):
         setup_default_session()
-        client("s3").create_bucket(Bucket="MyBucket")
+        client("s3", region_name="us-east-1").create_bucket(Bucket="MyBucket")
 
         pd = PersistedData()
         pd.save('Some-Key', 'Some-Value')
@@ -57,7 +57,7 @@ class TestBoilerplateDataPersistence(unittest.TestCase):
     @patch.dict('src.boilerplate.data_persistence.environ', valid_s3_environ, clear=True)
     def test_retrieval_of_non_existant_key(self):
         setup_default_session()
-        client("s3").create_bucket(Bucket="MyBucket")
+        client("s3", region_name="us-east-1").create_bucket(Bucket="MyBucket")
 
         pd = PersistedData()
         pd.save('Some-Key', 'Some-Value')
@@ -72,7 +72,7 @@ class TestBoilerplateDataPersistence(unittest.TestCase):
     @patch.dict('src.boilerplate.data_persistence.environ', valid_s3_environ, clear=True)
     def test_save_and_load_of_binary_object(self):
         setup_default_session()
-        client("s3").create_bucket(Bucket="MyBucket")
+        client("s3",  region_name="us-east-1").create_bucket(Bucket="MyBucket")
 
         df = DataFrame(
             {
