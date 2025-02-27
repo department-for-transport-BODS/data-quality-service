@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../boilerplate")
+sys.path.append("./src/boilerplate")
 import itertools
 from dqs_checks import DQChecks
 from dqs_report import DQReport
@@ -32,7 +32,7 @@ def get_txc_files(revision_id: int) -> list:
 def lambda_handler(event=None, context=None):
     # revision_id = event.get('DatasetRevisionId','')
     
-    revision_id = 201
+    revision_id = 209
     try:
         if revision_id:
             report_id = get_report_id(revision_id)
