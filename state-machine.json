@@ -74,6 +74,20 @@
       "Label": "Map",
       "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
+      "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 1,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
       "Catch": [
         {
           "ErrorEquals": [
