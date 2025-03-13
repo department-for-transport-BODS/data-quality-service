@@ -11,7 +11,8 @@ class TXCFileAttributes:
     def get_all_txc_file_attributes(self, revision_id) -> List:
         try:
             result = self._db.session.query(self.service.txcfileattributes_id).filter(
-                self.service.revision_id == revision_id
+                self.service.revision_id == revision_id,
+                self.service.txcfileattributes_id.isnot(None)
             ).distinct().all()
             logger.info(f"txc_file query result: {result}")
 
