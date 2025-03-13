@@ -74,6 +74,17 @@
       "Label": "Map",
       "MaxConcurrency": 10,
       "Next": "Pipeline Monitor Lambda",
+      "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
       "Catch": [
         {
           "ErrorEquals": [
