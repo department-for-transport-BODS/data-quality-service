@@ -20,6 +20,7 @@ def lambda_worker(event, check) -> None:
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
     finally:
         check.set_status(status)
         logger.info("Check status updated in DB")
@@ -30,7 +31,7 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event)
+        check = Check(event, __name__.split('.')[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         timeout_handler.run(lambda_worker)
@@ -41,4 +42,5 @@ def lambda_handler(event, context):
     except Exception as e:
         status = DQSTaskResultStatus.FAILED.value
         logger.error(f"Check status failed due to {e}")
+        logger.exception(e)
         check.set_status(status)

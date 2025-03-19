@@ -61,6 +61,8 @@ Globals:
             - IsNotLocal
             - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
             - postgres
+        CACHE_BUCKET: !Ref DQSCacheBucket
+        CACHE_BACKEND: None
 
 Resources:
   #########################################
@@ -143,6 +145,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt FirstStopIsSetDownOnlyQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -209,6 +213,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt LastStopIsPickUpOnlyQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -275,6 +281,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt FirstStopIsNotATimingPointQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -341,6 +349,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -407,6 +417,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectNocQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -473,6 +485,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectStopTypeQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -539,6 +553,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt IncorrectLicenceNumberQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -606,6 +622,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingStopQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -672,6 +690,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingBusWorkingNumberQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -738,6 +758,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt DuplicateJourneyCodeQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -804,6 +826,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt StopNotFoundInNaptanQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -870,6 +894,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt SameStopFoundMultipleTimesQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -936,6 +962,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt NoTimingPointMoreThan15MinsQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -1003,6 +1031,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt MissingJourneyCodeQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -1142,6 +1172,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt CancelledServiceAppearingActiveQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -1178,6 +1210,211 @@ Resources:
       RetentionInDays: 30
 
   ###########################################
+  ####       DATA PREFETCH LAMBDA        ####
+  ###########################################
+  DataPreFetchLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-data-prefetch-lambda'
+      CodeUri: ./src/template
+      Handler: data_prefetch.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - S3WritePolicy:
+            BucketName: !Ref DQSCacheBucket
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      LoggingConfig:
+        LogGroup: !Ref DataPreFetchLambdaLogGroup
+
+  DataPreFetchLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-data-prefetch-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
+
+  ###########################################
+  ####            INITIATE DQS           ####
+  ###########################################
+  InitiateDQSLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-initiate-dqs-lambda'
+      CodeUri: ./src/template
+      Handler: initiate_dqs.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - S3WritePolicy:
+            BucketName: !Ref DQSCacheBucket
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${ProjectName}-${Environment}-sm'
+                  - "*"
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      LoggingConfig:
+        LogGroup: !Ref InitiateDQSLambdaLogGroup
+
+  InitiateDQSLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-initiate-dqs-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
+
+  ###########################################
+  ##    General Error Handler Lambda     ####
+  ###########################################
+  GeneralErrorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-general-error-handler-lambda'
+      CodeUri: ./src/template
+      Handler: general_error_handler.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Environment:
+        Variables:
+          SQS_QUEUE_ENDPOINT: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:GetQueueUrl'
+              - 'sqs:SendMessage'
+            Resource: !GetAtt GenerateDQSCSVReportQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ListQueues'
+            Resource: '*'
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-ro-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+        - !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/rds-proxy-rw-user-access-policy-arn}}'
+          - 'AmazonRDSReadOnlyAccess'
+      LoggingConfig:
+        LogGroup: !Ref GeneralErrorLambdaLogGroup
+
+  GeneralErrorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-general-error-handler-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
+        
+  ###########################################
+  ##      Check Error Handler Lambda      ####
+  ###########################################
+  CheckErrorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-check-error-handler-lambda'
+      CodeUri: ./src/template
+      Handler: check_error_handler.lambda_handler
+      Layers: !If
+        - IsNotLocal
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - !Ref 'AWS::NoValue'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - 'AWSLambdaVPCAccessExecutionRole'
+        - 'AWSXrayWriteOnlyAccess'
+        - 'AWSLambda_ReadOnlyAccess'
+        - 'CloudWatchLambdaInsightsExecutionRolePolicy'
+        - !If
+          - IsNotLocal
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref 'AWS::NoValue'
+      LoggingConfig:
+        LogGroup: !Ref CheckErrorLambdaLogGroup
+
+  CheckErrorLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-check-error-handler-lambda'
+      KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+      RetentionInDays: 30
+
+  ###########################################
   #### SERVICED ORGANISATION OUT OF DATE ####
   ###########################################
   ServicedOrganisationOutOfDateQueue:
@@ -1186,16 +1423,16 @@ Resources:
       QueueName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date'
       KmsMasterKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       VisibilityTimeout: 300
-      RedrivePolicy: 
+      RedrivePolicy:
         deadLetterTargetArn: !GetAtt DQSDeadLetterQueue.Arn
         maxReceiveCount: 3
-      
+
   ServicedOrganisationOutOfDateLambda:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-${Environment}-serviced-organisation-out-of-date-lambda'
       CodeUri: ./src/template
-      Handler: serviced_organisation_out_of_date.lambda_handler
+      Handler: serviced_organisation_data_is_out_of_date.lambda_handler
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
@@ -1208,6 +1445,8 @@ Resources:
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
         - SQSPollerPolicy:
             QueueName: !GetAtt ServicedOrganisationOutOfDateQueue.QueueName
+        - S3ReadPolicy:
+            BucketName: !Ref DQSCacheBucket
         - !If
           - IsNotLocal
           - Version: '2012-10-17'
@@ -1252,12 +1491,6 @@ Resources:
       FunctionName: !Sub '${ProjectName}-${Environment}-pipeline-monitor-lambda'
       CodeUri: ./src/template
       Handler: monitor.lambda_handler
-      Events:
-        MonitorLambdas:
-          Type: Schedule
-          Properties:
-            Name: !Sub '${Environment}-${ProjectName}-pipeline-monitor-lambda-schedule'
-            Schedule: rate(2 minutes)
       Layers: !If 
         - IsNotLocal
         - [!Ref BoilerplateLambdaLayer]
@@ -1373,3 +1606,116 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}-dead-letter-queue-lambda'
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
+
+  DQSStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: ./state-machine.json
+      DefinitionSubstitutions:
+        FirstStopIsSetDownOnlyLambdaArn: !GetAtt FirstStopIsSetDownOnlyLambda.Arn
+        LastStopIsPickUpOnlyLambdaArn: !GetAtt LastStopIsPickUpOnlyLambda.Arn
+        FirstStopIsNotATimingPointLambdaArn: !GetAtt FirstStopIsNotATimingPointLambda.Arn
+        LastStopIsNotATimingPointLambdaArn: !GetAtt LastStopIsNotATimingPointLambda.Arn
+        IncorrectNocLambdaArn: !GetAtt IncorrectNocLambda.Arn
+        IncorrectStopTypeLambdaArn: !GetAtt IncorrectStopTypeLambda.Arn
+        IncorrectLicenceNumberLambdaArn: !GetAtt IncorrectLicenceNumberLambda.Arn
+        MissingStopLambdaArn: !GetAtt MissingStopLambda.Arn
+        MissingBusWorkingNumberLambdaArn: !GetAtt MissingBusWorkingNumberLambda.Arn
+        DuplicateJourneyCodeLambdaArn: !GetAtt DuplicateJourneyCodeLambda.Arn
+        StopNotFoundInNaptanLambdaArn: !GetAtt StopNotFoundInNaptanLambda.Arn
+        SameStopFoundMultipleTimesLambdaArn: !GetAtt SameStopFoundMultipleTimesLambda.Arn
+        NoTimingPointMoreThan15MinsLambdaArn: !GetAtt NoTimingPointMoreThan15MinsLambda.Arn
+        MissingJourneyCodeLambdaArn: !GetAtt MissingJourneyCodeLambda.Arn
+        CancelledServiceAppearingActiveLambdaArn: !GetAtt CancelledServiceAppearingActiveLambda.Arn
+        ServicedOrganisationOutOfDateLambdaArn: !GetAtt ServicedOrganisationOutOfDateLambda.Arn
+        DataPreFetchLambdaArn: !GetAtt DataPreFetchLambda.Arn
+        InitiateDQSLambdaArn: !GetAtt InitiateDQSLambda.Arn
+        GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
+        CheckErrorLambdaArn: !GetAtt CheckErrorLambda.Arn
+        PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
+        S3BucketName: !Sub 'bodds-${Environment}'
+        
+      Name: !Sub '${ProjectName}-${Environment}-sm'
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FirstStopIsSetDownOnlyLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref LastStopIsPickUpOnlyLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FirstStopIsNotATimingPointLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref LastStopIsNotATimingPointLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectNocLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectStopTypeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref IncorrectLicenceNumberLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingStopLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingBusWorkingNumberLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DuplicateJourneyCodeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StopNotFoundInNaptanLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SameStopFoundMultipleTimesLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref NoTimingPointMoreThan15MinsLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MissingJourneyCodeLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CancelledServiceAppearingActiveLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ServicedOrganisationOutOfDateLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DataPreFetchLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref InitiateDQSLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GeneralErrorLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CheckErrorLambda
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PipelineMonitorLambda
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !Sub 'dqs-${Environment}-sm'
+        - S3WritePolicy:
+            BucketName: !Sub 'bodds-${Environment}'
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: 'KMSAccessPolicy'
+              Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Encrypt
+                - kms:Decrypt
+              Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+ 
+
+  DQSCacheBucket:
+    Type:  AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-${Environment}-cache'
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        LogFilePrefix: 'access_logs'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: Delete in 7 days after expiry
+            Status: Enabled
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 7
