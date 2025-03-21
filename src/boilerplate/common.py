@@ -1,4 +1,5 @@
 import boto3
+import os
 import urllib.parse
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -324,6 +325,11 @@ class BodsDB:
         Returns:
         - str: The generated connection string from parsed key/value pairs
         """
+        if "application_name" not in kwargs:
+            lambda_function_name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+        if lambda_function_name:
+            kwargs["application_name"] = lambda_function_name
+            
         user_password = ""
         if kwargs.get("user"):
             user_password += kwargs.get("user")
