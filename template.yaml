@@ -33,7 +33,6 @@ Globals:
     MemorySize: 512
     Tracing: Active
     KmsKeyArn: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
-    ReservedConcurrentExecutions: 10
     VpcConfig: !If
       - IsNotLocal
       -
