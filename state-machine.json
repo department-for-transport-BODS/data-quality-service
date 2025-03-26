@@ -715,7 +715,6 @@
                             "Retry": [
                               {
                                 "ErrorEquals": [
-                                  "Lambda.Unknown",
                                   "Lambda.ServiceException",
                                   "Lambda.AWSLambdaException",
                                   "Lambda.SdkClientException",
