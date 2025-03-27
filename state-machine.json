@@ -15,13 +15,13 @@
     },
     "Validate Lock Inputs": {
       "Type": "Choice",
+      "Default": "Lock Configuration Error",
       "Choices": [
         {
-          "Condition": "{% $exists($.lock_name) and $type($.lock_name) = 'string' and $exists($.concurrency_limit) and $type($.concurrency_limit) = 'number' and $exists($.lock_entry) and $type($.lock_entry) = 'string' %}",
+          "Condition": "{% $exists(lock_name) and $type(lock_name) = 'string' and $exists(concurrency_limit) and $type(concurrency_limit) = 'number' and $exists(lock_entry) and $type(lock_entry) = 'string' %}",
           "Next": "Acquire Lock"
         }
-      ],
-      "Default": "Lock Configuration Error"
+      ]
     },
     "Lock Configuration Error": {
       "Type": "Fail",
@@ -36,19 +36,19 @@
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid": "{% $.lock_entry %}"
+          "#lockownerid": "{% $lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":increase": {
             "N": "1"
           },
           ":limit": {
-            "N": "{% $string($.concurrency_limit) %}"
+            "N": "{% $string($concurrency_limit) %}"
           },
           ":lockacquiredtime": {
             "S": "{% $$.State.EnteredTime %}"
@@ -79,21 +79,21 @@
             "DynamoDB.AmazonDynamoDBException"
           ],
           "Next": "Initialize Lock Item",
-          "ResultPath": "$.lockinfo.acquisitionerror"
+          "Output": "$.lockinfo.acquisitionerror"
         },
         {
           "ErrorEquals": [
             "DynamoDB.ConditionalCheckFailedException"
           ],
           "Next": "Get Current Lock Record",
-          "ResultPath": "$.lockinfo.acquisitionerror"
+          "Output": "$.lockinfo.acquisitionerror"
         },
         {
           "ErrorEquals": [
             "States.ALL"
           ],
           "Next": "ParentExceptionHandler",
-          "ResultPath": "$.error"
+          "Output": "$.error"
         }
       ],
       "Next": "Initiate DQS Lambda"
@@ -106,7 +106,7 @@
         "TableName": "${DQSTableSemaphore}",
         "Item": {
           "LockName": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           },
           "currentlockcount": {
             "N": "0"
@@ -115,7 +115,7 @@
         "ConditionExpression": "LockName <> :lockname",
         "ExpressionAttributeValues": {
           ":lockname": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           }
         }
       },
@@ -124,12 +124,10 @@
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "Acquire Lock",
-          "ResultPath": null
+          "Next": "Acquire Lock"
         }
       ],
-      "Next": "Acquire Lock",
-      "ResultPath": null
+      "Next": "Acquire Lock"
     },
     "Get Current Lock Record": {
       "Comment": "Check if this execution already holds a lock",
@@ -138,11 +136,11 @@
       "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "ExpressionAttributeNames": {
-          "#lockownerid": "{% $.lock_entry %}"
+          "#lockownerid": "{% $lock_entry %}"
         },
         "Key": {
           "LockName": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           }
         },
         "ProjectionExpression": "#lockownerid"
@@ -151,7 +149,7 @@
         "Item": "{% $.Item %}",
         "ItemString": "{% $string($.Item) %}"
       },
-      "ResultPath": "$.lockinfo.currentlockitem",
+      "Output": "$.lockinfo.currentlockitem",
       "Next": "Check If Lock Already Acquired"
     },
     "Check If Lock Already Acquired": {
@@ -201,7 +199,7 @@
             "States.ALL"
           ],
           "Next": "Release Lock On Error",
-          "ResultPath": "$.error"
+          "Output": "$.error"
         }
       ]
     },
@@ -216,7 +214,7 @@
             "States.ALL"
           ],
           "Next": "Release Lock On Error",
-          "ResultPath": "$.error"
+          "Output": "$.error"
         }
       ],
       "Output": {
@@ -1248,7 +1246,7 @@
             "States.ALL"
           ],
           "Next": "Release Lock On Error",
-          "ResultPath": "$.error"
+          "Output": "$.error"
         }
       ]
     },
@@ -1259,12 +1257,12 @@
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid": "{% $.lock_entry %}"
+          "#lockownerid": "{% $lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":decrease": {
@@ -1295,15 +1293,14 @@
           "ErrorEquals": [
             "DynamoDB.ConditionalCheckFailedException"
           ],
-          "Next": "Success",
-          "ResultPath": null
+          "Next": "Success"
         },
         {
           "ErrorEquals": [
             "States.ALL"
           ],
           "Next": "ParentExceptionHandler",
-          "ResultPath": "$.error"
+          "Output": "$.error"
         }
       ],
       "Next": "Success"
@@ -1315,12 +1312,12 @@
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S": "{% $.lock_name %}"
+            "S": "{% $lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid": "{% $.lock_entry %}"
+          "#lockownerid": "{% $lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":decrease": {
@@ -1353,7 +1350,7 @@
             "States.ALL"
           ],
           "Next": "ParentExceptionHandler",
-          "ResultPath": "$.releaseError"
+          "Output": "$.releaseError"
         }
       ]
     },
