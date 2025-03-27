@@ -143,12 +143,9 @@ def sqlalchmy_model_generator() -> None:
     generators = {ep.name: ep for ep in entry_points(group="sqlacodegen.generators")}
     connection_details = _get_connection_details()
     url = _generate_connection_string(**connection_details)
-    options = ""
-    schemas = "public"
-    generator = "dataclasses"
-    tables = "dqs_observationresults,organisation_txcfileattributes,organisation_operatorcode,dqs_checks,dqs_taskresults,dqs_report"
-    noviews = False
-    outfile = "models.py"
+    options = ("noindexes", "noconstraints",)
+    generator = "declarative"
+    outfile = "src/boilerplate/models.py"
 
     if not url:
         print("You must supply a url\n", file=sys.stderr)
@@ -166,12 +163,7 @@ def sqlalchmy_model_generator() -> None:
     # Use reflection to fill in the metadata
     engine = create_engine(url)
     metadata = MetaData()
-    tables = tables.split(",") if tables else None
-    schemas = schemas.split(",") if schemas else [None]
-    options = set(options.split(",")) if options else set()
-    for schema in schemas:
-        metadata.reflect(engine, schema, not noviews, tables)
-
+    metadata.reflect(bind=engine)
     # Instantiate the generator
     generator_class = generators[generator].load()
     generator = generator_class(metadata, engine, options)
