@@ -1640,7 +1640,7 @@ Resources:
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
         S3BucketName: !Sub 'bodds-${Environment}'
         DQSTableSemaphore: !Ref DQSTableSemaphore
-        
+
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
@@ -1739,3 +1739,14 @@ Resources:
       KeySchema:
         - AttributeName: LockName
           KeyType: HASH
+
+  StateMachineToDynamoLockTable:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: DQSStateMachine
+      Destination:
+        Id: DQSTableSemaphore
+      Permissions:
+        - Read
+        - Write
