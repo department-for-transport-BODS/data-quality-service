@@ -9,7 +9,7 @@
       "Assign": {
         "revision_id": "{% $exists($states.input) ? $states.input : null %}",
         "lock_name": "dqs-semaphore",
-        "concurrency_limit": 10,
+        "concurrency_limit": 2,
         "lock_entry": "{% $uuid() %}"
       }
     },
