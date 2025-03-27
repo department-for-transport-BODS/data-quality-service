@@ -1,177 +1,175 @@
 {
   "QueryLanguage": "JSONata",
   "Comment": "Data Quality Service State Machine",
-  "StartAt": "InitialProcessInput",
+  "StartAt": "Initial Process Input",
   "States": {
-    "StartAt": "Initial Process Input",
-    "States": {
-      "Initial Process Input": {
-        "Type": "Pass",
-        "Next": "Validate Lock Inputs",
-        "Assign": {
-          "revision_id": "{% $exists($states.input) ? $states.input : null %}",
-          "lock_name": "dqs-semaphore",
-          "concurrency_limit": 2,
-          "lock_entry": "{% $uuid() %}"
+    "Initial Process Input": {
+      "Type": "Pass",
+      "Next": "Validate Lock Inputs",
+      "Assign": {
+        "revision_id": "{% $exists($states.input) ? $states.input : null %}",
+        "lock_name": "dqs-semaphore",
+        "concurrency_limit": 2,
+        "lock_entry": "{% $uuid() %}"
+      }
+    },
+    "Validate Lock Inputs": {
+      "Type": "Choice",
+      "Default": "Lock Configuration Error",
+      "Choices": [
+        {
+          "Condition": "{% $exists($lock_name) and $type($lock_name) = 'string' and $exists($concurrency_limit) and $type($concurrency_limit) = 'number' and $exists($lock_entry) and $type($lock_entry) = 'string' %}",
+          "Next": "Acquire Lock"
+        }
+      ]
+    },
+    "Lock Configuration Error": {
+      "Type": "Fail",
+      "Error": "InsufficientLockInput",
+      "Cause": "Lock parameters are missing or invalid"
+    },
+    "Acquire Lock": {
+      "Comment": "Acquire a lock using a conditional update to DynamoDB",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "${DQSSemaphoreDynamoDbTableName}",
+        "Key": {
+          "LockName": {
+            "S": "{% $lock_name %}"
+          }
+        },
+        "ExpressionAttributeNames": {
+          "#currentlockcount": "currentlockcount",
+          "#lockownerid": "{% $lock_entry %}"
+        },
+        "ExpressionAttributeValues": {
+          ":increase": {
+            "N": "1"
+          },
+          ":limit": {
+            "N": "{% $string($concurrency_limit) %}"
+          },
+          ":lockacquiredtime": {
+            "S": "{% $states.context.State.EnteredTime %}"
+          }
+        },
+        "UpdateExpression": "SET #currentlockcount = #currentlockcount + :increase, #lockownerid = :lockacquiredtime",
+        "ConditionExpression": "currentlockcount <> :limit and attribute_not_exists(#lockownerid)",
+        "ReturnValues": "UPDATED_NEW"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "DynamoDB.AmazonDynamoDBException"
+          ],
+          "MaxAttempts": 0
+        },
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DynamoDB.AmazonDynamoDBException"
+          ],
+          "Next": "Initialize Lock Item",
+          "Output": "$lockinfo.acquisitionerror"
+        },
+        {
+          "ErrorEquals": [
+            "DynamoDB.ConditionalCheckFailedException"
+          ],
+          "Next": "Get Current Lock Record",
+          "Output": "$lockinfo.acquisitionerror"
+        },
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ParentExceptionHandler",
+          "Output": "$.error"
+        }
+      ],
+      "Next": "Initiate DQS Lambda"
+    },
+    "Initialize Lock Item": {
+      "Comment": "Create the initial lock record if it doesn't exist",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Arguments": {
+        "TableName": "${DQSSemaphoreDynamoDbTableName}",
+        "Item": {
+          "LockName": {
+            "S": "{% $lock_name %}"
+          },
+          "currentlockcount": {
+            "N": "0"
+          }
+        },
+        "ConditionExpression": "LockName <> :lockname",
+        "ExpressionAttributeValues": {
+          ":lockname": {
+            "S": "{% $lock_name %}"
+          }
         }
       },
-      "Validate Lock Inputs": {
-        "Type": "Choice",
-        "Default": "Lock Configuration Error",
-        "Choices": [
-          {
-            "Condition": "{% $exists($lock_name) and $type($lock_name) = 'string' and $exists($concurrency_limit) and $type($concurrency_limit) = 'number' and $exists($lock_entry) and $type($lock_entry) = 'string' %}",
-            "Next": "Acquire Lock"
-          }
-        ]
-      },
-      "Lock Configuration Error": {
-        "Type": "Fail",
-        "Error": "InsufficientLockInput",
-        "Cause": "Lock parameters are missing or invalid"
-      },
-      "Acquire Lock": {
-        "Comment": "Acquire a lock using a conditional update to DynamoDB",
-        "Type": "Task",
-        "Resource": "arn:aws:states:::dynamodb:updateItem",
-        "Arguments": {
-          "TableName": "${DQSSemaphoreDynamoDbTableName}",
-          "Key": {
-            "LockName": {
-              "S": "{% $lock_name %}"
-            }
-          },
-          "ExpressionAttributeNames": {
-            "#currentlockcount": "currentlockcount",
-            "#lockownerid": "{% $lock_entry %}"
-          },
-          "ExpressionAttributeValues": {
-            ":increase": {
-              "N": "1"
-            },
-            ":limit": {
-              "N": "{% $string($concurrency_limit) %}"
-            },
-            ":lockacquiredtime": {
-              "S": "{% $states.context.State.EnteredTime %}"
-            }
-          },
-          "UpdateExpression": "SET #currentlockcount = #currentlockcount + :increase, #lockownerid = :lockacquiredtime",
-          "ConditionExpression": "currentlockcount <> :limit and attribute_not_exists(#lockownerid)",
-          "ReturnValues": "UPDATED_NEW"
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Acquire Lock"
+        }
+      ],
+      "Next": "Acquire Lock"
+    },
+    "Get Current Lock Record": {
+      "Comment": "Check if this execution already holds a lock",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "${DQSSemaphoreDynamoDbTableName}",
+        "ExpressionAttributeNames": {
+          "#lockownerid": "{% $lock_entry %}"
         },
-        "Retry": [
-          {
-            "ErrorEquals": [
-              "DynamoDB.AmazonDynamoDBException"
-            ],
-            "MaxAttempts": 0
-          },
-          {
-            "ErrorEquals": [
-              "States.ALL"
-            ],
-            "MaxAttempts": 6,
-            "BackoffRate": 2
-          }
-        ],
-        "Catch": [
-          {
-            "ErrorEquals": [
-              "DynamoDB.AmazonDynamoDBException"
-            ],
-            "Next": "Initialize Lock Item",
-            "Output": "$lockinfo.acquisitionerror"
-          },
-          {
-            "ErrorEquals": [
-              "DynamoDB.ConditionalCheckFailedException"
-            ],
-            "Next": "Get Current Lock Record",
-            "Output": "$lockinfo.acquisitionerror"
-          },
-          {
-            "ErrorEquals": [
-              "States.ALL"
-            ],
-            "Next": "ParentExceptionHandler",
-            "Output": "$.error"
-          }
-        ],
-        "Next": "Initiate DQS Lambda"
-      },
-      "Initialize Lock Item": {
-        "Comment": "Create the initial lock record if it doesn't exist",
-        "Type": "Task",
-        "Resource": "arn:aws:states:::dynamodb:putItem",
-        "Arguments": {
-          "TableName": "${DQSSemaphoreDynamoDbTableName}",
-          "Item": {
-            "LockName": {
-              "S": "{% $lock_name %}"
-            },
-            "currentlockcount": {
-              "N": "0"
-            }
-          },
-          "ConditionExpression": "LockName <> :lockname",
-          "ExpressionAttributeValues": {
-            ":lockname": {
-              "S": "{% $lock_name %}"
-            }
+        "Key": {
+          "LockName": {
+            "S": "{% $lock_name %}"
           }
         },
-        "Catch": [
-          {
-            "ErrorEquals": [
-              "States.ALL"
-            ],
-            "Next": "Acquire Lock"
-          }
-        ],
-        "Next": "Acquire Lock"
+        "ProjectionExpression": "#lockownerid"
       },
-      "Get Current Lock Record": {
-        "Comment": "Check if this execution already holds a lock",
-        "Type": "Task",
-        "Resource": "arn:aws:states:::dynamodb:getItem",
-        "Arguments": {
-          "TableName": "${DQSSemaphoreDynamoDbTableName}",
-          "ExpressionAttributeNames": {
-            "#lockownerid": "{% $lock_entry %}"
-          },
-          "Key": {
-            "LockName": {
-              "S": "{% $lock_name %}"
-            }
-          },
-          "ProjectionExpression": "#lockownerid"
-        },
-        "Assign": {
-          "Item": "{% $states.result.Item %}",
-          "ItemString": "{% $string($states.result.Item) %}"
-        },
-        "Output": "$lockinfo.currentlockitem",
-        "Next": "Check If Lock Already Acquired"
+      "Assign": {
+        "Item": "{% $states.result.Item %}",
+        "ItemString": "{% $string($states.result.Item) %}"
       },
-      "Check If Lock Already Acquired": {
-        "Comment": "Verify if this execution already has a lock",
-        "Type": "Choice",
-        "Choices": [
-          {
-            "Condition": "{% $exists($ItemString) and $contains($ItemString, 'Z') %}",
-            "Next": "Initiate DQS Lambda"
-          }
-        ],
-        "Default": "Wait to Get Lock"
-      },
-      "Wait to Get Lock": {
-        "Comment": "Wait before retrying to acquire the lock",
-        "Type": "Wait",
-        "Seconds": 30,
-        "Next": "Acquire Lock"
-      },
-      "Initiate DQS Lambda": {
+      "Output": "$lockinfo.currentlockitem",
+      "Next": "Check If Lock Already Acquired"
+    },
+    "Check If Lock Already Acquired": {
+      "Comment": "Verify if this execution already has a lock",
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Condition": "{% $exists($ItemString) and $contains($ItemString, 'Z') %}",
+          "Next": "Initiate DQS Lambda"
+        }
+      ],
+      "Default": "Wait to Get Lock"
+    },
+    "Wait to Get Lock": {
+      "Comment": "Wait before retrying to acquire the lock",
+      "Type": "Wait",
+      "Seconds": 30,
+      "Next": "Acquire Lock"
+    },
+    "Initiate DQS Lambda": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
