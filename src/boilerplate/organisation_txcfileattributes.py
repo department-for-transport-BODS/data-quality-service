@@ -1,7 +1,7 @@
 from common import Check
 from dqs_logger import logger
 from sqlalchemy import and_
-
+from models import OrganisationTxcfileattributes
 
 class OrganisationTxcFileAttributes:
     """
@@ -19,7 +19,7 @@ class OrganisationTxcFileAttributes:
         self.org_noc = None
         self.service_code = None
         self.licence_number = None
-        self._table = check.db.classes.organisation_txcfileattributes
+        self._table = OrganisationTxcfileattributes
         self._initialize_txc_fileattribute()
         self._get_organisation_dataset()
         self._get_organisation_id()
