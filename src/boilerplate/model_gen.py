@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import logging
 import urllib
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     import citext
@@ -34,6 +34,7 @@ else:
 
 load_dotenv()
 
+
 def _get_connection_details():
     """
     Method to get the connection details for the database from the environment variables
@@ -44,18 +45,20 @@ def _get_connection_details():
     connection_details["user"] = environ.get("POSTGRES_USER")
     connection_details["port"] = environ.get("POSTGRES_PORT")
     try:
-        if environ.get("PROJECT_ENV") != 'local':
+        if environ.get("PROJECT_ENV") != "local":
             logger.debug("Getting DB token")
             connection_details["password"] = _generate_rds_iam_auth_token(
                 connection_details["host"],
                 connection_details["port"],
-                connection_details["user"]
+                connection_details["user"],
             )
             logger.debug("Got DB token")
             connection_details["sslmode"] = "disable"
             # connection_details["sslmode"] = "require"
         else:
-            logger.debug("No password ARN found in environment variables, getting DB password direct")
+            logger.debug(
+                "No password ARN found in environment variables, getting DB password direct"
+            )
             connection_details["password"] = environ.get("POSTGRES_PASSWORD")
             logger.debug("Got DB password")
             connection_details["sslmode"] = "disable"
@@ -68,6 +71,7 @@ def _get_connection_details():
     except Exception as e:
         logger.error("Failed to get connection details for database")
         raise e
+
 
 def _generate_connection_string(**kwargs) -> str:
     """
@@ -83,7 +87,7 @@ def _generate_connection_string(**kwargs) -> str:
         lambda_function_name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
     if lambda_function_name:
         kwargs["application_name"] = lambda_function_name
-        
+
     user_password = ""
     if kwargs.get("user"):
         user_password += kwargs.get("user")
@@ -107,6 +111,7 @@ def _generate_connection_string(**kwargs) -> str:
 
     return connection_string
 
+
 def _generate_rds_iam_auth_token(host, port, username) -> str:
     """
     Generates an AWS RDS IAM authentication token for a given RDS instance.
@@ -123,13 +128,10 @@ def _generate_rds_iam_auth_token(host, port, username) -> str:
     try:
         session = boto3.session.Session()
         client = session.client(
-            service_name="rds",
-            region_name=environ.get("AWS_REGION")
+            service_name="rds", region_name=environ.get("AWS_REGION")
         )
         token = client.generate_db_auth_token(
-            DBHostname=host,
-            DBUsername=username,
-            Port=port
+            DBHostname=host, DBUsername=username, Port=port
         )
         return urllib.parse.quote_plus(token)
     except Exception as e:
@@ -139,7 +141,7 @@ def _generate_rds_iam_auth_token(host, port, username) -> str:
 
 def sqlalchmy_model_generator() -> None:
     generators = {ep.name: ep for ep in entry_points(group="sqlacodegen.generators")}
-    connection_details=_get_connection_details()
+    connection_details = _get_connection_details()
     url = _generate_connection_string(**connection_details)
     options = ""
     schemas = "public"
@@ -147,7 +149,6 @@ def sqlalchmy_model_generator() -> None:
     tables = "dqs_observationresults,organisation_txcfileattributes,organisation_operatorcode,dqs_checks,dqs_taskresults,dqs_report"
     noviews = False
     outfile = "models.py"
-
 
     if not url:
         print("You must supply a url\n", file=sys.stderr)
@@ -186,5 +187,6 @@ def sqlalchmy_model_generator() -> None:
 
         # Write the generated model code to the specified file or standard output
         outfile.write(generator.generate())
+
 
 sqlalchmy_model_generator()
