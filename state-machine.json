@@ -17,32 +17,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "And": [
-            {
-              "Variable": "$.lock_name",
-              "IsPresent": true
-            },
-            {
-              "Variable": "$.lock_name",
-              "IsString": true
-            },
-            {
-              "Variable": "$.concurrency_limit",
-              "IsPresent": true
-            },
-            {
-              "Variable": "$.concurrency_limit",
-              "IsNumeric": true
-            },
-            {
-              "Variable": "$.lock_entry",
-              "IsPresent": true
-            },
-            {
-              "Variable": "$.lock_entry",
-              "IsString": true
-            }
-          ],
+          "Condition": "{% $exists($.lock_name) and $type($.lock_name) = 'string' and $exists($.concurrency_limit) and $type($.concurrency_limit) = 'number' and $exists($.lock_entry) and $type($.lock_entry) = 'string' %}",
           "Next": "Acquire Lock"
         }
       ],
@@ -57,26 +32,26 @@
       "Comment": "Acquire a lock using a conditional update to DynamoDB",
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
-      "Parameters": {
+      "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid.$": "$.lock_entry"
+          "#lockownerid": "{% $.lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":increase": {
             "N": "1"
           },
           ":limit": {
-            "N.$": "States.JsonToString($.concurrency_limit)"
+            "N": "{% $string($.concurrency_limit) %}"
           },
           ":lockacquiredtime": {
-            "S.$": "$$.State.EnteredTime"
+            "S": "{% $$.State.EnteredTime %}"
           }
         },
         "UpdateExpression": "SET #currentlockcount = #currentlockcount + :increase, #lockownerid = :lockacquiredtime",
@@ -127,11 +102,11 @@
       "Comment": "Create the initial lock record if it doesn't exist",
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:putItem",
-      "Parameters": {
+      "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "Item": {
           "LockName": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           },
           "currentlockcount": {
             "N": "0"
@@ -140,7 +115,7 @@
         "ConditionExpression": "LockName <> :lockname",
         "ExpressionAttributeValues": {
           ":lockname": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           }
         }
       },
@@ -160,21 +135,21 @@
       "Comment": "Check if this execution already holds a lock",
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:getItem",
-      "Parameters": {
+      "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "ExpressionAttributeNames": {
-          "#lockownerid.$": "$.lock_entry"
+          "#lockownerid": "{% $.lock_entry %}"
         },
         "Key": {
           "LockName": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           }
         },
         "ProjectionExpression": "#lockownerid"
       },
       "ResultSelector": {
-        "Item.$": "$.Item",
-        "ItemString.$": "States.JsonToString($.Item)"
+        "Item": "{% $.Item %}",
+        "ItemString": "{% $string($.Item) %}"
       },
       "ResultPath": "$.lockinfo.currentlockitem",
       "Next": "Check If Lock Already Acquired"
@@ -184,16 +159,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "And": [
-            {
-              "Variable": "$.lockinfo.currentlockitem.ItemString",
-              "IsPresent": true
-            },
-            {
-              "Variable": "$.lockinfo.currentlockitem.ItemString",
-              "StringMatches": "*Z*"
-            }
-          ],
+          "Condition": "{% $exists($.lockinfo.currentlockitem.ItemString) and $contains($.lockinfo.currentlockitem.ItemString, 'Z') %}",
           "Next": "Initiate DQS Lambda"
         }
       ],
@@ -1289,16 +1255,16 @@
     "Release Lock": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
-      "Parameters": {
+      "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid.$": "$.lock_entry"
+          "#lockownerid": "{% $.lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":decrease": {
@@ -1345,16 +1311,16 @@
     "Release Lock On Error": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
-      "Parameters": {
+      "Arguments": {
         "TableName": "${DQSTableSemaphore}",
         "Key": {
           "LockName": {
-            "S.$": "$.lock_name"
+            "S": "{% $.lock_name %}"
           }
         },
         "ExpressionAttributeNames": {
           "#currentlockcount": "currentlockcount",
-          "#lockownerid.$": "$.lock_entry"
+          "#lockownerid": "{% $.lock_entry %}"
         },
         "ExpressionAttributeValues": {
           ":decrease": {
