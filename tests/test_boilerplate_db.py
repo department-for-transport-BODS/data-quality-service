@@ -73,7 +73,7 @@ def test_database_initialization(session, create_engine, connection_details):
     "src.boilerplate.common.BodsDB._get_connection_details",
     return_value=ENVIRONMENT_OUTPUT_TEST_VALUES,
 )
-@patch("src.boilerplate.bode_db.create_engine")
+@patch("src.boilerplate.bods_db.create_engine")
 @patch("src.boilerplate.bods_db.Session", side_effect=OperationalError())
 def test_database_initialisation_failed(_, __, ___, caplog):
     """Test database initialization failure."""
