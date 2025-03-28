@@ -15,7 +15,7 @@ Base = declarative_base()
 
 
 class data_quality_taskresults(Base):
-    __tablename__ = "data_quality_taskresults"
+    __tablename__ = "dqs_taskresults"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     modified = Column(TIMESTAMP)
@@ -23,14 +23,14 @@ class data_quality_taskresults(Base):
     checks_id = Column(Integer)
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
-    observations = relationship("data_quality_observationresults", backref="taskresult")
+    observations = relationship("dqs_observationresults", backref="taskresult")
 
 
 class data_quality_observationresults(Base):
-    __tablename__ = "data_quality_observationresults"
+    __tablename__ = "dqs_observationresults"
     id = Column(Integer, primary_key=True)
     details = Column(String)
-    taskresults_id = Column(Integer, ForeignKey("data_quality_taskresults.id"))
+    taskresults_id = Column(Integer, ForeignKey("dqs_taskresults.id"))
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
     serviced_organisation_vehicle_journey_id = Column(Integer)
@@ -58,7 +58,7 @@ class organisation_txcfileattributes(Base):
 
 
 class data_quality_report(Base):
-    __tablename__ = "data_quality_report"
+    __tablename__ = "dqs_report"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     file_name = Column(String)
