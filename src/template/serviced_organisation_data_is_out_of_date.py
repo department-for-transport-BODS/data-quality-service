@@ -51,7 +51,7 @@ def lambda_worker(event, check) -> None:
             # Write the observations to database
             observation.write_observations()
 
-        logger.info(f"Check status updated in DB")
+        logger.info("Check status updated in DB")
 
     except LambdaTimeOutError as e:
         status = DQSTaskResultStatus.TIMEOUT.value
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, __name__.split('.')[-1])
+        check = Check(event, __name__.split(".")[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         timeout_handler.run(lambda_worker)

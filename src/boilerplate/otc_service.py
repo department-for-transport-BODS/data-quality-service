@@ -1,5 +1,6 @@
 from common import Check
 from dqs_logger import logger
+from models import OtcService as OtcServiceModel
 
 
 class OtcService:
@@ -12,7 +13,7 @@ class OtcService:
 
     def __init__(self, check: Check):
         self._check = check
-        self._table = check.db.classes.otc_service
+        self._table = OtcServiceModel
 
     def is_service_exists(self, registration_number: str):
         """

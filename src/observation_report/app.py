@@ -1,6 +1,5 @@
 from datetime import datetime
 from os import environ
-import uuid
 import boto3
 from dqs_logger import logger
 from common import DQSReport
@@ -9,19 +8,20 @@ from dataframes import get_df_dqs_observation_results
 from io import StringIO
 
 # Initialize S3 client
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 
 # Define S3 bucket name and file name
 S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports")
 
+
 def lambda_handler(event, context):
-    today_date = datetime.now().strftime('%Y%m%d')
+    today_date = datetime.now().strftime("%Y%m%d")
     status = DQSReportStatus.REPORT_GENERATED.value
 
     try:
         report = DQSReport(event)
         report.validate_requested_report_event()
-        logger.info(f"Report validated successfully")
+        logger.info("Report validated successfully")
 
         df = get_df_dqs_observation_results(report)
         df.drop_duplicates(inplace=True)

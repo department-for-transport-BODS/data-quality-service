@@ -72,5 +72,6 @@ class Function:
                 logger.debug(f"Found layer {layer} for function {self.name}")
                 self.layer_refs.append(layer)
 
+
 if __name__ == "__main__":
     template = SamTemplate("template.yaml")

@@ -1,8 +1,12 @@
 from os.path import dirname
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.no_timing_point_for_more_than_15_minutes import lambda_worker, lambda_handler
+from src.template.no_timing_point_for_more_than_15_minutes import (
+    lambda_worker,
+    lambda_handler,
+)
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
@@ -49,6 +53,7 @@ def test_lambda_handler_valid_check(
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
+
 
 @patch("src.template.no_timing_point_for_more_than_15_minutes.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):
