@@ -2,6 +2,7 @@ from common import Check
 from dqs_logger import logger
 from sqlalchemy import and_
 from datetime import datetime
+from models import OtcInactiveservice as OtcInactiveServiceModel
 
 
 class OtcInactiveService:
@@ -14,7 +15,7 @@ class OtcInactiveService:
 
     def __init__(self, check: Check):
         self._check = check
-        self._table = check.db.classes.otc_inactiveservice
+        self._table = OtcInactiveServiceModel
 
     def is_service_exists(self, registration_number: str):
         """

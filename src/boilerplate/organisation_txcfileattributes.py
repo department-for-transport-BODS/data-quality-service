@@ -1,7 +1,14 @@
 from common import Check
 from dqs_logger import logger
 from sqlalchemy import and_
-from models import OrganisationTxcfileattributes
+from models import (
+    OrganisationTxcfileattributes,
+    OrganisationDatasetrevision as OrganisationDatasetRevision,
+    OrganisationDataset,
+    OrganisationOperatorcode as OperatorCode,
+    OrganisationLicence,
+)
+
 
 class OrganisationTxcFileAttributes:
     """
@@ -45,11 +52,11 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
+
     def _get_organisation_dataset(self):
         """
         Method to get the organisation dataset objects
         """
-        OrganisationDatasetRevision = self._check.db.classes.organisation_datasetrevision
         try:
             result = (
                 self._check.db.session.query(OrganisationDatasetRevision)
@@ -63,11 +70,11 @@ class OrganisationTxcFileAttributes:
                 e,
             )
             raise e
+
     def _get_organisation_id(self):
         """
         Method to get the organisation dataset objects
         """
-        OrganisationDataset = self._check.db.classes.organisation_dataset
         try:
             result = (
                 self._check.db.session.query(OrganisationDataset)
@@ -82,15 +89,19 @@ class OrganisationTxcFileAttributes:
             )
             raise e
 
-    def validate_noc_code(self):  
+    def validate_noc_code(self):
         """
         Method to validate the operator noc to the database
         """
         try:
-            OperatorCode = self._check.db.classes.organisation_operatorcode
             row_operator_code = (
                 self._check.db.session.query(OperatorCode)
-                .filter(and_(OperatorCode.noc == self.org_noc, OperatorCode.organisation_id == self.organisation_id))
+                .filter(
+                    and_(
+                        OperatorCode.noc == self.org_noc,
+                        OperatorCode.organisation_id == self.organisation_id,
+                    )
+                )
                 .first()
             )
             if not row_operator_code:
@@ -108,14 +119,14 @@ class OrganisationTxcFileAttributes:
         Method to validate the licence number matched to the database
         """
         try:
-            OrganisationLicence = self._check.db.classes.organisation_licence
             row_licence = (
                 self._check.db.session.query(OrganisationLicence)
                 .filter(
-                    and_(OrganisationLicence.number == self.licence_number,
-                              OrganisationLicence.organisation_id == self.organisation_id
-                              )
-                              )
+                    and_(
+                        OrganisationLicence.number == self.licence_number,
+                        OrganisationLicence.organisation_id == self.organisation_id,
+                    )
+                )
                 .first()
             )
             if not row_licence:
