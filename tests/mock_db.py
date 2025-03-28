@@ -5,6 +5,7 @@ from sqlalchemy import (
     TIMESTAMP,
     Date,
     Boolean,
+    Text,
     create_engine,
     ForeignKey,
 )
@@ -24,6 +25,7 @@ class dqs_taskresults(Base):
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
     observations = relationship("dqs_observationresults", backref="taskresult")
+    message = Column(Text)
 
 
 class dqs_observationresults(Base):
