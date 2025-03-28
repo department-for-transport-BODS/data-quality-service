@@ -6,6 +6,7 @@ from src.template.no_timing_point_for_more_than_15_minutes import (
     lambda_handler,
 )
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch("src.template.no_timing_point_for_more_than_15_minutes.Check")

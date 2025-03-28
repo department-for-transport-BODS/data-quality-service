@@ -1,3 +1,6 @@
+from tests.fixtures.context import mocked_context  # noqa
+
+
 def lambda_invalid_check(lambda_handler, mock_check, mocked_context):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.side_effect = ValueError(

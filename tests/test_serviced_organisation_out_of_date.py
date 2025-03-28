@@ -7,6 +7,7 @@ from src.template.serviced_organisation_data_is_out_of_date import (
     lambda_worker,
 )
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

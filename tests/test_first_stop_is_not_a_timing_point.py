@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.first_stop_is_not_a_timing_point import lambda_handler, lambda_worker
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.duplicate_journey_code import lambda_worker, lambda_handler
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch("src.template.duplicate_journey_code.Check")

@@ -4,6 +4,7 @@ from src.template.cancelled_service_incorrectly_appearing_as_active import (
     lambda_handler,
 )
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch(

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.missing_bus_working_number import lambda_worker, lambda_handler
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch("src.template.missing_bus_working_number.Check")

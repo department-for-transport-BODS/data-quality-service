@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 from src.template.missing_journey_code import lambda_worker, lambda_handler
 import pandas as pd
 from enums import DQSTaskResultStatus
-
+from tests.fixtures.context import mocked_context  # noqa
 from tests.test_templates import lambda_invalid_check
 
 

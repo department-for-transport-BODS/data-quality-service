@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 from src.template.incorrect_noc import lambda_worker, lambda_handler
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch("src.template.incorrect_noc.Check")

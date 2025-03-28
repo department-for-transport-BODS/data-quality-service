@@ -2,7 +2,7 @@ import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.first_stop_is_set_down_only import lambda_handler, lambda_worker
-
+from tests.fixtures.context import mocked_context  # noqa
 from tests.test_templates import lambda_invalid_check
 
 logger = logging.getLogger(__name__)
