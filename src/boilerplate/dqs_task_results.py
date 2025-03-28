@@ -3,11 +3,12 @@ from dqs_logger import logger
 from common import BodsDB
 from enums import DQSTaskResultStatus
 from utils import get_uk_time
+from models import DqsTaskresults as DqsTaskresultsModel
 
 class DQTaskResults:
     def __init__(self):
         self._db = BodsDB()
-        self._table_name = self._db.classes.dqs_taskresults
+        self._table_name = DqsTaskresultsModel
 
     def set_task_results_to_pending_status(self,revision_id) -> pd.DataFrame:
         df = pd.DataFrame()

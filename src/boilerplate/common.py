@@ -1,14 +1,13 @@
 import boto3
 import os
 import urllib.parse
-from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, func
 from os import environ
 from json import loads
 from pydantic import BaseModel
 from dqs_logger import logger
-
+from models import DqsTaskresults,DqsChecks,DqsReport,OrganisationDatasetrevision
 
 class EventPayload(BaseModel):
     """
@@ -72,8 +71,8 @@ class Check:
         try:
             if self._result is None:
                 result = self.db.session.scalar(
-                    select(self.db.classes.dqs_taskresults).where(
-                        self.db.classes.dqs_taskresults.id == self.result_id
+                    select(DqsTaskresults).where(
+                        DqsTaskresults.id == self.result_id
                     )
                 )
                 self._result = result
@@ -124,7 +123,7 @@ class Check:
         Property to access the data quality task results table
         """
         if self._task_results_table is None:
-            self._task_results_table = self.db.classes.dqs_taskresults
+            self._task_results_table = DqsTaskresults
         return self._task_results_table
 
     def set_status(self, status):
@@ -172,17 +171,17 @@ class Check:
     def get_check_id(self):
         logger.debug(f"Retrieving check ID for {self._lambda_function}")
         check = self.db.session.scalar(
-            select(self.db.classes.dqs_checks).where(
-                func.replace(func.lower(self.db.classes.dqs_checks.observation), " ", "_") == self._lambda_function
+            select(DqsChecks).where(
+                func.replace(func.lower(DqsChecks.observation), " ", "_") == self._lambda_function
             )
         )
         return check.id if check else 0
 
     def get_result_id(self, file_id, check_id):
         result = self.db.session.scalar(
-            select(self.db.classes.dqs_taskresults).where(
-                (self.db.classes.dqs_taskresults.transmodel_txcfileattributes_id == file_id)
-                & (self.db.classes.dqs_taskresults.checks_id == check_id)
+            select(DqsTaskresults).where(
+                (DqsTaskresults.transmodel_txcfileattributes_id == file_id)
+                & (DqsTaskresults.checks_id == check_id)
             )
         )
         return result.id if result else 0
@@ -239,7 +238,7 @@ class BodsDB:
 
     def __init__(self):
         self._session = None
-        self._classes = None
+        # self._classes = None
 
     @property
     def session(self):
@@ -266,17 +265,12 @@ class BodsDB:
         connection_details = self._get_connection_details()
         logger.debug("Connecting to DB with connection string")
         try:
-            self._sqlalchemy_base = automap_base()
             sqlalchemy_engine = create_engine(
                 self._generate_connection_string(**connection_details)
             )
-            logger.debug("Preparing SQLALchemy base")
-            self._sqlalchemy_base.prepare(autoload_with=sqlalchemy_engine)
             logger.debug("Initiating DB session")
             self._session = Session(sqlalchemy_engine)
             logger.debug("Connected to DB")
-            self._classes = self._sqlalchemy_base.classes
-            logger.debug("Set DB classes")
         except Exception as e:
             logger.error("Failed to connect to DB")
             raise e
@@ -425,8 +419,8 @@ class DQSReport:
         if self._report is None:
             try:
                 report = self.db.session.scalar(
-                    select(self.db.classes.dqs_report).where(
-                        self.db.classes.dqs_report.id == self.report_id
+                    select(DqsReport).where(
+                        DqsReport.id == self.report_id
                     )
                 )
                 self._report = report
@@ -475,11 +469,10 @@ class DQSReport:
         """
         Method to get the organisation dataset
         """
-        OrganisationDatasetRevision = self.db.classes.organisation_datasetrevision
         try:
             result = (
-                self.db.session.query(OrganisationDatasetRevision)
-                .where(OrganisationDatasetRevision.id == self.revision_id)
+                self.db.session.query(OrganisationDatasetrevision)
+                .where(OrganisationDatasetrevision.id == self.revision_id)
                 .first()
             )
             self._dataset_id = result.dataset_id

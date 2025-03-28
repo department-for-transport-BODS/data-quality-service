@@ -1,12 +1,14 @@
 from dqs_logger import logger
 from common import BodsDB
 from typing import List
+from models import OrganisationTxcfileattributes
+from models import TransmodelService
 
 class TXCFileAttributes:
     def __init__(self):
         self._db = BodsDB()
-        self._table_name = self._db.classes.organisation_txcfileattributes
-        self.service = self._db.classes.transmodel_service
+        self._table_name = OrganisationTxcfileattributes
+        self.service = TransmodelService
 
     def get_all_txc_file_attributes(self, revision_id) -> List:
         try:

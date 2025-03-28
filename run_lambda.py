@@ -2,14 +2,14 @@ import importlib
 import importlib.util
 import sys
 from sqlalchemy import asc, select
-
+from models import DqsChecks, DqsTaskresults
 sys.path.append("./src/boilerplate")
 
 from common import BodsDB
 
 db = BodsDB()
-Checks = db.classes.dqs_checks
-TaskResults = db.classes.dqs_taskresults
+Checks = DqsChecks
+TaskResults = DqsTaskresults
 
 
 rs = db.session.query(Checks).order_by(asc(Checks.id)).all()
