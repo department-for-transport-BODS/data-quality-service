@@ -2,7 +2,8 @@ import importlib
 import importlib.util
 import sys
 from sqlalchemy import asc, select
-from models import DqsChecks as Checks, DqsTaskresults as TaskResults,
+from src.boilerplate.models import DqsChecks as Checks, DqsTaskresults as TaskResults
+
 sys.path.append("./src/boilerplate")
 
 from common import BodsDB
@@ -25,6 +26,7 @@ class Context:
     def get_remaining_time_in_millis(self):
         return 135000
 
+
 def get_result_id_for_check_and_file(check_id, file_id):
     return db.session.scalar(
         select(TaskResults).where(
@@ -38,12 +40,19 @@ def get_payload_for_mode(mode, data_flow, module, file_id, check_id, result_id):
     payload = None
 
     if mode == "SQS":
-        payload = dict(Records=[
-                    dict(body=dumps(dict(
-                        file_id=file_id,
-                        check_id=check_id,
-                        result_id=result_id,
-                    )))])
+        payload = dict(
+            Records=[
+                dict(
+                    body=dumps(
+                        dict(
+                            file_id=file_id,
+                            check_id=check_id,
+                            result_id=result_id,
+                        )
+                    )
+                )
+            ]
+        )
     elif mode == "SM":
         expected_pass = dict(
             last_stop_is_not_a_timing_point="first_stop_is_not_a_timing_point",
@@ -51,16 +60,15 @@ def get_payload_for_mode(mode, data_flow, module, file_id, check_id, result_id):
             stop_not_found_in_naptan="first_stop_is_not_a_timing_point",
             missing_journey_code="first_stop_is_not_a_timing_point",
             last_stop_is_pick_up_only="first_stop_is_not_a_timing_point",
-            first_stop_is_set_down_only="first_stop_is_not_a_timing_point"
+            first_stop_is_set_down_only="first_stop_is_not_a_timing_point",
         )
         if module in expected_pass.keys():
             payload = data_flow.get(expected_pass.get(module))
         else:
-            payload = {
-                "file_id": file_id
-            }
+            payload = {"file_id": file_id}
 
     return payload
+
 
 def run_lambda_func(file_id, check_id, mode, data_flow):
 
@@ -85,13 +93,15 @@ def run_lambda_func(file_id, check_id, mode, data_flow):
         module = importlib.import_module("src.template.app")
     lambda_handler = module.lambda_handler
 
-    payload = get_payload_for_mode(mode, data_flow, module_name, file_id, check_id, result_id)
+    payload = get_payload_for_mode(
+        mode, data_flow, module_name, file_id, check_id, result_id
+    )
     print(
         f"Running the lambda: {module_path}::lambda_handler with file_id: {file_id}, check_id: {check_id}, result_id: {result_id}"
     )
 
     try:
-         data_flow[module_name] =  lambda_handler(
+        data_flow[module_name] = lambda_handler(
             event=payload,
             context=Context(),
         )
@@ -112,8 +122,10 @@ def main():
 
     parser = argparse.ArgumentParser(description="Run lambda functions manually")
     parser.add_argument("--file_id", help="A value for file_id", default=1)
-    parser.add_argument("--report_id", help="A value for report_id",default=None)
-    parser.add_argument("--mode", help="Mode to run in",default="SQS", choices=["SQS", "SM"])
+    parser.add_argument("--report_id", help="A value for report_id", default=None)
+    parser.add_argument(
+        "--mode", help="Mode to run in", default="SQS", choices=["SQS", "SM"]
+    )
 
     args = parser.parse_args()
     file_id = args.file_id
@@ -123,12 +135,14 @@ def main():
     for key, val in lambdas.items():
         print(f"{key}: {val}")
 
-    data_flow = dict() # Represents the passing of data from one lambda to the next
+    data_flow = dict()  # Represents the passing of data from one lambda to the next
     first = 4
-    if report_id: # Run all Data quality checks for selected report id 
-        results = (db.session.query(TaskResults.transmodel_txcfileattributes_id)
-        .distinct().where(TaskResults.dataquality_report_id == report_id)
-        .all()
+    if report_id:  # Run all Data quality checks for selected report id
+        results = (
+            db.session.query(TaskResults.transmodel_txcfileattributes_id)
+            .distinct()
+            .where(TaskResults.dataquality_report_id == report_id)
+            .all()
         )
 
         result_list = [result.transmodel_txcfileattributes_id for result in results]
@@ -136,7 +150,8 @@ def main():
         for file_id in result_list:
             data_flow = run_lambda_func(file_id, first, mode, data_flow)
             for check_id, _ in lambdas.items():
-                if check_id == first: continue
+                if check_id == first:
+                    continue
                 try:
                     data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
                     print(list(data_flow.keys()))
@@ -149,7 +164,8 @@ def main():
             lambdas.pop("all")
             data_flow = run_lambda_func(file_id, first, mode, data_flow)
             for check_id, _ in lambdas.items():
-                if check_id == first: continue
+                if check_id == first:
+                    continue
                 data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
                 print(list(data_flow.keys()))
         else:
@@ -157,6 +173,7 @@ def main():
             check_id = module_input
             data_flow = run_lambda_func(file_id, check_id, mode, data_flow)
             print(list(data_flow.keys()))
+
 
 if __name__ == "__main__":
     main()

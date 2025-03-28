@@ -143,7 +143,7 @@ def sqlalchmy_model_generator() -> None:
     generators = {ep.name: ep for ep in entry_points(group="sqlacodegen.generators")}
     connection_details = _get_connection_details()
     url = _generate_connection_string(**connection_details)
-    options = ("noindexes", "noconstraints",)
+    options = ("noindexes",)
     generator = "declarative"
     outfile = "src/boilerplate/models.py"
 
