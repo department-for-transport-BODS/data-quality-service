@@ -14,7 +14,7 @@ from types import SimpleNamespace
 Base = declarative_base()
 
 
-class data_quality_taskresults(Base):
+class dqs_taskresults(Base):
     __tablename__ = "dqs_taskresults"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
@@ -26,7 +26,7 @@ class data_quality_taskresults(Base):
     observations = relationship("dqs_observationresults", backref="taskresult")
 
 
-class data_quality_observationresults(Base):
+class dqs_observationresults(Base):
     __tablename__ = "dqs_observationresults"
     id = Column(Integer, primary_key=True)
     details = Column(String)
@@ -57,7 +57,7 @@ class organisation_txcfileattributes(Base):
     hash = Column(String)
 
 
-class data_quality_report(Base):
+class dqs_report(Base):
     __tablename__ = "dqs_report"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
@@ -73,10 +73,10 @@ class MockedDB:
         self.session.commit()
         print(Base.metadata.tables.keys())
         self.classes = SimpleNamespace(
-            dqs_taskresults=data_quality_taskresults,
-            dqs_observationresults=data_quality_observationresults,
+            dqs_taskresults=dqs_taskresults,
+            dqs_observationresults=dqs_observationresults,
             organisation_txcfileattributes=organisation_txcfileattributes,
-            data_quality_report=data_quality_report
+            dqs_report=dqs_report
         )
 
 
