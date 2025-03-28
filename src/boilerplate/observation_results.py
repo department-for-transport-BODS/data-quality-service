@@ -1,5 +1,6 @@
 from common import Check
 from dqs_logger import logger
+from models import DqsObservationresults
 
 
 class ObservationResult:
@@ -20,7 +21,7 @@ class ObservationResult:
     def __init__(self, check: Check):
         self._check = check
         self.observations = []
-        self._table = check.db.classes.dqs_observationresults
+        self._table = DqsObservationresults
 
     def add_observation(
         self,

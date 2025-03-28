@@ -1,6 +1,5 @@
 from datetime import datetime
 from os import environ
-import uuid
 import boto3
 from dqs_logger import logger
 from common import DQSReport
@@ -21,7 +20,7 @@ def lambda_handler(event, context):
     try:
         report = DQSReport(event)
         report.validate_requested_report_event()
-        logger.info(f"Report validated successfully")
+        logger.info("Report validated successfully")
 
         df = get_df_dqs_observation_results(report)
         df.drop_duplicates(inplace=True)

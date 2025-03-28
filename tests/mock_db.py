@@ -5,6 +5,7 @@ from sqlalchemy import (
     TIMESTAMP,
     Date,
     Boolean,
+    Text,
     create_engine,
     ForeignKey,
 )
@@ -14,8 +15,8 @@ from types import SimpleNamespace
 Base = declarative_base()
 
 
-class data_quality_taskresults(Base):
-    __tablename__ = "data_quality_taskresults"
+class dqs_taskresults(Base):
+    __tablename__ = "dqs_taskresults"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     modified = Column(TIMESTAMP)
@@ -23,17 +24,20 @@ class data_quality_taskresults(Base):
     checks_id = Column(Integer)
     dataquality_report_id = Column(Integer)
     transmodel_txcfileattributes_id = Column(Integer)
-    observations = relationship("data_quality_observationresults", backref="taskresult")
+    observations = relationship("dqs_observationresults", backref="taskresult")
+    message = Column(Text)
 
 
-class data_quality_observationresults(Base):
-    __tablename__ = "data_quality_observationresults"
+class dqs_observationresults(Base):
+    __tablename__ = "dqs_observationresults"
     id = Column(Integer, primary_key=True)
     details = Column(String)
-    taskresults_id = Column(Integer, ForeignKey("data_quality_taskresults.id"))
+    taskresults_id = Column(Integer, ForeignKey("dqs_taskresults.id"))
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
     serviced_organisation_vehicle_journey_id = Column(Integer)
+    is_suppressed = Column(Boolean)
+
 
 class organisation_txcfileattributes(Base):
     __tablename__ = "organisation_txcfileattributes"
@@ -57,24 +61,27 @@ class organisation_txcfileattributes(Base):
     hash = Column(String)
 
 
-class data_quality_report(Base):
-    __tablename__ = "data_quality_report"
+class dqs_report(Base):
+    __tablename__ = "dqs_report"
     id = Column(Integer, primary_key=True)
     created = Column(TIMESTAMP)
     file_name = Column(String)
     revision_id = Column(Integer)
     status = Column(String)
 
+
 class MockedDB:
     def __init__(self):
         engine = create_engine("sqlite:///:memory:")
         self.session = Session(engine)
         Base.metadata.create_all(engine)
+        self.session.commit()
+        print(Base.metadata.tables.keys())
         self.classes = SimpleNamespace(
-            dqs_taskresults=data_quality_taskresults,
-            dqs_observationresults=data_quality_observationresults,
+            dqs_taskresults=dqs_taskresults,
+            dqs_observationresults=dqs_observationresults,
             organisation_txcfileattributes=organisation_txcfileattributes,
-            data_quality_report=data_quality_report
+            dqs_report=dqs_report,
         )
 
 

@@ -11,7 +11,7 @@ def lambda_worker(event, check):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
-        logger.debug(f"Fetching the vj dataframe from db")
+        logger.debug("Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
         if not df.empty:

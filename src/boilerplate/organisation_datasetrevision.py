@@ -1,11 +1,12 @@
 import pandas as pd
 from dqs_logger import logger
 from common import BodsDB
+from models import OrganisationDatasetrevision
 
 class Revision:
     def __init__(self):
         self._db = BodsDB()
-        self._table_name = self._db.classes.organisation_datasetrevision
+        self._table_name = OrganisationDatasetrevision
 
     def get_revision(self,revision_id) -> pd.DataFrame:
         try:

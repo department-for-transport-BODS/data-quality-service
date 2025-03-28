@@ -1,4 +1,3 @@
-from typing import List
 from sqlalchemy import update
 import pandas as pd
 from dqs_logger import logger
@@ -6,11 +5,12 @@ from common import BodsDB
 from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
+from models import DqsReport as DQReportModel
 
 class DQReport:
     def __init__(self):
         self._db = BodsDB()
-        self._table_name = self._db.classes.dqs_report
+        self._table_name = DQReportModel
 
     @property
     def db(self):
