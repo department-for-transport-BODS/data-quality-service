@@ -2,8 +2,12 @@ import logging
 import os.path
 from unittest.mock import MagicMock, patch
 import pandas as pd
-from src.template.serviced_organisation_data_is_out_of_date import lambda_handler, lambda_worker
+from src.template.serviced_organisation_data_is_out_of_date import (
+    lambda_handler,
+    lambda_worker,
+)
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -11,7 +15,9 @@ logger.setLevel(logging.DEBUG)
 
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
-@patch("src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation")
+@patch(
+    "src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation"
+)
 def test_lambda_handler_valid_check(
     mock_get_df_serviced_organisation, mock_observation, mock_check, mocked_context
 ):
@@ -37,7 +43,7 @@ def test_lambda_handler_valid_check(
     mocked_observations.add_observation.assert_called_with(
         details="The Working Days for Serviced Organisation Worcester Sixth Form College (WSFC) has expired on 16/12/2022. Please update the dates for this Serviced Organisation.",
         vehicle_journey_id=65271,
-        serviced_organisation_vehicle_journey_id=65271
+        serviced_organisation_vehicle_journey_id=65271,
     )
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
@@ -46,7 +52,9 @@ def test_lambda_handler_valid_check(
 
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
-@patch("src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation")
+@patch(
+    "src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation"
+)
 def test_lambda_handler_valid_check_fails(
     mock_get_df_serviced_organisation, mock_observation, mock_check
 ):
@@ -74,15 +82,18 @@ def test_lambda_handler_valid_check_fails(
     mocked_observations.add_observation.assert_any_call(
         details="The Working Days for Serviced Organisation Tenbury High Ormiston Academy (THOA) has expired on 16/12/2022. Please update the dates for this Serviced Organisation.",
         vehicle_journey_id=65164,
-        serviced_organisation_vehicle_journey_id=65164
+        serviced_organisation_vehicle_journey_id=65164,
     )
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
 
+
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
-@patch("src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation")
+@patch(
+    "src.template.serviced_organisation_data_is_out_of_date.get_df_serviced_organisation"
+)
 def test_lambda_handler_valid_check_pass(
     mock_get_df_serviced_organisation: MagicMock, mock_observation, mock_check
 ):
@@ -112,7 +123,7 @@ def test_lambda_handler_valid_check_pass(
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
 
+
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):
     lambda_invalid_check(lambda_handler, mock_check, mocked_context)
-

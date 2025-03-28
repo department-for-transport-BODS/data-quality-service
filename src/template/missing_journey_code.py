@@ -14,11 +14,13 @@ def lambda_worker(event, check) -> None:
     try:
         observation = ObservationResult(check)
         df = get_df_vehicle_journey(check)
-        df['vehicle_journey_code'] = df['vehicle_journey_code'].replace("", np.nan)
+        df["vehicle_journey_code"] = df["vehicle_journey_code"].replace("", np.nan)
         logger.info(f"Looking in the Dataframes: {df.size}")
         if not df.empty:
-            null_journey_codes = df[df['vehicle_journey_code'].isnull()]['vehicle_journey_id'].unique()
-            df = df[df['vehicle_journey_id'].isin(null_journey_codes)]
+            null_journey_codes = df[df["vehicle_journey_code"].isnull()][
+                "vehicle_journey_id"
+            ].unique()
+            df = df[df["vehicle_journey_id"].isin(null_journey_codes)]
             logger.info("Iterating over rows to add observations")
             # Sort the dataframe with vehicle journey id and auto sequence number
             df = df.sort_values(
@@ -47,16 +49,17 @@ def lambda_worker(event, check) -> None:
 
     return
 
+
 def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, __name__.split('.')[-1])
+        check = Check(event, __name__.split(".")[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         timeout_handler.run(lambda_worker)
     except LambdaTimeOutError:
-        status = DQSTaskResultStatus.TIMEOUT.value 
+        status = DQSTaskResultStatus.TIMEOUT.value
         logger.info(f"Set status to {status}")
         check.set_status(status)
     except Exception as e:

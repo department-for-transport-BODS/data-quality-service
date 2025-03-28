@@ -70,7 +70,7 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, __name__.split('.')[-1])
+        check = Check(event, __name__.split(".")[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         timeout_handler.run(lambda_worker)

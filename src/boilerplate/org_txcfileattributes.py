@@ -1,8 +1,9 @@
 from dqs_logger import logger
-from common import BodsDB
+from bods_db import BodsDB
 from typing import List
 from models import OrganisationTxcfileattributes
 from models import TransmodelService
+
 
 class TXCFileAttributes:
     def __init__(self):
@@ -12,10 +13,15 @@ class TXCFileAttributes:
 
     def get_all_txc_file_attributes(self, revision_id) -> List:
         try:
-            result = self._db.session.query(self.service.txcfileattributes_id).filter(
-                self.service.revision_id == revision_id,
-                self.service.txcfileattributes_id.isnot(None)
-            ).distinct().all()
+            result = (
+                self._db.session.query(self.service.txcfileattributes_id)
+                .filter(
+                    self.service.revision_id == revision_id,
+                    self.service.txcfileattributes_id.isnot(None),
+                )
+                .distinct()
+                .all()
+            )
             logger.info(f"txc_file query result: {result}")
 
             return [txc_file_attribute for txc_file_attribute, in result]

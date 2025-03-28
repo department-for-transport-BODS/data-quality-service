@@ -6,7 +6,7 @@ from src.boilerplate.models import DqsChecks as Checks, DqsTaskresults as TaskRe
 
 sys.path.append("./src/boilerplate")
 
-from common import BodsDB
+from bods_db import BodsDB
 
 db = BodsDB()
 
