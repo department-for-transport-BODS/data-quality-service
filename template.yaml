@@ -1208,9 +1208,9 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
-  ###########################################
-  ####       DATA PREFETCH LAMBDA        ####
-  ###########################################
+  ##############################
+  #### DATA PREFETCH LAMBDA ####
+  ##############################
   DataPreFetchLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -1258,9 +1258,9 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
-  ###########################################
-  ####            INITIATE DQS           ####
-  ###########################################
+  ######################
+  #### INITIATE DQS ####
+  ######################
   InitiateDQSLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -1314,9 +1314,9 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
-  ###########################################
-  ##    General Error Handler Lambda     ####
-  ###########################################
+  ###############################
+  #### GENERAL ERROR HANDLER ####
+  ###############################
   GeneralErrorLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -1375,9 +1375,9 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
         
-  ###########################################
-  ##      Check Error Handler Lambda      ####
-  ###########################################
+  #############################
+  #### CHECK ERROR HANDLER ####
+  #############################
   CheckErrorLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -1549,9 +1549,9 @@ Resources:
       RetentionInDays: 30
 
 
-  #####################################
-  ####   DEAD LETTER QUEUE LAMBDA  ####
-  #####################################
+  ##################################
+  #### DEAD LETTER QUEUE LAMBDA ####
+  ##################################
   DeadLetterQueueLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -1612,6 +1612,9 @@ Resources:
       KmsKeyId: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
       RetentionInDays: 30
 
+  #######################
+  #### STATE MACHINE ####
+  #######################
   DQSStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -1638,8 +1641,9 @@ Resources:
         GeneralErrorLambdaArn: !GetAtt GeneralErrorLambda.Arn
         CheckErrorLambdaArn: !GetAtt CheckErrorLambda.Arn
         PipelineMonitorLambdaArn: !GetAtt PipelineMonitorLambda.Arn
+        DQSSemaphoreDynamoDbTableName: !Ref DQSSemaphore
         S3BucketName: !Sub 'bodds-${Environment}'
-        
+
       Name: !Sub '${ProjectName}-${Environment}-sm'
       Policies:
         - LambdaInvokePolicy:
@@ -1698,7 +1702,6 @@ Resources:
                 - kms:Decrypt
               Resource: !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
  
-
   DQSCacheBucket:
     Type:  AWS::S3::Bucket
     Properties:
@@ -1724,3 +1727,40 @@ Resources:
             ExpirationInDays: 7
             NoncurrentVersionExpiration:
               NoncurrentDays: 7
+
+  ##################
+  #### DYNAMODB ####
+  ##################
+  DQSSemaphore:
+    # checkov:skip=CKV_AWS_28: DB stores lock to prevent more than one state machine from executing at the same time
+    # checkov:skip=CKV_AWS_119: Data is just a job id
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}-semaphore'
+      AttributeDefinitions:
+        - AttributeName: LockName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockName
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: 'KMS'
+        KMSMasterKeyId: !If
+          - IsNotLocal
+          - !Sub '{{resolve:ssm:/bodds/${Environment}/kms-key-arn}}'
+          - !Ref AWS::NoValue
+
+  StateMachineToDynamoLockTable:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: DQSStateMachine
+      Destination:
+        Id: DQSSemaphore
+      Permissions:
+        - Read
+        - Write
