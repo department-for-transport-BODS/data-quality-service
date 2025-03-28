@@ -1,4 +1,4 @@
-from src.boilerplate.common import BodsDB
+from src.boilerplate.bods_db import BodsDB
 from unittest.mock import patch
 from pytest import raises
 from psycopg2.errors import OperationalError
