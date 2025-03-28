@@ -83,7 +83,6 @@ def test_lambda_handler_no_duplicates(
     )
     lambda_worker(None, mocked_check)
 
-    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called
@@ -106,7 +105,6 @@ def test_lambda_handler_no_journies(
     mock_get_vj_duplicate_journey_code.return_value = pd.DataFrame()
     lambda_worker(None, mocked_check)
 
-    
     assert mock_get_vj_duplicate_journey_code.called
     assert mocked_observations.add_observation.call_count == 0
     assert not mocked_observations.write_observations.called
@@ -136,6 +134,7 @@ def test_lambda_handler_different_operating_profile(
     assert not mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
+
 
 @patch("src.template.duplicate_journey_code.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):

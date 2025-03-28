@@ -8,9 +8,7 @@ from tests.test_templates import lambda_invalid_check
 @patch("src.template.incorrect_stop_type.ObservationResult")
 @patch("src.template.incorrect_stop_type.get_df_stop_type")
 def test_lambda_handler_valid_check(
-    mock_get_df_stop_type,
-    mock_observation,
-    mock_check
+    mock_get_df_stop_type, mock_observation, mock_check
 ):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
@@ -34,7 +32,6 @@ def test_lambda_handler_valid_check(
     )
     lambda_worker(None, mocked_check)
 
-    
     assert mock_get_df_stop_type.called
     assert mocked_observations.add_observation.call_count == 3
     mocked_observations.add_observation.assert_called_with(
@@ -49,5 +46,5 @@ def test_lambda_handler_valid_check(
 
 
 @patch("src.template.incorrect_stop_type.Check")
-def test_lambda_handler_invalid_check(mock_check,mocked_context):
+def test_lambda_handler_invalid_check(mock_check, mocked_context):
     lambda_invalid_check(lambda_handler, mock_check, mocked_context)

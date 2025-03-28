@@ -1,5 +1,6 @@
 from enum import Enum, unique
 
+
 class DQSTaskResultStatus(str, Enum):
 
     PENDING = "PENDING"
@@ -10,6 +11,7 @@ class DQSTaskResultStatus(str, Enum):
     PROCESSING = "PROCESSING"
     SENT_TO_DLQ = "SENT_TO_DLQ"
 
+
 class DQSReportStatus(str, Enum):
     PIPELINE_PENDING = "PIPELINE_PENDING"
     PIPELINE_SUCCEEDED = "PIPELINE_SUCCEEDED"
@@ -19,7 +21,8 @@ class DQSReportStatus(str, Enum):
     COMPLETED_WITH_ERRORS = "COMPLETED_WITH_ERRORS"
     TIMEOUT = "PIPELINE_TIMEOUT"
     REPORT_GENERATED = "REPORT_GENERATED"
-    REPORT_GENERATION_FAILED ="REPORT_GENERATION_FAILED"
+    REPORT_GENERATION_FAILED = "REPORT_GENERATION_FAILED"
+
 
 class Timeouts(int, Enum):
     TIMEOUT_HOURS = 12
@@ -46,6 +49,6 @@ class CheckBasis(Enum):
     vehicle_journeys = "vehicle_journeys"
     data_set = "data_set"
 
+
 class IgnoredLicenceFormat(Enum):
     UNREGISTERED = "UZ"
-

@@ -9,7 +9,11 @@ from tests.test_templates import lambda_invalid_check
 @patch("src.template.stop_not_found_in_naptan.get_df_vehicle_journey")
 @patch("src.template.stop_not_found_in_naptan.get_naptan_availablilty")
 def test_lambda_handler_valid_check(
-    mock_get_naptan_availablilty, mock_get_df_non_naptan_vehicle_journey, mock_observation, mock_check, mocked_context
+    mock_get_naptan_availablilty,
+    mock_get_df_non_naptan_vehicle_journey,
+    mock_observation,
+    mock_check,
+    mocked_context,
 ):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True

@@ -1,16 +1,12 @@
-import boto3
-import os
 import sys
 from contextlib import ExitStack
-from typing import TextIO
-from os import environ
-from sqlalchemy.engine import create_engine
+from sqlalchemy.engine import create_engine, Engine
 from sqlalchemy.schema import MetaData
 from dotenv import load_dotenv
-import logging
-import urllib
+from typing import Optional, Set, Dict, Any
+from dqs_logger import logger
+from bods_db import BodsDB
 
-logger = logging.getLogger(__name__)
 
 try:
     import citext
@@ -35,122 +31,51 @@ else:
 load_dotenv()
 
 
-def _get_connection_details():
-    """
-    Method to get the connection details for the database from the environment variables
-    """
-    connection_details = {}
-    connection_details["host"] = environ.get("POSTGRES_HOST")
-    connection_details["dbname"] = environ.get("POSTGRES_DB")
-    connection_details["user"] = environ.get("POSTGRES_USER")
-    connection_details["port"] = environ.get("POSTGRES_PORT")
-    try:
-        if environ.get("PROJECT_ENV") != "local":
-            logger.debug("Getting DB token")
-            connection_details["password"] = _generate_rds_iam_auth_token(
-                connection_details["host"],
-                connection_details["port"],
-                connection_details["user"],
-            )
-            logger.debug("Got DB token")
-            connection_details["sslmode"] = "disable"
-            # connection_details["sslmode"] = "require"
-        else:
-            logger.debug(
-                "No password ARN found in environment variables, getting DB password direct"
-            )
-            connection_details["password"] = environ.get("POSTGRES_PASSWORD")
-            logger.debug("Got DB password")
-            connection_details["sslmode"] = "disable"
-
-        for key, value in connection_details.items():
-            if value is None:
-                logger.error(f"Missing connection details value: {key}")
-                raise ValueError
-        return connection_details
-    except Exception as e:
-        logger.error("Failed to get connection details for database")
-        raise e
+def selected_tables_for_models() -> Set[str]:
+    return set(
+        [
+            "dqs_checks",
+            "dqs_report",
+            "otc_inactiveservice",
+            "organisation_txcfileattributes",
+            "otc_service",
+            "dqs_taskresults",
+            "dqs_observationresults",
+            "transmodel_service",
+            "transmodel_service_service_patterns",
+            "transmodel_servicepatternstop",
+            "transmodel_stopactivity",
+            "transmodel_vehiclejourney",
+            "naptan_stoppoint",
+            "transmodel_operatingprofile",
+            "transmodel_operatingdatesexceptions",
+            "transmodel_nonoperatingdatesexceptions",
+            "transmodel_servicedorganisationvehiclejourney",
+            "transmodel_servicedorganisationworkingdays",
+            "transmodel_servicedorganisations",
+        ]
+    )
 
 
-def _generate_connection_string(**kwargs) -> str:
-    """
-    Generates an AWS RDS IAM authentication token for a given RDS instance.
-
-    Parameters:
-    - **kwargs (any): A dictionary of key/value pairs that correspond to the expected values below
-
-    Returns:
-    - str: The generated connection string from parsed key/value pairs
-    """
-    if "application_name" not in kwargs:
-        lambda_function_name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
-    if lambda_function_name:
-        kwargs["application_name"] = lambda_function_name
-
-    user_password = ""
-    if kwargs.get("user"):
-        user_password += kwargs.get("user")
-        if kwargs.get("password"):
-            user_password += ":" + kwargs.get("password")
-        user_password += "@"
-
-    # Construct other parts
-    other_parts = ""
-    for key, value in kwargs.items():
-        if key not in ["host", "port", "user", "password", "dbname"] and value:
-            other_parts += f"{key}={value}&"
-
-    # Construct the final connection string
-    connection_string = f"postgresql+psycopg2://{user_password}{kwargs.get('host', '')}"
-    if kwargs.get("port"):
-        connection_string += f":{kwargs.get('port')}"
-    connection_string += f"/{kwargs.get('dbname', '')}"
-    if other_parts:
-        connection_string += f"?{other_parts[:-1]}"
-
-    return connection_string
+def generate_model_file(generator: Any, outfile: str) -> None:
+    # Open the target file (if given)
+    logger.info("Generating model file")
+    with ExitStack() as stack:
+        with open(outfile, "w", encoding="utf-8") as fpoutfile:
+            stack.enter_context(fpoutfile)
+            # Write the generated model code to the specified file or standard output
+            fpoutfile.write(generator.generate())
+    logger.info(f"Model file generated {outfile}")
 
 
-def _generate_rds_iam_auth_token(host, port, username) -> str:
-    """
-    Generates an AWS RDS IAM authentication token for a given RDS instance.
-
-    Parameters:
-    - hostname (str): The endpoint of the RDS instance.
-    - port (int): The port number for the RDS instance.
-    - username (str): The database username.
-
-    Returns:
-    - str: The generated IAM authentication token if successful.
-    - None: If an error occurs during token generation.
-    """
-    try:
-        session = boto3.session.Session()
-        client = session.client(
-            service_name="rds", region_name=environ.get("AWS_REGION")
-        )
-        token = client.generate_db_auth_token(
-            DBHostname=host, DBUsername=username, Port=port
-        )
-        return urllib.parse.quote_plus(token)
-    except Exception as e:
-        logger.error(f"An error occurred while generating the IAM auth token: {e}")
-        return None
-
-
-def sqlalchmy_model_generator() -> None:
-    generators = {ep.name: ep for ep in entry_points(group="sqlacodegen.generators")}
-    connection_details = _get_connection_details()
-    url = _generate_connection_string(**connection_details)
-    options = ("noindexes",)
-    generator = "declarative"
-    outfile = "src/boilerplate/models.py"
-
+def open_db_connection() -> Optional[Engine]:
+    db: BodsDB = BodsDB()
+    connection_details: Dict[str, str] = db._get_connection_details()
+    url: Optional[str] = db._generate_connection_string(**connection_details)
+    logger.info("Created db connection")
     if not url:
         print("You must supply a url\n", file=sys.stderr)
-        return
-
+        return None
     if citext:
         print(f"Using sqlalchemy-citext {version('citext')}")
 
@@ -160,25 +85,46 @@ def sqlalchmy_model_generator() -> None:
     if pgvector:
         print(f"Using pgvector {version('pgvector')}")
 
+    return create_engine(url)
+
+
+def validate_tables(metadata: MetaData) -> None:
+    """Validate if all required tables exist in the database."""
+    logger.info("Validating tables")
+    required_tables: Set[str] = set(metadata.tables.keys())
+    existing_tables: Set[str] = selected_tables_for_models()
+    missing_tables: Set[str] = existing_tables - required_tables
+
+    if missing_tables:
+        logger.error(f"Tables not found in db: {missing_tables}")
+        raise ValueError(f"Tables not found in db: {missing_tables}")
+    logger.info("All tables found")
+
+
+def sqlalchmy_model_generator() -> None:
+    """
+    Generate SQLAlchemy models for the specified tables.
+    If no tables are specified, generate models for all tables.
+    """
+    generators: Dict[str, Any] = {
+        ep.name: ep for ep in entry_points(group="sqlacodegen.generators")
+    }
+    options: tuple = ("noindexes",)
+    generator: str = "declarative"
+    outfile: str = "src/boilerplate/models.py"
     # Use reflection to fill in the metadata
-    engine = create_engine(url)
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
+    engine: Optional[Engine] = open_db_connection()
+    if not engine:
+        logger.error("Failed to open db connection")
+        return
+    metadata: MetaData = MetaData()
+    metadata.reflect(bind=engine, only=selected_tables_for_models())
+    validate_tables(metadata)
+    logger.info("Generating models")
     # Instantiate the generator
-    generator_class = generators[generator].load()
-    generator = generator_class(metadata, engine, options)
-
-    # Open the target file (if given)
-    with ExitStack() as stack:
-        outfile: TextIO
-        if outfile:
-            outfile = open(outfile, "w", encoding="utf-8")
-            stack.enter_context(outfile)
-        else:
-            outfile = sys.stdout
-
-        # Write the generated model code to the specified file or standard output
-        outfile.write(generator.generate())
+    generator_class: Any = generators[generator].load()
+    generator_instance: Any = generator_class(metadata, engine, options)
+    generate_model_file(generator_instance, outfile)
 
 
 sqlalchmy_model_generator()

@@ -8,10 +8,7 @@ from tests.test_templates import lambda_invalid_check
 @patch("src.template.last_stop_is_pick_up_only.ObservationResult")
 @patch("src.template.last_stop_is_pick_up_only.Check")
 def test_lambda_handler_valid_check(
-    mock_check,
-    mock_observation,
-    mock_get_df_vehicle_journey,
-    mocked_context
+    mock_check, mock_observation, mock_get_df_vehicle_journey, mocked_context
 ):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
@@ -34,7 +31,6 @@ def test_lambda_handler_valid_check(
     )
     lambda_worker(None, mocked_check)
 
-    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(
@@ -46,6 +42,7 @@ def test_lambda_handler_valid_check(
     assert mocked_observations.write_observations.called
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
+
 
 @patch("src.template.last_stop_is_pick_up_only.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):

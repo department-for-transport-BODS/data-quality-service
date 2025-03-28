@@ -8,13 +8,14 @@ from dataframes import get_df_dqs_observation_results
 from io import StringIO
 
 # Initialize S3 client
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 
 # Define S3 bucket name and file name
 S3_BUCKET_NAME = environ.get("S3_BUCKET_DQS_CSV_REPORT", "bodds-dev-dqs-reports")
 
+
 def lambda_handler(event, context):
-    today_date = datetime.now().strftime('%Y%m%d')
+    today_date = datetime.now().strftime("%Y%m%d")
     status = DQSReportStatus.REPORT_GENERATED.value
 
     try:

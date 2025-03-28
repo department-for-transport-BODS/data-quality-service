@@ -1,11 +1,11 @@
-
 import pandas as pd
 from dqs_logger import logger
-from common import BodsDB
+from bods_db import BodsDB
 from typing import List
 from enums import DQSTaskResultStatus
 from contextlib import contextmanager
 from models import DqsTaskresults
+
 
 class TaskResult:
     def __init__(self, dq_report_ids: List) -> None:

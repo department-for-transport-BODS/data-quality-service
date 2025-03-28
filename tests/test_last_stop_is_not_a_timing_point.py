@@ -31,7 +31,6 @@ def test_lambda_handler_valid_check(
     )
     lambda_worker(None, mocked_check)
 
-    
     assert mock_get_df_vehicle_journey.called
     assert mocked_observations.add_observation.call_count == 1
     mocked_observations.add_observation.assert_called_with(

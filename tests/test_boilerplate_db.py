@@ -1,6 +1,5 @@
 from src.boilerplate.common import BodsDB
 from unittest.mock import patch
-from os import environ
 from pytest import raises
 from psycopg2.errors import OperationalError
 
@@ -53,9 +52,7 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
 )
 @patch("src.boilerplate.common.create_engine")
 @patch("src.boilerplate.common.Session")
-def test_database_initialization(
-    session, create_engine, connection_details
-):
+def test_database_initialization(session, create_engine, connection_details):
     """Test database initialization."""
     connection_details.return_value = ENVIRONMENT_INPUT_TEST_VALUES
     db = BodsDB()
@@ -78,9 +75,7 @@ def test_database_initialization(
 )
 @patch("src.boilerplate.common.create_engine")
 @patch("src.boilerplate.common.Session", side_effect=OperationalError())
-def test_database_initialisation_failed(
-    _, __, ___, caplog
-):
+def test_database_initialisation_failed(_, __, ___, caplog):
     """Test database initialization failure."""
     db = BodsDB()
     with raises(OperationalError):
