@@ -36,6 +36,8 @@ class dqs_observationresults(Base):
     vehicle_journey_id = Column(Integer)
     service_pattern_stop_id = Column(Integer)
     serviced_organisation_vehicle_journey_id = Column(Integer)
+    is_suppressed = Column(Boolean)
+
 
 class organisation_txcfileattributes(Base):
     __tablename__ = "organisation_txcfileattributes"
@@ -67,6 +69,7 @@ class dqs_report(Base):
     revision_id = Column(Integer)
     status = Column(String)
 
+
 class MockedDB:
     def __init__(self):
         engine = create_engine("sqlite:///:memory:")
@@ -78,7 +81,7 @@ class MockedDB:
             dqs_taskresults=dqs_taskresults,
             dqs_observationresults=dqs_observationresults,
             organisation_txcfileattributes=organisation_txcfileattributes,
-            dqs_report=dqs_report
+            dqs_report=dqs_report,
         )
 
 
