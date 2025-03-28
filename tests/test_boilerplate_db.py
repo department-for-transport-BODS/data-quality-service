@@ -52,14 +52,12 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
     return_value=ENVIRONMENT_OUTPUT_TEST_VALUES,
 )
 @patch("src.boilerplate.common.create_engine")
-@patch("src.boilerplate.common.automap_base")
 @patch("src.boilerplate.common.Session")
 def test_database_initialization(
-    session, automap_base, create_engine, connection_details
+    session, create_engine, connection_details
 ):
     """Test database initialization."""
     connection_details.return_value = ENVIRONMENT_INPUT_TEST_VALUES
-    automap_base.prepare.return_value = True
     db = BodsDB()
     db._initialise_database()
     assert connection_details.called
@@ -70,7 +68,6 @@ def test_database_initialization(
         f"POSTGRES_PORT={ENVIRONMENT_OUTPUT_TEST_VALUES['POSTGRES_PORT']}&"
         f"POSTGRES_PASSWORD={ENVIRONMENT_OUTPUT_TEST_VALUES['POSTGRES_PASSWORD']}"
     )
-    assert automap_base.called
     session.assert_called_with(create_engine())
     assert db.session is not None
     assert db.classes is not None
@@ -81,13 +78,11 @@ def test_database_initialization(
     return_value=ENVIRONMENT_OUTPUT_TEST_VALUES,
 )
 @patch("src.boilerplate.common.create_engine")
-@patch("src.boilerplate.common.automap_base")
 @patch("src.boilerplate.common.Session", side_effect=OperationalError())
 def test_database_initialisation_failed(
-    _, __, automap_base, ___, caplog
+    _, __, ___, caplog
 ):
     """Test database initialization failure."""
-    automap_base.prepare.return_value = True
     db = BodsDB()
     with raises(OperationalError):
         db._initialise_database()
