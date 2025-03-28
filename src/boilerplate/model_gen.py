@@ -53,6 +53,8 @@ def selected_tables_for_models() -> Set[str]:
             "transmodel_servicedorganisationvehiclejourney",
             "transmodel_servicedorganisationworkingdays",
             "transmodel_servicedorganisations",
+            "organisation_operatorcode",
+            "organisation_licence",
         ]
     )
 
