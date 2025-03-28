@@ -51,7 +51,7 @@ ENVIRONMENT_OUTPUT_TEST_VALUES = {
     return_value=ENVIRONMENT_OUTPUT_TEST_VALUES,
 )
 @patch("src.boilerplate.common.create_engine")
-@patch("src.boilerplate.common.Session")
+@patch("src.boilerplate.bods_db.Session")
 def test_database_initialization(session, create_engine, connection_details):
     """Test database initialization."""
     connection_details.return_value = ENVIRONMENT_INPUT_TEST_VALUES
@@ -73,8 +73,8 @@ def test_database_initialization(session, create_engine, connection_details):
     "src.boilerplate.common.BodsDB._get_connection_details",
     return_value=ENVIRONMENT_OUTPUT_TEST_VALUES,
 )
-@patch("src.boilerplate.common.create_engine")
-@patch("src.boilerplate.common.Session", side_effect=OperationalError())
+@patch("src.boilerplate.bode_db.create_engine")
+@patch("src.boilerplate.bods_db.Session", side_effect=OperationalError())
 def test_database_initialisation_failed(_, __, ___, caplog):
     """Test database initialization failure."""
     db = BodsDB()
