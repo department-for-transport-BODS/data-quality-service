@@ -5,7 +5,6 @@ from observation_results import ObservationResult
 from dataframes import get_df_vehicle_journey, get_naptan_availablilty
 from time_out_handler import TimeOutHandler, get_timeout
 from dqs_exception import LambdaTimeOutError
-import pandas as pd
 
 def lambda_worker(event, check) -> None:
 

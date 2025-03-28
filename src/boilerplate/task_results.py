@@ -1,5 +1,3 @@
-import sys
-import os
 
 import pandas as pd
 from dqs_logger import logger

@@ -1,6 +1,5 @@
 from common import Check
 from dqs_logger import logger
-from sqlalchemy import and_
 from datetime import datetime
 from models import OtcInactiveservice as OtcInactiveServiceModel
 

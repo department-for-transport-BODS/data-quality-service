@@ -6,7 +6,6 @@ from typing import List
 from sqlalchemy import and_, func, String, asc
 from dqs_logger import logger
 from data_persistence import PersistedData, PersistenceKey
-from sqlalchemy import and_, func, String, asc
 from models import (
     TransmodelService as Service,
     TransmodelServicepatternstop as ServicePatternStop,
