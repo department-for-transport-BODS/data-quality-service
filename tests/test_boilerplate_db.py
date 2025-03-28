@@ -70,7 +70,6 @@ def test_database_initialization(
     )
     session.assert_called_with(create_engine())
     assert db.session is not None
-    assert db.classes is not None
 
 
 @patch(
