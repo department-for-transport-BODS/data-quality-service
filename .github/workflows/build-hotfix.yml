@@ -181,7 +181,7 @@ jobs:
     needs: 
       - validation
       - build
-      - commit-and-tag
+      - commit-version-and-tag
 
     permissions:
       contents: write
