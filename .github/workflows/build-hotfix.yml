@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.validate.outputs.VERSION }}
-      SHOULD_BUILD: ${{ steps.validate.outputs.SHOULD_BUILD }}
 
     permissions:
       id-token: write
@@ -65,8 +64,7 @@ jobs:
 
           if [[ "$branch_name" != *hotfix* ]]; then
             echo "[INFO] Not a hotfix branch. Skipping build."
-            echo "SHOULD_BUILD=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           fi
 
           hotfix_version="${base_version}_${branch_name}"
@@ -75,17 +73,14 @@ jobs:
           rc_path="$RC_DST/dqs/releases/$hotfix_version"
           if [[ $(aws s3 ls "s3://$rc_path/" | head -n 1) ]]; then
             echo "[INFO] Release candidate version [${hotfix_version}] already exists. Exiting"
-            echo "SHOULD_BUILD=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           fi
 
-          echo "VERSION=$hotfix_version" >> "$GITHUB_OUTPUT"
-          echo "SHOULD_BUILD=true" >> "$GITHUB_OUTPUT"
+          echo "VERSION=${hotfix_version}" >> "$GITHUB_OUTPUT"
 
   build:
     runs-on: ubuntu-latest
     needs: validation
-    if: needs.validation.outputs.SHOULD_BUILD == 'true'
 
     permissions:
       id-token: write

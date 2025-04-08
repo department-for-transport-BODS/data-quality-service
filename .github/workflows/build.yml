@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.validate.outputs.VERSION }}
-      SHOULD_BUILD: ${{ steps.validate.outputs.SHOULD_BUILD }}
 
     permissions:
       id-token: write
@@ -64,8 +63,7 @@ jobs:
               echo "[INFO] Commit message: $COMMIT_MSG"
               if [[ `echo "$COMMIT_MSG" | grep -Ei "merge.*main"` ]]; then
                 echo "[INFO] Merge from main detected. Skipping build."
-                echo "SHOULD_BUILD=false" >> "$GITHUB_OUTPUT"
-                exit 0
+                exit 1
               fi
 
               new_version=$(yq e '.version' VERSION)
@@ -74,27 +72,22 @@ jobs:
               rc_path="$RC_DST/dqs/releases/$new_version"
               if [[ `aws s3 ls s3://$rc_path|head` ]]; then
                 echo "[INFO] Release candidate version [${new_version}] already exists. Version number must be incremented to allow for a new build. Exiting"
-                echo "SHOULD_BUILD=false" >> "$GITHUB_OUTPUT"
                 exit 1
               else
                 echo "[INFO] Running on development branch, building as release for promotion through to live"
-                echo "SHOULD_BUILD=true" >> "$GITHUB_OUTPUT"
               fi
             else
               echo "[INFO] Running on feature branch, building as release for development environment"
               echo "VERSION=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
-              echo "SHOULD_BUILD=true" >> "$GITHUB_OUTPUT"
             fi
           else
             echo "[ERROR] It is only possible to build from dev/a feature branch. Exiting"
-            echo "SHOULD_BUILD=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
   build:
     runs-on: ubuntu-latest
     needs: validation
-    if: needs.validation.outputs.SHOULD_BUILD == 'true'
 
     permissions:
       id-token: write
