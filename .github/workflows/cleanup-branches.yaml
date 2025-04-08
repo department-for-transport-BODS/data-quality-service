@@ -1,11 +1,11 @@
-name: cleanup branches
+name: Cleanup Branches
 on:
   schedule:
   - cron: '0 0 * * *'
 
 jobs:
   remove-stale-branches:
-    name: remove stale branches
+    name: Remove Stale Branches
     runs-on: ubuntu-latest
     steps:
       - uses: fpicalausa/remove-stale-branches@v1.6.0
