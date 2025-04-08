@@ -59,6 +59,7 @@ jobs:
 
     steps:
       - name: Checkout
+        if: ${{ env.RC_VER == 'null' }}
         uses: actions/checkout@v4
 
       # Configure AWS credentials against the BODS Shared-Services Account
@@ -85,12 +86,6 @@ jobs:
       - name: Validate Job Parameters
         id: validate
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          if [[ `echo "$COMMIT_MSG" | grep -Ei "\[AUTO\].*push for hotfix version"` ]]; then
-            echo "[INFO] Hotfix bump detected, skipping deploy."
-            exit 1
-          fi
-
           if [[ ${RC_VER} != 'null' ]]; then
             echo """ \
               Executing deploy job using parameters:
