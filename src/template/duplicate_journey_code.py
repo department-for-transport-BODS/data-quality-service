@@ -4,14 +4,15 @@ from enums import DQSTaskResultStatus
 from dataframes import get_vj_duplicate_journey_code
 from observation_results import ObservationResult
 import hashlib
-from dqs_exception import LambdaTimeOutError 
+from dqs_exception import LambdaTimeOutError
 from time_out_handler import TimeOutHandler, get_timeout
+
 
 def lambda_worker(event, check):
     status = DQSTaskResultStatus.SUCCESS.value
     try:
         observation = ObservationResult(check)
-        logger.debug(f"Fetching the vj dataframe from db")
+        logger.debug("Fetching the vj dataframe from db")
         df = get_vj_duplicate_journey_code(check)
 
         if not df.empty:
@@ -20,7 +21,15 @@ def lambda_worker(event, check):
             df["hash"] = df.apply(create_df_row_hash, axis=1)
 
             duplicates = df[
-                df.duplicated(subset=["line_ref", "journey_code", "hash","operating_on_working_days"], keep=False)
+                df.duplicated(
+                    subset=[
+                        "line_ref",
+                        "journey_code",
+                        "hash",
+                        "operating_on_working_days",
+                    ],
+                    keep=False,
+                )
             ]
             if not duplicates.empty:
                 logger.debug(f"Found duplicate in the Dataframes: {duplicates.size}")
@@ -64,12 +73,12 @@ def lambda_handler(event, context):
     try:
         # Get timeout from context reduced by 15 sec
         timeout = get_timeout(context)
-        check = Check(event, __name__.split('.')[-1])
+        check = Check(event, __name__.split(".")[-1])
         check.validate_requested_check()
         timeout_handler = TimeOutHandler(event, check, timeout)
         timeout_handler.run(lambda_worker)
     except LambdaTimeOutError:
-        status = DQSTaskResultStatus.TIMEOUT.value 
+        status = DQSTaskResultStatus.TIMEOUT.value
         logger.info(f"Set status to {status}")
         check.set_status(status)
     except Exception as e:

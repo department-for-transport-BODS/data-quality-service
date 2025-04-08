@@ -2,8 +2,7 @@ import logging
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from src.template.first_stop_is_set_down_only import lambda_handler, lambda_worker
-from time import sleep
-
+from tests.fixtures.context import mocked_context  # noqa
 from tests.test_templates import lambda_invalid_check
 
 logger = logging.getLogger(__name__)
@@ -14,10 +13,7 @@ logger.setLevel(logging.DEBUG)
 @patch("src.template.first_stop_is_set_down_only.ObservationResult")
 @patch("src.template.first_stop_is_set_down_only.get_df_vehicle_journey")
 def test_lambda_handler_valid_check(
-    mock_get_df_vehicle_journey,
-    mock_observation,
-    mock_check,
-    mocked_context
+    mock_get_df_vehicle_journey, mock_observation, mock_check, mocked_context
 ):
 
     # Scenario 1 - Valid Check
@@ -52,5 +48,5 @@ def test_lambda_handler_valid_check(
 
 
 @patch("src.template.first_stop_is_set_down_only.Check")
-def test_lambda_handler_invalid_check(mock_check,mocked_context):
+def test_lambda_handler_invalid_check(mock_check, mocked_context):
     lambda_invalid_check(lambda_handler, mock_check, mocked_context)

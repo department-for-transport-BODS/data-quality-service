@@ -1,19 +1,17 @@
-import sys
-import os
-
 import pandas as pd
 from dqs_logger import logger
-from common import BodsDB
+from bods_db import BodsDB
 from typing import List
 from enums import DQSTaskResultStatus
 from contextlib import contextmanager
+from models import DqsTaskresults
 
 
 class TaskResult:
     def __init__(self, dq_report_ids: List) -> None:
         self._db = BodsDB()
         self._report_ids = dq_report_ids
-        self._table_name = self._db.classes.dqs_taskresults
+        self._table_name = DqsTaskresults
 
     def get_task_results_df(self) -> pd.DataFrame:
         df = pd.DataFrame()

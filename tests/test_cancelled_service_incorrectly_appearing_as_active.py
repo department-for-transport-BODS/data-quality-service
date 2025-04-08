@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock, patch
-from src.template.cancelled_service_incorrectly_appearing_as_active import lambda_worker, lambda_handler
+from src.template.cancelled_service_incorrectly_appearing_as_active import (
+    lambda_worker,
+    lambda_handler,
+)
 from tests.test_templates import lambda_invalid_check
+from tests.fixtures.context import mocked_context  # noqa
 
 
 @patch(
@@ -20,7 +24,7 @@ def test_lambda_handler_valid_pass_check(
     mock_check,
     mock_otc_service,
     mock_otc_inactive_service,
-    mocked_context
+    mocked_context,
 ):
     mocked_check = mock_check.return_value = MagicMock()
     mocked_check.validate_requested_check.return_value = True
@@ -116,7 +120,7 @@ def test_lambda_handler_valid_fail_check(
     mock_check,
     mock_otc_service,
     mock_otc_inactive_service,
-    mocked_context
+    mocked_context,
 ):
     mocked_check = mock_check.return_value
     mocked_check.validate_requested_check.return_value = True
@@ -139,6 +143,7 @@ def test_lambda_handler_valid_fail_check(
     )
     assert mocked_check.set_status.called
     mocked_check.set_status.assert_called_with("SUCCESS")
+
 
 @patch("src.template.cancelled_service_incorrectly_appearing_as_active.Check")
 def test_lambda_handler_invalid_check(mock_check, mocked_context):

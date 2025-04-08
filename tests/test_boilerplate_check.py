@@ -25,15 +25,18 @@ def test_check_details_extraction():
     assert check2.check_id == 1
     assert check2.file_id == 50
 
+
 # TODO: As of now, no error is raised
 # def test_check_details_failed_extraction(caplog):
 #     check = Check(MALFORMED_SQS_EVENT)
+
 
 def test_check_details_failed_extraction(caplog):
     check = Check(MALFORMED_SQS_EVENT, "")
     with raises(ValidationError):
         assert check.check_id is None
     assert "Failed to extract a valid payload" in caplog.text
+
 
 # TODO: Need to change the code with DB
 # def test_invalid_result_record():
@@ -48,6 +51,7 @@ def test_check_details_failed_extraction(caplog):
 #         with raises(ValueError):
 #             check.validate_requested_check()
 
+
 def test_invalid_result_record():
     mock_db = MockedDB()
     test_task_result = mock_db.classes.dqs_taskresults(
@@ -59,6 +63,7 @@ def test_invalid_result_record():
     with patch.object(check, "_db", new=mock_db):
         with raises(ValueError):
             check.validate_requested_check()
+
 
 # TODO: Need to change the code with DB
 # def test_null_result_status():
@@ -73,6 +78,7 @@ def test_invalid_result_record():
 #         with raises(ValueError):
 #             check.validate_requested_check()
 
+
 def test_invalid_result_status():
     mock_db = MockedDB()
     test_task_result = mock_db.classes.dqs_taskresults(
@@ -84,6 +90,7 @@ def test_invalid_result_status():
     with patch.object(check, "_db", new=mock_db):
         with raises(ValueError):
             check.validate_requested_check()
+
 
 # TODO: Need to change the code with DB
 # def test_set_status():
@@ -106,6 +113,7 @@ def test_invalid_result_status():
 #         .status
 #         == "SUCCESS"
 #     )
+
 
 def test_null_result_status():
     mock_db = MockedDB()
@@ -166,7 +174,9 @@ def test_add_observations():
     observations = ObservationResult(check)
     with patch.object(check, "_db", new=mock_db):
         observations.add_observation(details="No linked values")
-        observations.add_observation(vehicle_journey_id=1, details="Added Vehicle Journey ID")
+        observations.add_observation(
+            vehicle_journey_id=1, details="Added Vehicle Journey ID"
+        )
         observations.add_observation(
             service_pattern_stop_id=1, details="Added Service Pattern Stop ID"
         )

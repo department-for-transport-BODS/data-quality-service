@@ -12,12 +12,14 @@ class PersistenceBackend(str, Enum):
     S3 = "S3"
     REDIS = "REDIS"
 
+
 class PersistenceKey(str, Enum):
 
     VEHICLE_JOURNEY = "vehicle_journey"
 
     def to_check_value(self, check: Check):
         return f"{self.value}-{check.file_id}"
+
 
 class PersistedData(object):
 
@@ -39,13 +41,16 @@ class PersistedData(object):
     def get(self, key):
         return self.backend.get(key) if self.backend else None
 
+
 class S3Backend(object):
 
     def __init__(self):
         self._s3 = S3Client()
         self._bucket = environ.get("CACHE_BUCKET")
         if self._bucket is None:
-            raise ValueError("CACHE_BUCKET is not set in environment for S3 Backend Persistence")
+            raise ValueError(
+                "CACHE_BUCKET is not set in environment for S3 Backend Persistence"
+            )
         logger.debug(f"Initialised S3 backend using {self._bucket}")
 
     def save(self, key, data):
@@ -56,6 +61,7 @@ class S3Backend(object):
 
     def get(self, key):
         return loads(self._s3.get_object(bucket=self._bucket, key=key))
+
 
 class RedisBackend(object):
 
