@@ -7,7 +7,7 @@ on:
     branches:
     - 'main'
     paths-ignore:
-    - 'VERSION'
+    - 'VERSION' # Prevent retrigger from hotfix VERSION update
 
 concurrency:
   group: ${{ github.workflow }}-hotfix
@@ -174,3 +174,29 @@ jobs:
 
           git tag $VERSION
           git push --tags --force
+
+  trigger-deploy-uat:
+    if: ${{ always() && !cancelled() && !contains(needs.*.result, 'failure') && contains(github.ref, 'main') }}
+    runs-on: ubuntu-latest
+    needs: 
+      - validation
+      - build
+      - commit-and-tag
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Trigger Remote for UAT
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: ${{ github.repository }}
+          event-type: automated-deploy-uat
+          client-payload: '{ "environment": "uat", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
+
+      - name: Trigger Remote for UAT2
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: ${{ github.repository }}
+          event-type: automated-deploy-uat2
+          client-payload: '{ "environment": "uat2", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
