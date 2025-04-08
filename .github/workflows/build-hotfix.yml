@@ -59,8 +59,8 @@ jobs:
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
           if [[ `echo "$COMMIT_MSG" | grep -Ei "merge.*hotfix"` ]]; then
-            base_version=$(yq e '.version' VERSION)
-            branch_name=$(echo "$commit_msg" | grep -Eo 'hotfix[^ ]*' | head -n1 | sed 's/\//-/g')
+            base_version=$(yq -e '.version' VERSION)
+            branch_name=$(echo "$COMMIT_MSG" | sed -nE 's/^Merge pull request #[0-9]+ from ([^/]+\/)?([^ ]+)/\2/p' | sed 's/\//-/g')
             hotfix_version="${base_version}_${branch_name}"
 
             echo "[INFO] Hotfix version: $hotfix_version"
@@ -162,7 +162,7 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git config --global url.https://${{ github.token }}@github.com/.insteadOf https://github.com/
 
-          yq e -i ".version = \"$VERSION\"" VERSION
+          yq -e -i ".version = \"$VERSION\"" VERSION
           git add VERSION
           git commit -m "[AUTO] GitHub actions push for hotfix version $VERSION"
           git push origin HEAD:$GITHUB_REF_NAME
