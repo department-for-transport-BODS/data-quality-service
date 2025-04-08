@@ -1,5 +1,5 @@
-name: deploy application
-run-name: deploy application to ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.environment ||
+name: Deploy Application
+run-name: Deploy Application to ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.environment ||
     github.event_name == 'release' && 'prod' ||
     contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && (
       startsWith(github.ref, 'refs/tags/v') && 'prod' ||
@@ -55,12 +55,12 @@ jobs:
       contents: read
 
     steps:
-      - name: checkout
+      - name: Checkout
         if: ${{ env.RC_VER == 'null' }}
         uses: actions/checkout@v4
 
       # Configure AWS credentials against the BODS Shared-Services Account
-      - name: configure aws credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
@@ -80,7 +80,7 @@ jobs:
           role-skip-session-tagging: true
           role-chaining: true
 
-      - name: validate job parameters
+      - name: Validate Job Parameters
         id: validate
         run: |
           if [[ ${RC_VER} != 'null' ]]; then
@@ -101,7 +101,7 @@ jobs:
             echo "VERSION=${current_version}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: validate release candidate version
+      - name: Validate Release Candidate Version
         env:
           VERSION: ${{ steps.validate.outputs.VERSION }}
         run: |
@@ -131,13 +131,13 @@ jobs:
       contents: read
 
     steps:
-      - name: setup sam
+      - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
 
       # Configure AWS credentials against the BODS Shared-Services Account
-      - name: configure aws credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
@@ -157,7 +157,7 @@ jobs:
           role-skip-session-tagging: true
           role-chaining: true
 
-      - name: retrieve code
+      - name: Retrieve Code
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
@@ -167,13 +167,13 @@ jobs:
           aws s3 cp s3://$RC_SRC/$rc_path/samconfig.yaml .
           echo "[INFO] Application with version [${VERSION}] successfully downloaded"
       
-      - name: get stack name
+      - name: Get Stack Name
         id: get-stack
         uses: mikefarah/yq@v4.42.1
         with:
           cmd: yq -r '."${{ env.RC_ENV }}".deploy.parameters.stack_name' samconfig.yaml
 
-      - name: deploy application for ${{ env.RC_ENV }}
+      - name: Deploy Application for ${{ env.RC_ENV }}
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
@@ -188,7 +188,7 @@ jobs:
             --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
           echo "[INFO] Application with version [${VERSION}] successfully deployed into ${RC_ENV^^}"
 
-      - name: update confluence page
+      - name: Update Confluence Page
         uses: robsteel24/update-confluence@v1
         with:
           confluence_base_url: ${{ vars.CONFLUENCE_BASE_URL }}
@@ -213,13 +213,13 @@ jobs:
       contents: read
 
     steps:
-      - name: setup sam
+      - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
 
       # Configure AWS credentials against the BODS Shared-Services Account
-      - name: configure aws credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
@@ -239,7 +239,7 @@ jobs:
           role-skip-session-tagging: true
           role-chaining: true
 
-      - name: retrieve code
+      - name: Retrieve Code
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
@@ -249,13 +249,13 @@ jobs:
           aws s3 cp s3://$RC_SRC/$rc_path/samconfig.yaml .
           echo "[INFO] Application with version [${VERSION}] successfully downloaded"
       
-      - name: get stack name
+      - name: Get Stack Name
         id: get-stack
         uses: mikefarah/yq@v4.42.1
         with:
           cmd: yq -r '."${{ env.RC_ENV }}".deploy.parameters.stack_name' samconfig.yaml
 
-      - name: deploy application for ${{ env.RC_ENV }}
+      - name: Deploy Application for ${{ env.RC_ENV }}
         env:
           VERSION: ${{ needs.validation.outputs.VERSION }}
         run: |
@@ -270,7 +270,7 @@ jobs:
             --tags "BuiltFrom=${VERSION} ProjectName=${{ vars.PROJECT_NAME }} Environment=${RC_ENV}"
           echo "[INFO] Application with version [${VERSION}] successfully deployed into ${RC_ENV^^}"
 
-      - name: update confluence page
+      - name: Update Confluence Page
         uses: robsteel24/update-confluence@v1
         with:
           confluence_base_url: ${{ vars.CONFLUENCE_BASE_URL }}
