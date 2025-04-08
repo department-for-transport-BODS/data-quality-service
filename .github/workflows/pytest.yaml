@@ -1,4 +1,4 @@
-name: pytest
+name: PyTest
 on:
   pull_request:
     branches:
@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: checkout
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: setup python
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
@@ -26,7 +26,7 @@ jobs:
           ./src/boilerplate/requirements.txt
           ./tests/requirements.txt
 
-    - name: install dependencies
+    - name: Install Dependencies
       run: |
         sudo apt update -y && \
           sudo apt install -y libpq-dev
@@ -35,7 +35,7 @@ jobs:
         pip install -r ./src/boilerplate/requirements.txt
         pip install -r ./tests/requirements.txt
 
-    - name: test with pytest
+    - name: Test with PyTest
       run: |
         export PYTHONPATH=src/template
         pytest
