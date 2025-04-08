@@ -57,26 +57,26 @@ jobs:
       - name: Validate Job Parameters
         id: validate
         run: |
-          base_version=$(yq e '.version' VERSION)
-          branch_name="${GITHUB_REF_NAME//\//-}"
-          echo "[INFO] Base version: $base_version"
-          echo "[INFO] Branch name: $branch_name"
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ `echo "$COMMIT_MSG" | grep -Ei "merge.*hotfix"` ]]; then
+            base_version=$(yq e '.version' VERSION)
+            branch_name=$(echo "$commit_msg" | grep -Eo 'hotfix[^ ]*' | head -n1 | sed 's/\//-/g')
+            hotfix_version="${base_version}_${branch_name}"
 
-          if [[ "$branch_name" != *hotfix* ]]; then
-            echo "[INFO] Not a hotfix branch. Skipping build."
+            echo "[INFO] Hotfix version: $hotfix_version"
+
+            rc_path="$RC_DST/dqs/releases/$hotfix_version"
+            if [[ $(aws s3 ls "s3://$rc_path/" | head -n 1) ]]; then
+              echo "[INFO] Release candidate version [${hotfix_version}] already exists. Exiting"
+              exit 1
+            fi
+
+            echo "VERSION=$hotfix_version" >> "$GITHUB_OUTPUT"
+          else
+            echo "[INFO] Not a hotfix merge. Skipping build."
             exit 1
           fi
 
-          hotfix_version="${base_version}_${branch_name}"
-          echo "[INFO] Hotfix version: $hotfix_version"
-
-          rc_path="$RC_DST/dqs/releases/$hotfix_version"
-          if [[ $(aws s3 ls "s3://$rc_path/" | head -n 1) ]]; then
-            echo "[INFO] Release candidate version [${hotfix_version}] already exists. Exiting"
-            exit 1
-          fi
-
-          echo "VERSION=${hotfix_version}" >> "$GITHUB_OUTPUT"
 
   build:
     runs-on: ubuntu-latest

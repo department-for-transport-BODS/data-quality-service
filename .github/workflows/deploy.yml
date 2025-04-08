@@ -87,7 +87,7 @@ jobs:
         id: validate
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
-          if [[ `echo "$COMMIT_MSG" | grep -iq '[AUTO] GitHub actions push for hotfix version'` ]]; then
+          if [[ `echo "$COMMIT_MSG" | grep -Ei "\[AUTO\].*push for hotfix version"` ]]; then
             echo "[INFO] Hotfix bump detected, skipping deploy."
             exit 1
           fi

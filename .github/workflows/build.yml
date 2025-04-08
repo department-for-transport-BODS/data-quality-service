@@ -60,7 +60,6 @@ jobs:
           if [[ ${{ !(contains(fromJSON('["test", "main"]'), github.ref_name) || startsWith(github.ref, 'refs/tags/v')) }} ]]; then
             if [[ ${GITHUB_REF_NAME} == 'dev' ]]; then
               COMMIT_MSG=$(git log -1 --pretty=%B)
-              echo "[INFO] Commit message: $COMMIT_MSG"
               if [[ `echo "$COMMIT_MSG" | grep -Ei "merge.*main"` ]]; then
                 echo "[INFO] Merge from main detected. Skipping build."
                 exit 1
