@@ -189,10 +189,3 @@ jobs:
           repository: ${{ github.repository }}
           event-type: automated-deploy-dev
           client-payload: '{ "environment": "dev", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
-
-      - name: Trigger Remote for DEV2
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          repository: ${{ github.repository }}
-          event-type: automated-deploy-dev
-          client-payload: '{ "environment": "dev2", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
