@@ -188,10 +188,3 @@ jobs:
           repository: ${{ github.repository }}
           event-type: automated-deploy-uat
           client-payload: '{ "environment": "uat", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
-
-      - name: Trigger Remote for UAT2
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          repository: ${{ github.repository }}
-          event-type: automated-deploy-uat2
-          client-payload: '{ "environment": "uat2", "release_version": "${{ needs.validation.outputs.VERSION }}" }'
