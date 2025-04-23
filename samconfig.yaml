@@ -45,16 +45,6 @@ dev:
         ProjectName='dqs'
         Environment='dev'
 
-dev2:
-  deploy:
-    parameters:
-      stack_name: "dqs-dev2-app-stack"
-      s3_prefix: dev2
-      capabilities: "CAPABILITY_NAMED_IAM"
-      parameter_overrides:
-        ProjectName='dqs'
-        Environment='dev2'
-
 test:
   deploy:
     parameters:
