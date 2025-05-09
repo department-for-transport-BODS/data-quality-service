@@ -5,7 +5,7 @@ on:
 
 jobs:
   remove-stale-branches:
-    name: remove stale branches
+    name: Remove Stale Branches
     runs-on: ubuntu-latest
     steps:
       - uses: fpicalausa/remove-stale-branches@v2.3.0
