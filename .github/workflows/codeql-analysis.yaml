@@ -1,4 +1,4 @@
-name: "code quality check"
+name: "Code Quality Check"
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
         language: [ 'javascript', 'python' ]
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v3
 
     # Initializes the CodeQL tools for scanning.

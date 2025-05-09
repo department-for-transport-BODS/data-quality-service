@@ -1,4 +1,4 @@
-name: checkov
+name: Checkov
 
 on:
   pull_request:
@@ -12,13 +12,13 @@ on:
 
 jobs:
   checkov:
-    name: checkov-action
+    name: Checkov Action
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Run Checkov action
+      - name: Run Checkov Action
         id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
