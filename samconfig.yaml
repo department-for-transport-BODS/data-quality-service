@@ -65,16 +65,6 @@ uat:
         ProjectName='dqs'
         Environment='uat'
 
-uat2:
-  deploy:
-    parameters:
-      stack_name: "dqs-uat2-app-stack"
-      s3_prefix: uat2
-      capabilities: "CAPABILITY_NAMED_IAM"
-      parameter_overrides:
-        ProjectName='dqs'
-        Environment='uat2'
-
 prod:
   sync:
     parameters:
