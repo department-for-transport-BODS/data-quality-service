@@ -6,9 +6,10 @@ from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
 from models import DqsReport as DQReportModel
+from sqlalchemy.event import listens_for
 
 
-class DQReport:
+class DQReport(DQReportModel):
     def __init__(self):
         self._db = BodsDB()
         self._table_name = DQReportModel
@@ -59,6 +60,7 @@ class DQReport:
                 .first()
             )
             if existing_report:
+                self.delete_cascade_task_results(existing_report=existing_report)
                 self._db.session.delete(existing_report)
 
             new_report = self._table_name(
@@ -78,6 +80,21 @@ class DQReport:
             self._db.session.rollback()
             raise e
 
+    def delete_cascade_task_results(self, existing_report):
+        from src.boilerplate.dqs_task_results import DQTaskResults
+
+        dqs_resul_obj = DQTaskResults()
+        dqs_results = (
+            self._db.session.query(dqs_resul_obj._table_name)
+            .filter(
+                dqs_resul_obj._table_name.dataquality_report_id == existing_report.id
+            )
+            .all()
+        )
+
+        for dqs_result in dqs_results:
+            self._db.session.delete(dqs_result)
+
     @contextmanager
     def update_dq_reports_status_using_ids(
         self, df_dq_reports: pd.DataFrame
@@ -93,3 +110,15 @@ class DQReport:
             logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
             self._db.session.rollback()
             raise e
+        
+
+# @listens_for(DQReportModel, "after_delete")
+# def delete_cascade_task_results(mapper, connection, target):
+#     from src.boilerplate.dqs_task_results import DQTaskResults
+#     session = DQTaskResults.__table__.metadata.bind
+#     # Use the connection to execute a delete statement directly
+#     connection.execute(
+#         DQTaskResults.__table__.delete().where(
+#             DQTaskResults.dataquality_report_id == target.id
+#         )
+#     )
