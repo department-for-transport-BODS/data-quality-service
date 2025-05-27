@@ -5,13 +5,15 @@ from bods_db import BodsDB
 from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
-from models import DqsReport as DQReportModel
+from models import DqsReport as DQReportModel, DqsTaskresults, DqsObservationresults
+from sqlalchemy.event import listens_for
 
 
-class DQReport:
+class DQReport(DQReportModel):
     def __init__(self):
         self._db = BodsDB()
         self._table_name = DQReportModel
+        self.register_delete_listener()
 
     @property
     def db(self):
@@ -78,11 +80,46 @@ class DQReport:
             self._db.session.rollback()
             raise e
 
-    @contextmanager
-    def update_dq_reports_status_using_ids(
-        self, df_dq_reports: pd.DataFrame
-    ) -> pd.DataFrame:
+    def delete_cascade_task_results(self, target):
+        """
+        Delete all DqsTaskresults and related DqsObservationresults records associated with the given Report.
+        
+        Args:
+            target: The Report object whose related DqsTaskresults and DqsObservationresults need to be deleted.
+        """
+        try:
+            # First, get all DqsTaskresults IDs for the report to cascade to DqsObservationresults
+            task_results = self._db.session.query(DqsTaskresults.id).filter(
+                DqsTaskresults.dataquality_report_id == target.id
+            ).all()
+            task_result_ids = [tr.id for tr in task_results]
 
+            # Delete DqsObservationresults records where taskresults_id matches any DqsTaskresults.id
+            if task_result_ids:
+                self._db.session.query(DqsObservationresults).filter(
+                    DqsObservationresults.taskresults_id.in_(task_result_ids)
+                ).delete(synchronize_session=False)
+
+            # Delete DqsTaskresults records for the report
+            self._db.session.query(DqsTaskresults).filter(
+                DqsTaskresults.dataquality_report_id == target.id
+            ).delete(synchronize_session=False)
+
+            logger.info(f"Deleted DqsTaskresults and DqsObservationresults for report_id: {target.id}")
+        except Exception as e:
+            logger.error(f"Failed to delete DqsTaskresults and DqsObservationresults for report_id {target.id}: {e}")
+            raise e
+
+    def register_delete_listener(self):
+        """
+        Register the event listener for before_delete on DQReportModel.
+        """
+        @event.listens_for(DQReportModel, 'before_delete')
+        def on_report_delete(mapper, connection, target):
+            self.delete_cascade_task_results(target=target)
+
+    @contextmanager
+    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame) -> pd.DataFrame:
         try:
             if not df_dq_reports.empty:
                 self._db.session.execute(
