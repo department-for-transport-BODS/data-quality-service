@@ -49,6 +49,19 @@ class DQReport(DQReportModel):
             logger.error(f"Failed to get report {e}")
             raise e
         return df
+    
+    @contextmanager
+    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame) -> pd.DataFrame:
+        try:
+            if not df_dq_reports.empty:
+                self._db.session.execute(
+                    update(self._table_name), df_dq_reports.to_dict("records")
+                )
+                self._db.session.commit()
+        except Exception as e:
+            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
+            self._db.session.rollback()
+            raise e
 
     def initialise_dqs_report(self, revision_id: int) -> int:
         """
@@ -88,19 +101,16 @@ class DQReport(DQReportModel):
             target: The Report object whose related DqsTaskresults and DqsObservationresults need to be deleted.
         """
         try:
-            # First, get all DqsTaskresults IDs for the report to cascade to DqsObservationresults
             task_results = self._db.session.query(DqsTaskresults.id).filter(
                 DqsTaskresults.dataquality_report_id == target.id
             ).all()
             task_result_ids = [tr.id for tr in task_results]
 
-            # Delete DqsObservationresults records where taskresults_id matches any DqsTaskresults.id
             if task_result_ids:
                 self._db.session.query(DqsObservationresults).filter(
                     DqsObservationresults.taskresults_id.in_(task_result_ids)
                 ).delete(synchronize_session=False)
 
-            # Delete DqsTaskresults records for the report
             self._db.session.query(DqsTaskresults).filter(
                 DqsTaskresults.dataquality_report_id == target.id
             ).delete(synchronize_session=False)
@@ -117,16 +127,3 @@ class DQReport(DQReportModel):
         @event.listens_for(DQReportModel, 'before_delete')
         def on_report_delete(mapper, connection, target):
             self.delete_cascade_task_results(target=target)
-
-    @contextmanager
-    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame) -> pd.DataFrame:
-        try:
-            if not df_dq_reports.empty:
-                self._db.session.execute(
-                    update(self._table_name), df_dq_reports.to_dict("records")
-                )
-                self._db.session.commit()
-        except Exception as e:
-            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
-            self._db.session.rollback()
-            raise e
