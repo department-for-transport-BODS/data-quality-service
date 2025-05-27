@@ -5,11 +5,7 @@ from bods_db import BodsDB
 from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
-<<<<<<< HEAD
 from models import DqsReport as DQReportModel, DqsTaskresults, DqsObservationresults
-=======
-from models import DqsReport as DQReportModel
->>>>>>> dev
 from sqlalchemy.event import listens_for
 
 
