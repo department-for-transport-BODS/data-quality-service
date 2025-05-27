@@ -125,6 +125,6 @@ class DQReport(DQReportModel):
         """
         Register the event listener for before_delete on DQReportModel.
         """
-        @event.listens_for(DQReportModel, 'before_delete')
+        @listens_for(DQReportModel, 'before_delete')
         def on_report_delete(mapper, connection, target):
             self.delete_cascade_task_results(target=target)
