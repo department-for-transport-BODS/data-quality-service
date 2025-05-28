@@ -74,7 +74,6 @@ class DQReport(DQReportModel):
                 .first()
             )
             if existing_report:
-                self.delete_cascade_task_results(existing_report=existing_report)
                 self._db.session.delete(existing_report)
 
             new_report = self._table_name(
