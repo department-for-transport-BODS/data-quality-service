@@ -58,7 +58,7 @@ Globals:
             - postgres
         POSTGRES_USER: !If
             - IsNotLocal
-            - !Sub '{{resolve:ssm:/bodds/${Environment}/pg-rw-user}}'
+            - !Sub '{{resolve:secretsmanager:bodds/${Environment}/rds/user/bodds_rw:SecretString:username}}'
             - postgres
         CACHE_BUCKET: !Ref DQSCacheBucket
         CACHE_BACKEND: None
