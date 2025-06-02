@@ -99,17 +99,22 @@ class DQReport(DQReportModel):
                 DqsTaskresults.dataquality_report_id == target.id
             ).all()
             task_result_ids = [tr.id for tr in task_results]
+            logger.info(f"Found {len(task_result_ids)} DqsTaskresults for report_id: {target.id}")
 
             if task_result_ids:
+                obs_count = self._db.session.query(DqsObservationresults).filter(
+                    DqsObservationresults.taskresults_id.in_(task_result_ids)
+                ).count()
+                logger.info(f"Found {obs_count} DqsObservationresults for report_id: {target.id}")
+
                 self._db.session.query(DqsObservationresults).filter(
                     DqsObservationresults.taskresults_id.in_(task_result_ids)
-                ).delete()
+                ).delete(synchronize_session=False)
 
             self._db.session.query(DqsTaskresults).filter(
                 DqsTaskresults.dataquality_report_id == target.id
-            ).delete()
+            ).delete(synchronize_session=False)
 
-            self._db.session.flush()
             logger.info(f"Deleted DqsTaskresults and DqsObservationresults for report_id: {target.id}")
         except Exception as e:
             logger.error(f"Failed to delete DqsTaskresults and DqsObservationresults for report_id {target.id}: {e}")
