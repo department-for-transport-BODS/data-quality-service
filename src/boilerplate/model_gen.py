@@ -9,9 +9,9 @@ from bods_db import BodsDB
 
 
 try:
-    import citext
+    from sqlalchemy-citext import CIText
 except ImportError:
-    citext = None
+    CIText = None
 
 try:
     import geoalchemy2
@@ -78,7 +78,7 @@ def open_db_connection() -> Optional[Engine]:
     if not url:
         print("You must supply a url\n", file=sys.stderr)
         return None
-    if citext:
+    if CIText:
         print(f"Using sqlalchemy-citext {version('citext')}")
 
     if geoalchemy2:
