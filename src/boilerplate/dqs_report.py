@@ -13,7 +13,6 @@ class DQReport(DQReportModel):
     def __init__(self):
         self._db = BodsDB()
         self._table_name = DQReportModel
-        # self.register_delete_listener()
 
     @property
     def db(self):
@@ -121,12 +120,3 @@ class DQReport(DQReportModel):
         except Exception as e:
             logger.error(f"Failed to delete DqsTaskresults and DqsObservationresults for report_id {target.id}: {e}")
             raise e
-
-    # def register_delete_listener(self):
-    #     """
-    #     Register the event listener for before_delete on DQReportModel.
-    #     """
-    #     @listens_for(DQReportModel, 'before_delete')
-    #     def on_report_delete(mapper, connection, target):
-    #         logger.debug(f"Before delete triggered for report_id: {target.id}")
-    #         self.delete_cascade_task_results(target=target)
