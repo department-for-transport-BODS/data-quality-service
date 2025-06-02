@@ -6,8 +6,6 @@ from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
 from models import DqsReport as DQReportModel, DqsTaskresults, DqsObservationresults
-from sqlalchemy.event import listens_for
-
 
 class DQReport(DQReportModel):
     def __init__(self):
