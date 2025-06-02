@@ -94,12 +94,6 @@ class DQReport(DQReportModel):
             raise e
 
     def delete_cascade_task_results(self, target):
-        """
-        Delete all DqsTaskresults and related DqsObservationresults records associated with the given Report.
-        
-        Args:
-            target: The Report object whose related DqsTaskresults and DqsObservationresults need to be deleted.
-        """
         try:
             task_results = self._db.session.query(DqsTaskresults.id).filter(
                 DqsTaskresults.dataquality_report_id == target.id
@@ -109,12 +103,13 @@ class DQReport(DQReportModel):
             if task_result_ids:
                 self._db.session.query(DqsObservationresults).filter(
                     DqsObservationresults.taskresults_id.in_(task_result_ids)
-                ).delete(synchronize_session=False)
+                ).delete()
 
             self._db.session.query(DqsTaskresults).filter(
                 DqsTaskresults.dataquality_report_id == target.id
-            ).delete(synchronize_session=False)
+            ).delete()
 
+            self._db.session.flush()
             logger.info(f"Deleted DqsTaskresults and DqsObservationresults for report_id: {target.id}")
         except Exception as e:
             logger.error(f"Failed to delete DqsTaskresults and DqsObservationresults for report_id {target.id}: {e}")
@@ -126,4 +121,5 @@ class DQReport(DQReportModel):
         """
         @listens_for(DQReportModel, 'before_delete')
         def on_report_delete(mapper, connection, target):
+            logger.debug(f"Before delete triggered for report_id: {target.id}")
             self.delete_cascade_task_results(target=target)
