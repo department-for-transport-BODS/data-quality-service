@@ -9,7 +9,7 @@ from bods_db import BodsDB
 
 
 try:
-    from sqlalchemy_citext import CIText
+    from sqlalchemy-citext import CIText
 except ImportError:
     CIText = None
 
