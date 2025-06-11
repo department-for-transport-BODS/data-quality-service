@@ -5,10 +5,9 @@ from bods_db import BodsDB
 from contextlib import contextmanager
 from enums import DQSReportStatus
 from utils import get_uk_time
-from models import DqsReport as DQReportModel
+from models import DqsReport as DQReportModel, DqsTaskresults, DqsObservationresults
 
-
-class DQReport:
+class DQReport(DQReportModel):
     def __init__(self):
         self._db = BodsDB()
         self._table_name = DQReportModel
@@ -47,6 +46,19 @@ class DQReport:
             logger.error(f"Failed to get report {e}")
             raise e
         return df
+    
+    @contextmanager
+    def update_dq_reports_status_using_ids(self, df_dq_reports: pd.DataFrame) -> pd.DataFrame:
+        try:
+            if not df_dq_reports.empty:
+                self._db.session.execute(
+                    update(self._table_name), df_dq_reports.to_dict("records")
+                )
+                self._db.session.commit()
+        except Exception as e:
+            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
+            self._db.session.rollback()
+            raise e
 
     def initialise_dqs_report(self, revision_id: int) -> int:
         """
@@ -59,7 +71,9 @@ class DQReport:
                 .first()
             )
             if existing_report:
+                self.delete_cascade_task_results(existing_report)
                 self._db.session.delete(existing_report)
+                self._db.session.commit()
 
             new_report = self._table_name(
                 file_name="",
@@ -78,18 +92,29 @@ class DQReport:
             self._db.session.rollback()
             raise e
 
-    @contextmanager
-    def update_dq_reports_status_using_ids(
-        self, df_dq_reports: pd.DataFrame
-    ) -> pd.DataFrame:
-
+    def delete_cascade_task_results(self, target):
         try:
-            if not df_dq_reports.empty:
-                self._db.session.execute(
-                    update(self._table_name), df_dq_reports.to_dict("records")
-                )
-                self._db.session.commit()
+            task_results = self._db.session.query(DqsTaskresults.id).filter(
+                DqsTaskresults.dataquality_report_id == target.id
+            ).all()
+            task_result_ids = [tr.id for tr in task_results]
+            logger.info(f"Found {len(task_result_ids)} DqsTaskresults for report_id: {target.id}")
+
+            if task_result_ids:
+                obs_count = self._db.session.query(DqsObservationresults).filter(
+                    DqsObservationresults.taskresults_id.in_(task_result_ids)
+                ).count()
+                logger.info(f"Found {obs_count} DqsObservationresults for report_id: {target.id}")
+
+                self._db.session.query(DqsObservationresults).filter(
+                    DqsObservationresults.taskresults_id.in_(task_result_ids)
+                ).delete(synchronize_session=False)
+
+            self._db.session.query(DqsTaskresults).filter(
+                DqsTaskresults.dataquality_report_id == target.id
+            ).delete(synchronize_session=False)
+
+            logger.info(f"Deleted DqsTaskresults and DqsObservationresults for report_id: {target.id}")
         except Exception as e:
-            logger.error(f"Failed to add observation for check = pipeline_monitor: {e}")
-            self._db.session.rollback()
+            logger.error(f"Failed to delete DqsTaskresults and DqsObservationresults for report_id {target.id}: {e}")
             raise e
