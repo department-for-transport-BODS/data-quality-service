@@ -50,7 +50,6 @@ class BodsDB:
             )
             logger.debug("Initiating DB session")
             self._session = Session(sqlalchemy_engine)
-            self._session.execute("SET SESSION random_page_cost = 1.2")
             logger.debug("Connected to DB")
         except Exception as e:
             logger.error("Failed to connect to DB")
