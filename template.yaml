@@ -28,7 +28,7 @@ Globals:
   Function:
     Architectures:
       - x86_64
-    Runtime: python3.11
+    Runtime: python3.13
     Timeout: 135 # 120s Run time and added 15 seconds for the timeout handler
     MemorySize: 512
     Tracing: Active
@@ -99,9 +99,9 @@ Resources:
       LayerName: !Sub '${ProjectName}-${Environment}-boilerplate-layer'
       ContentUri: ./src/boilerplate
       CompatibleRuntimes:
-        - python3.11
+        - python3.13
     Metadata:
-      BuildMethod: python3.11
+      BuildMethod: python3.13
 
   ###############################
   #### DQS DEAD LETTER QUEUE ####
