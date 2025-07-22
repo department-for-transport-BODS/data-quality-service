@@ -99,12 +99,13 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.13
+          python-version: 3.11
 
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
+          version: 1.139.0
 
       # Configure AWS credentials against the BODS Shared Services account
       - name: Configure AWS Credentials
