@@ -8,3 +8,4 @@ sqlalchemy-citext == 1.8.0
 GeoAlchemy2 == 0.17.1
 pgvector == 0.4.0
 python-dotenv == 1.1.0
+numpy == 2.2.2
