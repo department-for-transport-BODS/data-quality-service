@@ -61,7 +61,7 @@ Globals:
             - !Sub '{{resolve:secretsmanager:bodds/${Environment}/rds/user/bodds_rw:SecretString:username}}'
             - postgres
         CACHE_BUCKET: !Ref DQSCacheBucket
-        CACHE_BACKEND: None
+        CACHE_BACKEND: S3
 
 Resources:
   #########################################
