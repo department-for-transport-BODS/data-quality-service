@@ -32,6 +32,7 @@ class PersistedData(object):
         else:
             self.backend = None
 
+        print(f"The backend is of type {backend}")
     def save(self, key, data):
         self.backend.save(key, data) if self.backend else None
 
