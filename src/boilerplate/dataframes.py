@@ -80,7 +80,7 @@ def get_df_vehicle_journey(check: Check, refresh=False) -> pd.DataFrame:
             VehicleJourney.journey_code.label("vehicle_journey_code"),
         )
     )
-    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.connection())
     logger.info(f"Persisting Vehicle data DF for {check.file_id}")
     persistence.save(PersistenceKey.VEHICLE_JOURNEY.to_check_value(check), df)
     return df
@@ -120,7 +120,7 @@ def get_df_missing_bus_working_number(check: Check) -> pd.DataFrame:
             ),  # Get the first stop for Each Vehicle Journey
         )
     )
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    return pd.read_sql_query(result.statement, check.db.session.connection())
 
 
 def get_df_stop_type(check: Check, allowed_stop_types: List) -> pd.DataFrame:
@@ -245,7 +245,7 @@ def get_vj_duplicate_journey_code(check: Check) -> pd.DataFrame:
         .order_by(asc(VehicleJourney.id), asc(ServicePatternStop.auto_sequence_number))
     )
 
-    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.connection())
     df.fillna({"operating_on_working_days": np.nan}, inplace=True)
     vehicle_journey_df = (
         df.groupby(
@@ -323,7 +323,7 @@ def get_operating_profile_df(check: Check, vehicle_journey_ids: List) -> pd.Data
         .filter(OperatingProfile.vehicle_journey_id.in_(vehicle_journey_ids))
         .group_by(OperatingProfile.vehicle_journey_id)
     )
-    return pd.read_sql_query(result_op.statement, check.db.session.bind)
+    return pd.read_sql_query(result_op.statement, check.db.session.connection())
 
 
 def get_operating_date_exception_df(
@@ -353,7 +353,7 @@ def get_operating_date_exception_df(
         .group_by(OperatingDatesExceptions.vehicle_journey_id)
     )
 
-    return pd.read_sql_query(result_op_date_exp.statement, check.db.session.bind)
+    return pd.read_sql_query(result_op_date_exp.statement, check.db.session.connection())
 
 
 def get_non_operating_date_exception_df(
@@ -386,7 +386,7 @@ def get_non_operating_date_exception_df(
         .group_by(NonOperatingdatesexceptions.vehicle_journey_id)
     )
 
-    return pd.read_sql_query(result_non_op_date_exp.statement, check.db.session.bind)
+    return pd.read_sql_query(result_non_op_date_exp.statement, check.db.session.connection())
 
 
 def get_service_ogranisation_vehicle_journey_df(
@@ -421,7 +421,7 @@ def get_service_ogranisation_vehicle_journey_df(
     )
 
     return pd.read_sql_query(
-        result_serviced_organisation.statement, check.db.session.bind
+        result_serviced_organisation.statement, check.db.session.connection()
     )
 
 
@@ -473,7 +473,7 @@ def get_df_serviced_organisation(check: Check) -> pd.DataFrame:
         )
     )
 
-    return pd.read_sql_query(result.statement, check.db.session.bind)
+    return pd.read_sql_query(result.statement, check.db.session.connection())
 
 
 def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFrame:
@@ -487,6 +487,6 @@ def get_naptan_availablilty(check: Check, atco_codes: set[String]) -> pd.DataFra
         func.lower(NaptanStopPoint.atco_code).in_(atco_codes)
     )
 
-    df = pd.read_sql_query(result.statement, check.db.session.bind)
+    df = pd.read_sql_query(result.statement, check.db.session.connection())
     df["atco_code_exists"] = df["atco_code"].apply(lambda cell: cell in atco_codes)
     return df
