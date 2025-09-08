@@ -63,7 +63,7 @@ jobs:
 
       # Configure AWS credentials against the BODS Shared Services account
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.BODS_DEFAULT_GITHUB_ACTIONS_ASSUME_ROLE_ARN }}
@@ -73,7 +73,7 @@ jobs:
 
       # Assume a role into the BODS-PROD account
       - name: Configure AWS Credentials in bodds-prod
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.PROD_ASSUME_ROLE_ARN }}
@@ -140,7 +140,7 @@ jobs:
 
       # Configure AWS credentials against the BODS Shared Services account
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.BODS_DEFAULT_GITHUB_ACTIONS_ASSUME_ROLE_ARN }}
@@ -150,7 +150,7 @@ jobs:
 
       # Now assume a role in the Environment Specific account
       - name: Configure AWS Credentials in the environment specific account
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ vars.ASSUME_ROLE_ARN }}
