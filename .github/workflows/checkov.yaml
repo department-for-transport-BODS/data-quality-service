@@ -20,7 +20,7 @@ jobs:
 
       - name: Run Checkov Action
         id: checkov
-        uses: bridgecrewio/checkov-action@dfb51aed1b783289b0d3f255028e7a88d5e8caa1 # master
+        uses: bridgecrewio/checkov-action@a7683e7b72a04503521247973281ec8142e1ac1f # master
         with:
 
           directory: ${{ github.workspace }}
