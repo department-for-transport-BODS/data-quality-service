@@ -346,7 +346,7 @@ Resources:
         - 'AWSXrayWriteOnlyAccess'
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
-        - SQSPollerPolicy:
+        - SQSPollerPolicy: 
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
         - S3ReadPolicy:
             BucketName: !Ref DQSCacheBucket
