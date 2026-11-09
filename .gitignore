@@ -6,3 +6,6 @@
 .ruff_cache
 *.env
 .idea
+
+# MacOS files
+.DS_Store
