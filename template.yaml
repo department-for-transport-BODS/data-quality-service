@@ -134,7 +134,7 @@ Resources:
       Handler: first_stop_is_set_down_only.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -202,7 +202,7 @@ Resources:
       Handler: last_stop_is_pick_up_only.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -270,7 +270,7 @@ Resources:
       Handler: first_stop_is_not_a_timing_point.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -338,7 +338,7 @@ Resources:
       Handler: last_stop_is_not_a_timing_point.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -346,7 +346,7 @@ Resources:
         - 'AWSXrayWriteOnlyAccess'
         - 'AWSLambda_ReadOnlyAccess'
         - 'CloudWatchLambdaInsightsExecutionRolePolicy'
-        - SQSPollerPolicy:
+        - SQSPollerPolicy: 
             QueueName: !GetAtt LastStopIsNotATimingPointQueue.QueueName
         - S3ReadPolicy:
             BucketName: !Ref DQSCacheBucket
@@ -406,7 +406,7 @@ Resources:
       Handler: incorrect_noc.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -474,7 +474,7 @@ Resources:
       Handler: incorrect_stop_type.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -542,7 +542,7 @@ Resources:
       Handler: incorrect_licence_number.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -611,7 +611,7 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -679,7 +679,7 @@ Resources:
       Handler: missing_bus_working_number.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -747,7 +747,7 @@ Resources:
       Handler: duplicate_journey_code.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -815,7 +815,7 @@ Resources:
       Handler: stop_not_found_in_naptan.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -883,7 +883,7 @@ Resources:
       Handler: app.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -951,7 +951,7 @@ Resources:
       Handler: no_timing_point_for_more_than_15_minutes.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1020,7 +1020,7 @@ Resources:
       Handler: missing_journey_code.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1161,7 +1161,7 @@ Resources:
       Handler: cancelled_service_incorrectly_appearing_as_active.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1219,7 +1219,7 @@ Resources:
       Handler: data_prefetch.lambda_handler
       Layers: !If
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1269,7 +1269,7 @@ Resources:
       Handler: initiate_dqs.lambda_handler
       Layers: !If
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1325,7 +1325,7 @@ Resources:
       Handler: general_error_handler.lambda_handler
       Layers: !If
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Environment:
         Variables:
@@ -1386,7 +1386,7 @@ Resources:
       Handler: check_error_handler.lambda_handler
       Layers: !If
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1434,7 +1434,7 @@ Resources:
       Handler: serviced_organisation_data_is_out_of_date.lambda_handler
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'
@@ -1565,7 +1565,7 @@ Resources:
           SQS_QUEUE_URL: !GetAtt DQSDeadLetterQueue.QueueUrl
       Layers: !If 
         - IsNotLocal
-        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14']
+        - [!Ref BoilerplateLambdaLayer, !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:66']
         - !Ref 'AWS::NoValue'
       Policies:
         - 'AWSLambdaBasicExecutionRole'

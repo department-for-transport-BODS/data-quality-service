@@ -5,3 +5,4 @@
 .coverage
 .ruff_cache
 *.env
+.idea
