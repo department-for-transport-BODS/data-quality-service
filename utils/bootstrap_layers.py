@@ -3,7 +3,8 @@ from cfn_tools import load_yaml, ODict
 import logging
 from os import environ
 from sys import stdout
-from distutils.dir_util import copy_tree
+from pathlib import Path
+from shutil import copy2, copytree
 
 formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 stream_handler = logging.StreamHandler(stdout)
@@ -11,6 +12,16 @@ stream_handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.setLevel(environ.get("LOG_LEVEL", "INFO"))
 logger.addHandler(stream_handler)
+
+
+def copy_if_newer(source, destination):
+    destination_path = Path(destination)
+    if (
+        not destination_path.exists()
+        or Path(source).stat().st_mtime > destination_path.stat().st_mtime
+    ):
+        copy2(source, destination)
+    return destination
 
 
 class SamTemplate:
@@ -25,10 +36,11 @@ class SamTemplate:
                         logger.info(
                             f"Updating function build for {function.name} with layer {ref}"
                         )
-                        copy_tree(
+                        copytree(
                             f".aws-sam/build/{ref}/python",
                             f".aws-sam/build/{function.name}",
-                            update=1,
+                            dirs_exist_ok=True,
+                            copy_function=copy_if_newer,
                         )
 
     def handle_resources(self):

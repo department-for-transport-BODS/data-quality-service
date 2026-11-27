@@ -2,6 +2,7 @@ import logging
 import os.path
 from unittest.mock import MagicMock, patch
 import pandas as pd
+from freezegun import freeze_time
 from src.template.serviced_organisation_data_is_out_of_date import (
     lambda_handler,
     lambda_worker,
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+# Freeze the fixture-based checks so their 2022 and 2026 dates stay expired and current.
+@freeze_time("2025-01-01")
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
 @patch(
@@ -50,6 +53,7 @@ def test_lambda_handler_valid_check(
     mocked_check.set_status.assert_called_with("SUCCESS")
 
 
+@freeze_time("2025-01-01")
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
 @patch(
@@ -89,6 +93,7 @@ def test_lambda_handler_valid_check_fails(
     mocked_check.set_status.assert_called_with("SUCCESS")
 
 
+@freeze_time("2025-01-01")
 @patch("src.template.serviced_organisation_data_is_out_of_date.Check")
 @patch("src.template.serviced_organisation_data_is_out_of_date.ObservationResult")
 @patch(

@@ -1,7 +1,7 @@
+cfn-flip
 freezegun
 geoalchemy2
 mock-alchemy
 moto
-psycopg2
 pytest
 pytest-cov
